@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Tenant device</title><link rel="stylesheet" href="/tenant.css"></head>
+<body data-state="idle"><main><h1>Connect a light</h1>
+<p>Keep this page open and the phone awake. Camera permission is required for the flashlight; no photos are taken.</p>
+<form id="join"><label>Device label <input id="label" required maxlength="100" value="Phone light"></label>
+<label>Room code <input id="room" required maxlength="64" autocomplete="off"></label>
+<label>Device token <input id="token" type="password" required autocomplete="off"></label><button id="connect" type="submit">Join room</button></form>
+<p id="status" role="status" aria-live="polite">Not connected.</p><button id="leave" type="button" disabled>Disconnect and release camera</button></main>
+<script>
+'use strict';
+(() => {
+  const el = id => document.getElementById(id);
+  const setState = (state, text) => { document.body.dataset.state = state; el('status').textContent = text; };
+  const query = new URLSearchParams(location.search);
+  el('room').value = query.get('room') || '';
+  el('token').value = query.get('t') || '';
+  if (query.has('t')) { query.delete('t'); history.replaceState(null, '', location.pathname + (query.size ? '?' + query : '')); }
+  let id = decodeURIComponent(location.pathname.split('/').pop() || '');
+  if (!id || id === 'device.html') {
+    try { id = localStorage.getItem('tenant.deviceId') || crypto.randomUUID(); localStorage.setItem('tenant.deviceId', id); }
+    catch (_) { id = crypto.randomUUID(); }
+  }
+  let socket, stream, track, reconnectTimer, wakeLock;
+  let running = false, active = false, welcomed = false, highestEpoch = -1, attempt = 0;
+  let token = '', room = '', label = '';
+  const seen = new Map(); // Session lifetime: duplicates never execute again, including after reconnect.
+  const send = (ws, frame) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(frame)); };
+  const error = (req, code, message) => ({type:'err', req, code, message});
+  async function wake() {
+    if (!running || document.visibilityState !== 'visible' || !navigator.wakeLock) return;
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (_) { /* Keep-open instruction remains visible. */ }
+  }
+  function shutdown(message, state = 'offline') {
+    running = false; welcomed = false; clearTimeout(reconnectTimer);
+    if (socket) socket.close();
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    track = null; stream = null;
+    if (wakeLock) wakeLock.release().catch(() => {});
+    el('connect').disabled = false; el('leave').disabled = true;
+    setState(state, message);
+  }
+  async function command(ws, frame) {
+    const req = frame.req;
+    if (typeof req !== 'string' || !req || req.length > 200) return;
+    if (seen.has(req)) { const prior = seen.get(req); if (prior) send(ws, prior); return; }
+    if (seen.size >= 4096) { send(ws, error(req, 'FAILED', 'Session request limit reached; rejoin the device.')); return; }
+    const reply = result => { seen.set(req, result); send(ws, result); };
+    seen.set(req, null);
+    if (!welcomed || ws !== socket) return reply(error(req, 'FAILED', 'Device is not enrolled.'));
+    if (!Number.isSafeInteger(frame.epoch) || frame.epoch < 0) return reply(error(req, 'FAILED', 'Invalid command epoch.'));
+    if (frame.epoch < highestEpoch) return reply(error(req, 'STALE', 'Older command epoch.'));
+    highestEpoch = frame.epoch; // A freshness hint; this cannot revoke already received work.
+    if (frame.cap !== 'light') return reply(error(req, 'UNSUPPORTED', 'Only torch lighting is supported.'));
+    if (!frame.args || typeof frame.args.on !== 'boolean' || Object.keys(frame.args).some(k => k !== 'on')) return reply(error(req, 'FAILED', 'light requires only a boolean on argument.'));
+    if (!Number.isFinite(frame.deadline_ms) || frame.deadline_ms <= 0 || frame.deadline_ms > 30000) return reply(error(req, 'FAILED', 'Invalid command deadline.'));
+    if (!track || track.readyState !== 'live') return reply(error(req, 'PERMISSION', 'Camera permission or live camera track is unavailable.'));
+    if (active) return reply(error(req, 'BUSY', 'A previous torch action is still running.'));
+    active = true; setState('busy', 'Changing the flashlight…');
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      reply(error(req, 'FAILED', 'Torch action timed out; physical outcome unknown. It will not be retried.'));
+      setState('error', 'Torch outcome unknown. Wait for the camera operation to finish before another command.');
+    }, frame.deadline_ms);
+    try {
+      const actionTrack = track;
+      await actionTrack.applyConstraints({torch:{exact:frame.args.on}, advanced:[{torch:frame.args.on}]});
+      if (!timedOut) {
+        if (actionTrack.readyState !== 'live') reply(error(req, 'PERMISSION', 'Camera stopped before completion; physical outcome unknown.'));
+        else reply({type:'ok', req, result:{on:frame.args.on}});
+      }
+    } catch (e) {
+      if (!timedOut) reply(error(req, e.name === 'NotAllowedError' || e.name === 'SecurityError' ? 'PERMISSION' : 'FAILED', 'Torch change failed; physical outcome unknown.'));
+    } finally {
+      clearTimeout(timer); active = false;
+      if (running && welcomed && track && track.readyState === 'live') setState('ready', timedOut ? 'Connected. Previous torch outcome unknown; no retry was sent.' : 'Connected. Ready for flashlight commands.');
+    }
+  }
+  function connect() {
+    if (!running) return;
+    const url = new URL('/ws/device', location.href); url.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'; url.searchParams.set('t', token);
+    const ws = socket = new WebSocket(url);
+    ws.onopen = () => send(ws, {type:'hello', id, label, room, caps:{light:{description:'Turn the flashlight on or off', args:{on:{type:'boolean'}}}}});
+    ws.onmessage = event => {
+      if (ws !== socket) return;
+      let frame; try { frame = JSON.parse(event.data); } catch (_) { return; }
+      if (!frame || typeof frame !== 'object') return;
+      if (frame.type === 'welcome') {
+        if (frame.room !== room) { shutdown('Server returned a different room.', 'error'); return; }
+        welcomed = true; attempt = 0; setState(active ? 'busy' : 'ready', 'Connected. Keep this page open.');
+      } else if (frame.type === 'ping') send(ws, {type:'pong'});
+      else if (frame.type === 'do') void command(ws, frame);
+    };
+    ws.onclose = event => {
+      if (ws !== socket) return;
+      welcomed = false;
+      if (!running) return;
+      if ([1008, 4401, 4403].includes(event.code)) { shutdown('Device enrollment was rejected. Check room and token.', 'error'); return; }
+      setState('offline', 'Disconnected. Reconnecting without replaying flashlight commands…');
+      reconnectTimer = setTimeout(connect, Math.min(500 * 2 ** attempt++, 5000));
+    };
+    ws.onerror = () => { /* close schedules the sole reconnect. */ };
+  }
+  el('join').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (running || active) return;
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) { setState('error', 'Flashlight requires HTTPS and a browser with camera access.'); return; }
+    token = el('token').value; room = el('room').value.trim(); label = el('label').value.trim();
+    if (!token || !room || !label) return;
+    el('connect').disabled = true; setState('joining', 'Allow camera access to check flashlight support…');
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
+      track = stream.getVideoTracks()[0];
+      const torch = track && typeof track.getCapabilities === 'function' ? track.getCapabilities().torch : undefined;
+      // W3C uses [false,true]; deployed browsers also expose a boolean.
+      const controllable = torch === true || (Array.isArray(torch) && torch.includes(true) && torch.includes(false));
+      if (!controllable) { shutdown('This camera does not advertise flashlight support. No light capability was enrolled.', 'error'); return; }
+      track.addEventListener('ended', () => shutdown('Camera access ended. Rejoin to enable the flashlight.', 'error'));
+      running = true; el('leave').disabled = false; void wake(); connect();
+    } catch (_) { shutdown('Camera access unavailable or denied. Allow camera permission and tap Join again.', 'error'); }
+  });
+  el('leave').addEventListener('click', () => shutdown('Disconnected. Camera released.'));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void wake(); });
+  window.addEventListener('pagehide', () => shutdown('Page closed; camera released.'));
+})();
+</script></body></html>

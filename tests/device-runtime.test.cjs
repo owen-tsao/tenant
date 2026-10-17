@@ -1,0 +1,30 @@
+const {test} = require('node:test');
+const assert = require('node:assert/strict');
+const vm = require('node:vm');
+const fs = require('node:fs');
+const code = fs.readFileSync('web/device.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
+function fixture({torch=true, denied=false, secure=true, apply}={}) {
+  const elements = new Map();
+  const element = id => elements.get(id) || elements.set(id, {value:id==='room'?'ROOM':id==='token'?'secret':'Phone', addEventListener(type, cb){ this[type]=cb; }}).get(id);
+  let calls = [];
+  const track = {readyState:'live', getCapabilities:()=>({torch}), addEventListener(type, cb){this[type]=cb;}, stop(){this.readyState='ended';}, applyConstraints: async args => {calls.push(args); if(apply) await apply();}};
+  const sockets=[];
+  class WS { constructor(){this.readyState=1;this.sent=[];sockets.push(this);} send(x){this.sent.push(JSON.parse(x));} close(){this.readyState=3; if(this.onclose)this.onclose({code:1000});} }
+  const document={body:{dataset:{}},visibilityState:'visible',getElementById:element,addEventListener(){}};
+  const context={document, location:{pathname:'/d/phone',search:'?room=ROOM',href:'https://tenant.test/d/phone'},history:{replaceState(){}},URL,URLSearchParams,WebSocket:WS,window:{isSecureContext:secure,addEventListener(){}},navigator:{mediaDevices:{getUserMedia:async()=>{if(denied)throw Error('denied');return {getVideoTracks:()=>[track],getTracks:()=>[track]};}}},setTimeout,clearTimeout,console};
+  vm.runInNewContext(code,context);
+  return {elements,element,document,sockets,calls,track, async join(){element('token').value='secret';await element('join').submit({preventDefault(){}});if(sockets[0])sockets[0].onopen();}, frame(frame,ws=sockets.at(-1)){ws.onmessage({data:JSON.stringify(frame)});}};
+}
+const tick=()=>new Promise(resolve=>setImmediate(resolve));
+const command=(req='r1', extra={})=>({type:'do', req, cap:'light',args:{on:true},epoch:0,deadline_ms:1000,...extra});
+test('hello advertises only proven torch; welcome and ping correlate',async()=>{const f=fixture();await f.join();assert.deepEqual(Object.keys(f.sockets[0].sent[0].caps),['light']);f.frame({type:'welcome',room:'ROOM'});assert.equal(f.document.body.dataset.state,'ready');f.frame({type:'ping'});assert.equal(f.sockets[0].sent.at(-1).type,'pong');f.element('leave').click();});
+test('permission denial, unsupported camera, insecure context never enroll',async()=>{for(const options of [{denied:true},{torch:false},{torch:[false]},{torch:[true]},{secure:false}]){const f=fixture(options);await f.join();assert.equal(f.sockets.length,0);assert.equal(f.document.body.dataset.state,'error');}});
+test('absolute action executes once; duplicate gets cached result; invalid input never touches hardware',async()=>{const f=fixture();await f.join();f.frame({type:'welcome',room:'ROOM'});f.frame(command());await tick();f.frame(command());f.frame(command('bad',{args:{on:'true'}}));f.frame(command('unsupported',{cap:'camera.capture'}));f.frame(command('stale',{epoch:2}));await tick();f.frame(command('old',{epoch:1}));await tick();assert.equal(f.calls.length,2);assert.equal(f.sockets[0].sent.filter(x=>x.req==='r1'&&x.type==='ok').length,2);assert.equal(f.sockets[0].sent.at(-1).code,'STALE');f.element('leave').click();});
+test('in-flight duplicate and second command do not overlap',async()=>{let resolve;const f=fixture({apply:()=>new Promise(r=>resolve=r)});await f.join();f.frame({type:'welcome',room:'ROOM'});f.frame(command());f.frame(command());f.frame(command('r2'));assert.equal(f.calls.length,1);assert.equal(f.sockets[0].sent.at(-1).code,'BUSY');resolve();await tick();assert.equal(f.sockets[0].sent.at(-1).type,'ok');f.element('leave').click();});
+test('timeout is unknown and cannot be replayed while hardware operation remains pending',async()=>{let resolve;const f=fixture({apply:()=>new Promise(r=>resolve=r)});await f.join();f.frame({type:'welcome',room:'ROOM'});f.frame(command('r1',{deadline_ms:5}));await new Promise(r=>setTimeout(r,15));f.frame(command());f.frame(command('r2'));assert.equal(f.calls.length,1);assert.match(f.sockets[0].sent.find(x=>x.req==='r1').message,/unknown/);resolve();await tick();assert.equal(f.sockets[0].sent.filter(x=>x.req==='r1'&&x.type==='ok').length,0);f.element('leave').click();});
+test('disconnect reconnect sends hello without replaying action',async()=>{const f=fixture();await f.join();f.frame({type:'welcome',room:'ROOM'});f.frame(command());await tick();f.sockets[0].onclose({code:1006});await new Promise(r=>setTimeout(r,550));const ws=f.sockets[1];ws.onopen();f.frame({type:'welcome',room:'ROOM'},ws);f.frame(command(),ws);await tick();assert.equal(f.calls.length,1);assert.equal(ws.sent[0].type,'hello');assert.equal(ws.sent[1].type,'ok');f.element('leave').click();});
+
+test('standard boolean capability sequence enrolls controllable torch',async()=>{const f=fixture({torch:[false,true]});await f.join();assert.equal(f.sockets.length,1);f.element('leave').click();});
+
+test('track ending disconnects and absent live permission cannot report success',async()=>{const f=fixture();await f.join();f.frame({type:'welcome',room:'ROOM'});f.track.readyState='ended';f.frame(command());await tick();assert.equal(f.calls.length,0);assert.equal(f.sockets[0].sent.at(-1).code,'PERMISSION');f.track.ended();assert.equal(f.document.body.dataset.state,'error');assert.equal(f.sockets[0].readyState,3);});
+test('constraint rejection reports failure rather than success',async()=>{const f=fixture({apply:async()=>{throw Object.assign(Error(),{name:'NotAllowedError'});}});await f.join();f.frame({type:'welcome',room:'ROOM'});f.frame(command());await tick();assert.equal(f.sockets[0].sent.at(-1).code,'PERMISSION');assert.equal(f.sockets[0].sent.some(x=>x.type==='ok'),false);f.element('leave').click();});

@@ -1,0 +1,124 @@
+{
+  "scope": "Host-authenticated HTTPS -> real enrolled iPhone torch; not guest-chat acceptance",
+  "attestation_recorded_at_utc": "2026-10-17T23:41:45.578849+00:00",
+  "device": "Jay\u2019s iPhone; exact model/browser/version not yet recorded",
+  "source_sha256": {
+    "brain/config.py": "c3ce8a85658ad9a30cfd7ae7ef7e5456a994553a28689755ecdfbc06c76d0d38",
+    "brain/state.py": "8949df897843ad70ebc26e1f17fb2ecd9f5ade0be58e7b505784a34c1bf61f95",
+    "brain/main.py": "6fd840a32cab8c5d2263e34c5e84511b8a7c4577403961cf25e893706e3457bf",
+    "brain/core/bus.py": "67ab5b84c0f8e30cbf0745e3699674c8ebd0f82e20fd6f4634cf6501617bb9dc",
+    "brain/core/registry.py": "03bab9de0304cd2ff38defa06ac66671d05e3ec0255d4e07811989ad2da5b086",
+    "brain/ws/devices.py": "434195e9f774ea77474b7460af4f3624dc57fed2a81e2ce252ec395c0dfd439a",
+    "web/device.html": "d30edb14616dafe39d0aec25d884b022a27996d6d59bde6a3527498589065eaf",
+    "tests/test_runtime.py": "26c37cc5893ceacc9218ba65917315029566bf4f79f8f7898e35b3080bba7e69",
+    "tests/device-runtime.test.cjs": "4f449e718341f098e8734ffc169a3403984bd92575ba6db5b7deb27ce0e09fb6"
+  },
+  "lighting_patch_sha256": "a4c3e8787a42306ffe7f9991644c0e410d8cea99e048c5573bde5abce73f658f",
+  "automated_checks": {
+    "python_runtime": 17,
+    "browser_protocol": 9,
+    "combined_python_with_audio": 47,
+    "failures_after_fixture_fix": 0
+  },
+  "cases": [
+    {
+      "case": "torch-1",
+      "started_utc": "2026-10-17T23:39:55.501721+00:00",
+      "ended_utc": "2026-10-17T23:39:55.987789+00:00",
+      "elapsed_ms": 486,
+      "requested_on": true,
+      "http_status": 200,
+      "response": {
+        "ok": true,
+        "result": {
+          "on": true
+        }
+      },
+      "physical_observation": "Jay confirmed all three ON -> OFF cycles, ending OFF."
+    },
+    {
+      "case": "torch-2",
+      "started_utc": "2026-10-17T23:39:57.991901+00:00",
+      "ended_utc": "2026-10-17T23:39:58.084946+00:00",
+      "elapsed_ms": 93,
+      "requested_on": false,
+      "http_status": 200,
+      "response": {
+        "ok": true,
+        "result": {
+          "on": false
+        }
+      },
+      "physical_observation": "Jay confirmed all three ON -> OFF cycles, ending OFF."
+    },
+    {
+      "case": "torch-3",
+      "started_utc": "2026-10-17T23:40:00.086567+00:00",
+      "ended_utc": "2026-10-17T23:40:00.310327+00:00",
+      "elapsed_ms": 224,
+      "requested_on": true,
+      "http_status": 200,
+      "response": {
+        "ok": true,
+        "result": {
+          "on": true
+        }
+      },
+      "physical_observation": "Jay confirmed all three ON -> OFF cycles, ending OFF."
+    },
+    {
+      "case": "torch-4",
+      "started_utc": "2026-10-17T23:40:02.315474+00:00",
+      "ended_utc": "2026-10-17T23:40:02.544393+00:00",
+      "elapsed_ms": 229,
+      "requested_on": false,
+      "http_status": 200,
+      "response": {
+        "ok": true,
+        "result": {
+          "on": false
+        }
+      },
+      "physical_observation": "Jay confirmed all three ON -> OFF cycles, ending OFF."
+    },
+    {
+      "case": "torch-5",
+      "started_utc": "2026-10-17T23:40:04.549039+00:00",
+      "ended_utc": "2026-10-17T23:40:04.626433+00:00",
+      "elapsed_ms": 77,
+      "requested_on": true,
+      "http_status": 200,
+      "response": {
+        "ok": true,
+        "result": {
+          "on": true
+        }
+      },
+      "physical_observation": "Jay confirmed all three ON -> OFF cycles, ending OFF."
+    },
+    {
+      "case": "torch-6",
+      "started_utc": "2026-10-17T23:40:06.631721+00:00",
+      "ended_utc": "2026-10-17T23:40:06.862800+00:00",
+      "elapsed_ms": 231,
+      "requested_on": false,
+      "http_status": 200,
+      "response": {
+        "ok": true,
+        "result": {
+          "on": false
+        }
+      },
+      "physical_observation": "Jay confirmed all three ON -> OFF cycles, ending OFF."
+    }
+  ],
+  "status": "PASS_COMPONENT_ONLY",
+  "still_required": [
+    "reconnect/no replay",
+    "actual Mac audio",
+    "guest join/agent path",
+    "access denials and queued revocation",
+    "device alternatives/confirmation",
+    "reset drills"
+  ]
+}
