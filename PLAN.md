@@ -14,7 +14,7 @@ For the judge at our table, *they* are the guest. They control our table's devic
 
 ## 2. How it works (one paragraph, real names)
 
-A **Brain** (FastAPI + WebSocket server on a public HTTPS host) holds a **device registry**: every device keeps a WebSocket open and announces a capability manifest (`{"id":"owen-phone","can":["light","camera","speak","flash","show"]}`). A **Lease** is a short‑lived grant (room code → guest identity → TTL + scopes). Guests reach the Brain through one of two **channels**: Photon iMessage (we create a shared‑line assignment for their phone number, they text the returned number) or a web chat page (typed / hold‑to‑talk). Each guest gets an **Agent session**: an LLM tool‑calling loop whose tool list is rebuilt every turn from the registry filtered by the guest's lease scopes. Tool calls become `{"do":"light","on":true}` messages down a device's socket; the device replies `{"ok":true}` and the agent narrates. Revocation deletes the lease; subsequent commands get a fixed denial. The laptop runs a **Display** page (capability graph + what's happening) and a **Laptop device agent** (AppleScript: music/volume/brightness/say/Keynote). Phones run a **Device page** (torch, camera, screen flash, TTS, sound, wake lock).
+A **Brain** (FastAPI + WebSocket server on a public HTTPS host) holds a **device registry**: every device keeps a WebSocket open and announces a capability manifest (`{"id":"owen-phone","caps":{"light":{...},"camera.capture":{...},...}}`). A **Lease** is a short‑lived grant (room code → guest identity → TTL + scopes). Guests reach the Brain through one of two **channels**: Photon iMessage (we create a shared‑line assignment for their phone number, they text the returned number) or a web chat page (typed / hold‑to‑talk). Each guest gets an **Agent session**: an LLM tool‑calling loop whose tool list is rebuilt every turn from the registry filtered by the guest's lease scopes. Tool calls become `{"do":"light","on":true}` messages down a device's socket; the device replies `{"ok":true}` and the agent narrates. Revocation deletes the lease; subsequent commands get a fixed denial. The laptop runs a **Display** page (capability graph + what's happening) and a **Laptop device agent** (AppleScript: music/volume/brightness/say/Keynote). Phones run a **Device page** (torch, camera, screen flash, TTS, sound, wake lock).
 
 ## 3. Scope — locked device list
 
@@ -27,7 +27,7 @@ A **Brain** (FastAPI + WebSocket server on a public HTTPS host) holds a **device
 | Phone B (teammate) | same | Device page |
 | Borrowed tablet/laptop (optional) | `show`, `speak` | Device page |
 
-Not in scope today: webcam vision (Perceptron), guest‑lends‑their‑camera, voice calls, any simulated device. Anything added after 7 PM must be a device page instance, not a new capability type.
+Not in scope today: webcam vision (Perceptron), guest‑lends‑their‑camera, voice calls, any simulated device. Anything added after the 7:30 kill check must be a device page instance, not a new capability type.
 
 ## 4. Architecture
 
@@ -42,12 +42,12 @@ device pages (phones, laptop display) ◀──WebSocket──┘
 laptop room agent (python, osascript) ◀──WebSocket──┘
 ```
 
-### Protocol (all JSON over WebSocket)
+### Protocol (simplified — `ARCHITECTURE.md` §3–§5 is authoritative; build from there, not from here)
 
-Device → Brain on connect: `{"type":"hello","id":"owen-phone","label":"Owen's phone","can":["light","camera","flash","speak","sound"]}`
-Brain → Device: `{"type":"do","req":"r123","cap":"light","args":{"on":true}}`
-Device → Brain: `{"type":"ok","req":"r123","result":{...}}` or `{"type":"err","req":"r123","message":"permission denied"}`
-Brain → Display: `{"type":"state","devices":[...],"guests":[...],"log":[...]}` on every change.
+Device → Brain on connect: `{"type":"hello","id":"owen-phone","label":"Owen's phone","room":"7F3A","caps":{"light":{"description":...,"args":{...}},...}}`
+Brain → Device: `{"type":"do","req":"r123","cap":"light","args":{"on":true},"deadline_ms":5000,"epoch":3}`
+Device → Brain: `{"type":"ok","req":"r123","result":{...}}` or `{"type":"err","req":"r123","code":"PERMISSION|UNSUPPORTED|BUSY|FAILED|STALE","message":"..."}`
+Brain → Display: `{"type":"state","room":{...},"devices":[...],"guests":[...],"log":[...]}` on every change.
 
 ### Lease
 
@@ -62,7 +62,7 @@ System prompt: you are Room {code}; here are the devices and what they can do ri
 ## 5. Track declaration
 
 - **Title:** Community Kitchen (accessibility: patients and guests who can't reach controls run the room by text/voice; no app barrier). Fallback framing: Cook Smarter.
-- **Sponsored (≤3):** Photon (guest channel), VEYZL (lease/scope/revocation audit on the repo — run their check on a PR, fix one finding), SpaceXAI (built in Cursor; Grok Voice TTS).
+- **Sponsored (≤3):** Photon (guest channel — verified), VEYZL (lease/scope/revocation audit on the repo — run their check on a PR, fix one finding), SpaceXAI (built in Cursor; **if we hold an xAI key, Grok is the agent's function‑calling model** so xAI is load‑bearing, not a bolt‑on; Grok Voice TTS as stretch on top).
 - **Non‑sponsored:** SideShift, DubHacks NEXT, Vultr (host), GoDaddy (domain), Backboard if trivially added (guest preferences across rooms), MLH Commit form.
 
 ## 6. Who builds what
@@ -93,7 +93,7 @@ The seam is the wire protocol in `ARCHITECTURE.md` §3–§5. Rule for both: **a
 ## 7. The 3‑minute demo (table)
 
 0:00 Reset room (one key). Display shows: Room 7F3A, 5 devices, 0 guests, QR.
-0:15 "Scan this." Judge scans → join page with two buttons: **Chat here** (default, no phone number) or **Text the room** (enters number → Messages opens with "join 7F3A" pre‑filled → they send). Display: guest appears.
+0:15 "Scan this." Judge scans → join page with two buttons: **Chat here** (no phone number) or **Text the room** (enters number → Messages opens with "join 7F3A" pre‑filled → they send). Display: guest appears. *Which button we point iPhone judges at is decided after rehearsal #1, based on how the ~4 s Photon round trip feels versus ~1.5 s on chat.*
 0:40 Judge: "turn on a light." Phone torch on. Reply: "Light's on — Owen's phone."
 0:55 Judge: "play something calm." Music through the speaker.
 1:10 Judge: "what's in this room?" Reply lists devices; display highlights them.
@@ -117,14 +117,14 @@ Rule: we never touch a keyboard during the demo except the reset key.
 
 ## 9. Kill conditions
 
-- 3:55 PM: Photon smoke test fails → cut Photon, keep chat.
+- ~~3:55 PM: Photon smoke test fails → cut Photon, keep chat.~~ **Passed 4:11 PM.**
 - 7:30 PM: no phone‑over‑HTTPS torch via chat → ship Brain + 2 phones + display only; drop music/camera.
 - 10:00 PM: typed guest path unreliable → draft still goes in; spend the night on reliability, not features.
 
 ## 10. Assumptions (status)
 
-- Verified: iOS 17.5+ Safari torch, camera (HTTPS), Wake Lock; Photon free tier = 25 shared assignments, agent can't text first; DubHacks judging is at tables in the ballroom; rubric weights.
-- Unverified: Photon assignment API works live for a *new* number in <2 s; Grok Voice TTS latency and that we have an xAI key; Vultr credit code (ask MLH table; any HTTPS host works); Bluetooth speaker stays paired under load.
+- Verified: iOS 17.5+ Safari torch, camera (HTTPS), Wake Lock; Photon free tier = 25 shared assignments, agent can't text first; **Photon full round trip live (assign → inbound → reply 202, ~2 s inbound latency)**; DubHacks judging is at tables in the ballroom; rubric weights.
+- Unverified: Photon reply actually *delivered* to the phone (202 = accepted, not delivered — check Messages); second phone number behaves identically; that we have an xAI key (if yes, Grok becomes the agent's model — see §5); Grok Voice TTS latency; Vultr credit code (ask MLH table; any HTTPS host works); Bluetooth speaker stays paired under load; **both demo phones are on iOS 17.5+** (torch requires it — check Settings → General → About now).
 
 ## 11. Merge with Project Morph (teammate's plan) — final
 
@@ -157,4 +157,4 @@ Registry of capabilities not devices · lease with TTL + scopes · QR identifies
 | Thermostat, curtains, fans, PTZ cameras, DMX fixtures, mmWave, haptics, fabrication | Future‑vision list in Morph; none present. |
 
 ### Tiebreaker for anything not listed
-Does it survive the 7 PM kill check **and** fit the 3‑minute table demo? If either is no, it is deferred with a written unlock condition in `IDEAS.md`, not built.
+Does it survive the 7:30 kill check **and** fit the 3‑minute table demo? If either is no, it is deferred with a written unlock condition in `IDEAS.md`, not built.
