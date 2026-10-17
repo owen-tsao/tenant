@@ -174,7 +174,13 @@ Guest page opens WS with `guest_id`. Frames: `{"type":"user","text":"turn on a l
 - One background task polls `GET /v1/projects/{id}/messages?direction=received&createdSince={cursor}&order=asc&pageSize=100&platform=imessage` every 2 s; advances `cursor` to the newest `createdAt`; de‑dupes by message `id`.
 - Maps the sender handle → `Lease` via `PhotonBinding.handle`. Unknown sender → ignored (shared line only delivers assigned senders anyway).
 - Text "join 7F3A" (or anything, if lease is `joining`) → activates the lease and replies with the welcome + device list. Otherwise text → agent.
-- Replies: `POST /v1/projects/{id}/messages` reusing the incoming message's `space.id`, `receivedBy.id`, and `id` (per their quickstart — **field names unverified until the 3:55 smoke test**), header `Idempotency-Key: reply:{incoming_id}`. The room **never** sends first; it only replies.
+- Replies: `POST /v1/projects/{id}/messages` with `spaceId` (from the inbound message's `space.id`), `senderId` (= inbound `receivedBy.id`, the shared‑line agent), `content {type:"text", format:"plain", text}`, header `idempotency-key: reply:{incoming_id}`. **Verified live 4:11 PM** — full round trip, reply accepted HTTP 202, ~2 s inbound latency on polling. The room **never** sends first; it only replies.
+- **Gotchas, all solved in `spikes/photon/test.py` — do not re‑debug:**
+  - Cloudflare returns 403 (error 1010) to Python's default `urllib` User‑Agent. Send any custom `User-Agent`. `httpx` is fine.
+  - **Never set `parentMessageId` on iMessage sends.** Shared lines don't support threaded replies and surface it as `409 SPACE_NOT_SENDABLE "Replies are not supported for this Space"`. Photon's own quickstart includes the field; the sample is wrong for shared lines.
+  - Deleting the thread on the phone does nothing — Photon's space is keyed by participant pair, not device thread.
+  - A 202 is *acceptance*, not delivery. Confirm on the phone during rehearsal.
+- Project: `pho_prj_01m55zzgmresk81n1kz3w5q4ba`; shared line `+1 628‑502‑4649`; 1 of 25 assignments used after the spike. Not yet tested with a second phone number — assumed identical.
 - On leave/expiry/reset: `DELETE /v1/projects/{id}/platforms/imessage/assignments/{assignment_id}` to free the seat (25 on Free).
 - Rate: one poll loop total, not per guest.
 
