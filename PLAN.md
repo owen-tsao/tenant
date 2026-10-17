@@ -63,25 +63,57 @@ System prompt: you are Room {code}; here are the devices and what they can do ri
 - **Sponsored (≤3):** Photon (guest channel), VEYZL (lease/scope/revocation audit on the repo — run their check on a PR, fix one finding), SpaceXAI (built in Cursor; Grok Voice TTS).
 - **Non‑sponsored:** SideShift, DubHacks NEXT, Vultr (host), GoDaddy (domain), Backboard if trivially added (guest preferences across rooms), MLH Commit form.
 
-## 6. Timeline (two people; A = backend/agent, B = devices/frontend)
+## 6. Who builds what
 
-| When | A | B | Checkpoint |
+The seam is the wire protocol in `ARCHITECTURE.md` §3–§5. **Jay owns the room side** (everything that makes a device act). **Owen owns the guest side** (everything a guest touches, plus hosting and the Photon channel, since he holds the keys). The Brain is split along that same line, by module, so neither person edits the other's files without a message first.
+
+### Jay — room side
+| Piece | Files | Done when |
+|---|---|---|
+| State + registry | `brain/state.py`, `brain/core/registry.py` | Dataclasses from `ARCHITECTURE.md` §2; `online_in(room)`; offline on 2 missed pings or socket close |
+| Device bus | `brain/core/bus.py`, `brain/ws/devices.py` | `await bus.call(device_id, cap, args, timeout=5.0)`; one `do` in flight per device; `epoch` stamped on every frame; `STALE` rejected |
+| Leases | `brain/core/leases.py` | create / activate / revoke / expire; `room.epoch += 1` on every revoke/reset; 5 s expiry sweep |
+| Host console | `brain/api/host.py`, `brain/ws/display.py` | `host.reset` does the §10 sequence in <1 s; `R` key with 1 s hold |
+| Device page | `web/device.html`, `web/shared.js` | Join button unlocks torch, flash, speak, sound, camera, wake lock; reconnect w/ backoff + re‑hello |
+| Laptop agent | `agent/laptop.py` | `music.play/pause`, `volume`, `say`, `slides.next` via `osascript`; connects as a device |
+| Display page | `web/display.html` | Capability graph, live log, QR, guests with countdown; greys offline devices |
+| **Stretch:** rules | `brain/core/rules.py` | §6.5 of `ARCHITECTURE.md` — his idea, his call on `phone.shake` |
+
+### Owen — guest side
+| Piece | Files | Done when |
+|---|---|---|
+| Join | `brain/api/join.py`, `web/join.html` | "Chat here" → lease + redirect; "Text the room" → Photon assignment + `sms:` link; works on iPhone and Android |
+| Web chat | `brain/channels/webchat.py`, `web/guest.html` | `/ws/guest` streams assistant + action events; hold‑to‑talk stretch |
+| Agent | `brain/core/agent.py`, `brain/core/tools.py` | `tools_for(lease)` rebuilt every turn; lease checked before each call; max 4 rounds; fixed denial when no lease |
+| Photon channel | `brain/channels/photon.py` | One poll loop; reply‑only; assignment released on leave/expiry/reset |
+| Hosting | `scripts/dev.sh`, Caddy/Fly config, domain | Public HTTPS by 7:00; phones reach it over cellular |
+| Devpost + video | `README.md`, Devpost | Draft by 10:30 PM; final with video by 9:30 AM |
+| **Stretch:** VEYZL | — | PR opened, audit run, one finding fixed |
+
+### Joint — first 30 minutes (4:15–4:45), one screen
+Write and commit together before splitting, so Owen can code against Jay's interfaces before they exist:
+1. `brain/state.py` — the dataclasses, verbatim from `ARCHITECTURE.md` §2.
+2. `brain/core/bus.py` — the `bus.call(...)` signature and a `FakeDevice` that answers `ok` instantly (Owen tests the agent loop against it until a real phone is on).
+3. `brain/main.py` — FastAPI app with every route and WS endpoint mounted as a stub.
+4. `.env.example` — `PHOTON_API_KEY`, `PHOTON_PROJECT_ID`, `LLM_API_KEY`, `HOST_TOKEN`, `DEVICE_TOKEN`, `PUBLIC_URL`.
+After this, one rule: **a protocol change goes in `ARCHITECTURE.md` first, then a message, then code.**
+
+### Timeline (shifted — we start at 4:15, not 3:30)
+| When | Jay | Owen | Checkpoint |
 |---|---|---|---|
-| 3:30–4:00 | Photon smoke test (steps 6–7) | Repo, Vite+vanilla device page skeleton, WebSocket client | **3:55 Photon go/no‑go** |
-| 4:00–5:30 | Brain: FastAPI, WS hub, registry, do/ok bus, `/join` `/leave`, lease TTL | Device page: hello, torch, flash, speak, sound, wake lock, reconnect | 5:30: phone joins, Brain can toggle torch via curl |
-| 5:30–6:30 | Agent loop w/ dynamic tools; web chat endpoint | Camera capture → upload → display shows it | 6:30: typed "turn on the light" works end‑to‑end locally |
-| 6:30–7:00 | Deploy to Vultr/Fly with HTTPS (Caddy or platform TLS); domain | Display page: capability graph + live log + QR | **7:00 KILL CHECK:** phone over public HTTPS + torch via chat. If not, cut everything optional. |
-| 7:00–8:00 | Photon channel: assignment on join, poll loop, reply routing | Laptop room agent: music, volume, brightness, say, slides | 8:00: judge flow rehearsal #1 with teammate's phone as "judge" |
-| 8:00–9:00 | Revocation path, denial copy, host reset (`R`), lease TTL expiry | Join page: phone number field → assignment → "text this number" + chat fallback | 9:00: full 3‑min run‑through, timed |
-| 9:00–10:00 | **[STRETCH]** VEYZL: connect GitHub, open PR, run audit, fix one finding (likely: confirm‑before‑act or secret handling) | Polish display; error states look intentional | Drop VEYZL first if the 7 PM check slipped |
-| 10:00–10:30 | **Devpost draft** (overview + tracks) — B writes, A reviews | | **10:30 PM hard deadline** |
-| 10:30–12:30 | Hardening: reconnects, timeouts, two guests at once (last‑write‑wins), rate limit | **[STRETCH]** Hold‑to‑talk (browser STT) + Grok Voice TTS on laptop | 12:30: rehearsal #2 on Android + iPhone, **with someone who hasn't seen the project as the judge** |
-| *(after 9 PM, only if 9:00 run‑through passed)* | **[STRETCH — from Morph]** Rules: "whenever `<event>`, do `<actions>`" installed by the guest in plain language, stored as data, fired deterministically. Events are ones we already emit: `guest.join`, `guest.leave`, `photo.taken`, `timer`. Demo: "whenever someone joins, flash green and say welcome" → second judge scans → room reacts unprompted. | `phone.shake` event via DeviceMotion if the 10‑min permission spike is clean | Drop before VEYZL if behind |
-| 12:30–2:00 | Sleep or bug fixes only — no new features | | |
-| 2:00–7:00 | Sleep | | |
-| 7:00–8:30 | Record 3‑min video (room reset → judge joins → light/music/photo → leave) | Devpost final: README, repo public, video link | |
-| 8:30–9:30 | Rehearsal #3; reset flow drill (6 demos back to back) | Charge everything; pair speaker; tape QR to table | |
-| 10:00 | **Submit.** 10:20 be in HUB Ballroom for 10:30 workshop. | | |
+| 4:15–4:45 | Joint scaffold (above) | Joint scaffold (above) | Commit: app boots, routes stubbed, `FakeDevice` answers |
+| 4:45–6:00 | Registry, bus, `ws/devices`, leases; device page: hello, torch, flash, speak, wake lock, reconnect | Agent loop + `tools_for` against `FakeDevice`; web chat endpoint + `guest.html` | **6:00:** phone joins, Jay toggles torch via curl; Owen's typed "turn on the light" works against FakeDevice |
+| 6:00–7:00 | Swap FakeDevice for real bus; camera capture → upload → display; display page v1 | Join page + `/join`; deploy to HTTPS host; domain | 7:00: typed "turn on the light" from `guest.html` lights a real phone, locally |
+| 7:00–7:30 | Laptop agent: music, volume, say | Verify phones reach the public URL over cellular | **7:30 KILL CHECK:** phone over public HTTPS + torch via chat. Fail → ship Brain + 2 phones + display only |
+| 7:30–8:30 | Host reset, revoke, epoch/STALE, expiry sweep; display shows countdowns | Photon channel: assignment on join, poll loop, reply routing, seat release | 8:30: rehearsal #1, Jay's phone as judge, both channels |
+| 8:30–9:30 | Error states look intentional; laptop `slides.next`; two‑guest behaviour | Denial copy; rate limit; `sms:` link on iPhone + Android | 9:30: full 3‑min run‑through, timed |
+| 9:30–10:30 | **[STRETCH]** Rules (§6.5) | **Devpost draft** then **[STRETCH]** VEYZL | **10:30 PM Devpost hard deadline** |
+| 10:30–12:30 | Hardening: reconnects, wake lock after sleep, hotspot fallback | Hold‑to‑talk + Grok Voice TTS **[STRETCH]**; two guests at once | 12:30: rehearsal #2, stranger as judge, Android + iPhone |
+| 12:30–2:00 | Bug fixes only | Bug fixes only | No new features after 12:30 |
+| 2:00–7:00 | Sleep | Sleep | |
+| 7:00–8:30 | Charge everything; pair speaker; tape QR | Record 3‑min video; README; Devpost final | |
+| 8:30–9:30 | Rehearsal #3; reset drill ×6 | Rehearsal #3 | |
+| 10:00 | **Submit.** 10:20 HUB Ballroom. | | |
 
 ## 7. The 3‑minute demo (table)
 
@@ -111,7 +143,7 @@ Rule: we never touch a keyboard during the demo except the reset key.
 ## 9. Kill conditions
 
 - 3:55 PM: Photon smoke test fails → cut Photon, keep chat.
-- 7:00 PM: no phone‑over‑HTTPS torch via chat → ship Brain + 2 phones + display only; drop music/camera.
+- 7:30 PM: no phone‑over‑HTTPS torch via chat → ship Brain + 2 phones + display only; drop music/camera.
 - 10:00 PM: typed guest path unreliable → draft still goes in; spend the night on reliability, not features.
 
 ## 10. Assumptions (status)
