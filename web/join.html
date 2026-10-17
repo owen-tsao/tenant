@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Tenant — Join</title>
+<link rel="stylesheet" href="tenant.css">
+</head>
+<body>
+<main class="join" id="join">
+  <div class="eyebrow" id="room">Room</div>
+  <h1>Talk to this room from your phone.</h1>
+  <p>Ask for a light, some music, a photo. Nothing to install, no account. Your access ends when you leave.</p>
+
+  <div id="step-choose" class="alt">
+    <button class="btn btn-primary" id="chat">Chat here</button>
+    <button class="btn" id="text">Text the room</button>
+  </div>
+
+  <div id="step-phone" class="reveal">
+    <input class="input" id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Your mobile number" aria-label="Your mobile number">
+    <button class="btn btn-primary" id="go-text">Open Messages</button>
+    <button class="btn" id="back">Back</button>
+    <div class="note">We give the room your number so it can reply by iMessage. We don't keep it after you leave.</div>
+  </div>
+
+  <div id="step-sms" class="reveal">
+    <p>Text <strong>join <span id="code2"></span></strong> to the number below. Messages should open with it ready to send.</p>
+    <div class="number mono" id="number"></div>
+    <a class="btn btn-primary" id="sms" href="#">Open Messages</a>
+    <button class="btn" id="chat2">Or chat here instead</button>
+  </div>
+
+  <div id="err" class="err" hidden></div>
+</main>
+
+<script src="shared.js"></script>
+<script>
+(function () {
+  const T = window.Tenant;
+  const $ = (id) => document.getElementById(id);
+  // Room code from /j/{code}, or ?room= when opened from a static server.
+  const m = location.pathname.match(/\/j\/([A-Za-z0-9]+)/);
+  const code = (m ? m[1] : new URLSearchParams(location.search).get("room") || "7F3A").toUpperCase();
+  $("room").textContent = `Room ${code}`;
+  $("code2").textContent = code;
+
+  function show(step) {
+    for (const id of ["step-choose", "step-phone", "step-sms"]) {
+      const el = $(id); el.classList.toggle("open", id === step);
+      if (id === "step-choose") el.style.display = step === id ? "" : "none";
+    }
+    $("err").hidden = true;
+  }
+  function fail(msg) { $("err").textContent = msg; $("err").hidden = false; }
+  function busy(btn, on) { btn.disabled = on; btn.dataset.label ??= btn.textContent; btn.textContent = on ? "One moment…" : btn.dataset.label; }
+
+  // E.164-ish: digits only, assume US if 10 digits.
+  function normalize(raw) {
+    const d = raw.replace(/[^\d+]/g, "");
+    if (d.startsWith("+")) return d.length >= 11 ? d : null;
+    if (d.length === 10) return "+1" + d;
+    if (d.length === 11 && d.startsWith("1")) return "+" + d;
+    return null;
+  }
+
+  async function joinChat(btn) {
+    busy(btn, true);
+    try {
+      const r = await T.postJoin(code);
+      location.href = r.chat_url;
+    } catch (e) { fail(e.message || "Couldn't join. Try again."); busy(btn, false); }
+  }
+
+  $("chat").onclick = () => joinChat($("chat"));
+  $("chat2").onclick = () => joinChat($("chat2"));
+  $("text").onclick = () => { show("step-phone"); setTimeout(() => $("phone").focus(), 50); };
+  $("back").onclick = () => show("step-choose");
+  $("go-text").onclick = async () => {
+    const phone = normalize($("phone").value);
+    if (!phone) return fail("That doesn't look like a mobile number.");
+    busy($("go-text"), true);
+    try {
+      const r = await T.postJoin(code, phone);
+      if (!r.imessage_number) { location.href = r.chat_url; return; } // Photon unavailable → chat silently
+      $("number").textContent = r.imessage_number;
+      $("sms").href = r.sms_link;
+      // keep the chat fallback pointed at this same guest
+      $("chat2").onclick = () => { location.href = r.chat_url; };
+      show("step-sms");
+      // Try to open Messages right away; the button stays as the fallback.
+      location.href = r.sms_link;
+    } catch (e) { fail(e.message || "Couldn't set up texting. You can still chat here."); busy($("go-text"), false); }
+  };
+  $("phone").addEventListener("keydown", (e) => { if (e.key === "Enter") $("go-text").click(); });
+})();
+</script>
+</body>
+</html>

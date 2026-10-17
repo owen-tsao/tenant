@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#000000">
+<title>Tenant — Room</title>
+<link rel="stylesheet" href="tenant.css">
+</head>
+<body>
+<main class="chat">
+  <header class="chat-head">
+    <span class="room" id="room">Room</span>
+    <span class="left" id="left" aria-live="off"></span>
+  </header>
+  <div class="thread" id="thread" aria-live="polite"></div>
+  <form class="compose" id="compose">
+    <input class="input" id="text" placeholder="Ask the room for something" autocomplete="off" enterkeyhint="send" aria-label="Message the room">
+    <button class="btn btn-primary" type="submit" aria-label="Send">Send</button>
+  </form>
+</main>
+
+<script src="shared.js"></script>
+<script>
+(function () {
+  const T = window.Tenant;
+  const $ = (id) => document.getElementById(id);
+  const m = location.pathname.match(/\/g\/([A-Za-z0-9_-]+)/);
+  const guestId = m ? m[1] : (new URLSearchParams(location.search).get("guest") || "g_mock");
+  const token = (location.hash.match(/t=([^&]+)/) || [])[1] || "";
+  const roomCode = new URLSearchParams(location.search).get("room") || "7F3A";
+  $("room").textContent = `Room ${roomCode}`;
+
+  const thread = $("thread");
+  let typing = null, expires = null, denied = false;
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+  function scroll() { thread.scrollTop = thread.scrollHeight; }
+  function add(html) { const el = document.createElement("div"); el.innerHTML = html; const node = el.firstElementChild; thread.appendChild(node); scroll(); return node; }
+  function showTyping() { if (!typing) typing = add(`<div class="msg room"><span class="typing"><i></i><i></i><i></i></span></div>`); }
+  function hideTyping() { if (typing) { typing.remove(); typing = null; } }
+
+  function onFrame(f) {
+    if (f.type === "user") { add(`<div class="msg me">${esc(f.text)}</div>`); showTyping(); return; }
+    if (f.type === "action") { add(`<div class="sys live">${esc(f.text)}</div>`); return; }
+    if (f.type === "assistant") { hideTyping(); add(`<div class="msg room">${esc(f.text)}</div>`); return; }
+    if (f.type === "denied" || (f.type === "lease" && f.state === "released")) {
+      denied = true; expires = null; $("left").textContent = "";
+      add(`<div class="sys denied">Your access to this room has ended. Scan the code to rejoin.</div>`);
+      return;
+    }
+    if (f.type === "lease" && typeof f.expires_in === "number") { expires = f.expires_in; }
+    if (f.type === "error") { hideTyping(); add(`<div class="sys">${esc(f.text || "The room didn't answer. Say that again?")}</div>`); }
+  }
+
+  setInterval(() => {
+    if (expires == null) return;
+    expires = Math.max(0, expires - 1);
+    $("left").textContent = expires > 0 ? `${T.fmtClock(expires)} left` : "";
+  }, 1000);
+
+  let conn = null;
+  T.connectGuest(guestId, token, onFrame).then(c => { conn = c; if (typeof c.expires_in === "number") expires = c.expires_in; });
+
+  $("compose").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = $("text").value.trim();
+    if (!text || !conn) return;
+    $("text").value = "";
+    if (!T.MOCK) { add(`<div class="msg me">${esc(text)}</div>`); showTyping(); }
+    conn.send(text);
+  });
+})();
+</script>
+</body>
+</html>
