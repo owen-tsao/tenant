@@ -48,6 +48,10 @@ If you need a field that isn't there, the order is: propose it in `ARCHITECTURE.
 
 Anything under `brain/`, `agent/`, `scripts/`, and the JavaScript in `web/device.html`. If a page needs the Brain to behave differently, message Jay. `.env` values are shared in person only — you hold the Photon keys and any hosting credits; hand them to Jay, never paste them into chat logs or the repo.
 
+## Your log
+
+`notes/owen.md` — append one line for a deviation from the plan, an interface change, or a blocker. Nothing else. Read `notes/jay.md` at every check‑in.
+
 ## Design notes (so it doesn't look like a hackathon admin panel)
 
 - Monochrome base, one accent, used only for *live* things: a device going busy, a guest joining, a log row landing. Everything else is greys and type.

@@ -54,6 +54,10 @@ Each step has a check you can run yourself. Don't start the next until the check
 
 `web/join.html`, `web/guest.html`, `web/display.html`, `web/tenant.css`, `web/mock/`, `slides/`, `README.md` (except the "Run it" section — that's yours), Devpost. If something in those blocks you, message Owen rather than editing.
 
+## Your log
+
+`notes/jay.md` — append one line for a deviation from the plan, an interface change, or a blocker. Nothing else. Read `notes/owen.md` at every check‑in.
+
 ## Environment
 
 `.env.example` is yours to write. Variables: `PHOTON_API_KEY`, `PHOTON_PROJECT_ID`, `LLM_API_KEY` (+ `LLM_MODEL`), `HOST_TOKEN`, `DEVICE_TOKEN`, `PUBLIC_URL`, `ROOM_CODE` (optional fixed code for rehearsals). Owen gives you real values in person. `.env` is gitignored — keep it that way; VEYZL will audit the repo.
