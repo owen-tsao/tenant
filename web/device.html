@@ -86,7 +86,8 @@
       let frame; try { frame = JSON.parse(event.data); } catch (_) { return; }
       if (!frame || typeof frame !== 'object') return;
       if (frame.type === 'welcome') {
-        if (frame.room !== room) { shutdown('Server returned a different room.', 'error'); return; }
+        if (typeof frame.room !== 'string' || !/^[A-Za-z0-9]{1,32}$/.test(frame.room)) { shutdown('Server returned an invalid room.', 'error'); return; }
+        room = frame.room; el('room').value = room; // Authenticated server owns the current invitation alias.
         welcomed = true; attempt = 0; setState(active ? 'busy' : 'ready', 'Connected. Keep this page open.');
       } else if (frame.type === 'ping') send(ws, {type:'pong'});
       else if (frame.type === 'do') void command(ws, frame);

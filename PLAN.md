@@ -2,7 +2,9 @@
 
 > Pitch line: **"The room has a brain. Scan the code and you can talk to it. Leave, and it forgets you."** You're a tenant of the room's devices, not an owner — access is temporary and granted by the space.
 
-> **Claim we are making (falsifiable):** In one prepared room, a stranger can scan a QR code and, within 30 seconds and with no app or account, make real devices they do not own act (light, sound, music, photo, screen) by talking to the room; the room routes each request to whichever device can do it; and when their access ends — by leaving, by timeout, or by host reset — the same request is refused. The claim fails if any action is manually cued, if a command succeeds after revocation, or if adding a device requires a code change. We do **not** claim perception, autonomous judgment, or arbitrary‑device interoperability.
+> **Claim we are making (falsifiable):** In one prepared room, a stranger can scan a QR code and, within 30 seconds and with no app or account, make real devices they do not own act by talking to the room; the room routes each request to a supported device; and when their access ends — by leaving, by timeout, or by host reset — the same new request is refused. The claim fails if any action is manually cued, if a new or queued guest command is dispatched after authority ends, or if adding a supported device instance requires a code change. Already-dispatched work may finish and must be reported truthfully; no physical undo is claimed. We do **not** claim perception, autonomous judgment, or arbitrary‑device interoperability.
+
+> **Current execution gate (Jay, October 17):** Implement lighting and room audio first, with access and device adaptation designed in the coordination chat. Photo-to-screen, coordinated outputs and proactive rules stay planning-only until final-revision automated checks, real-device observations, expected denials, reconnect/reset checks and three consecutive integrated guest runs pass. See `notes/jay.md` for decisions and open cross-team feedback; no feature is merge-ready while a required check remains blocked.
 
 ## 1. What a guest experiences
 

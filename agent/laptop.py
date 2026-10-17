@@ -49,10 +49,21 @@ end tell
 get info for localFile
 tell application "Music"
 play t
+repeat 20 times
+if player state is playing then return player state as text
+delay 0.1
+end repeat
 return player state as text
 end tell
 end run'''
-MUSIC_PAUSE = 'tell application "Music"\npause\nreturn player state as text\nend tell'
+MUSIC_PAUSE = '''tell application "Music"
+pause
+repeat 20 times
+if player state is paused or player state is stopped then return player state as text
+delay 0.1
+end repeat
+return player state as text
+end tell'''
 VOLUME = '''on run argv
 set volume output volume (item 1 of argv as integer)
 return output volume of (get volume settings)
@@ -74,14 +85,14 @@ class AudioDispatcher:
             out = self.runner(argv, input=input, capture_output=True, text=True,
                               timeout=timeout, check=False)
         except subprocess.TimeoutExpired as exc:
-            raise AudioError("FAILED", "OS command timed out; outcome unknown. Do not retry automatically.") from exc
+            raise AudioError("UNKNOWN", "OS command timed out; outcome unknown. Do not retry automatically.") from exc
         except OSError as exc:
             raise AudioError("UNSUPPORTED", "Required macOS command is unavailable.") from exc
         if out.returncode:
             # Do not echo arbitrary OS output, user text, paths, or environment.
             if "-1743" in (out.stderr or ""):
                 raise AudioError("PERMISSION", "Allow Terminal/Python to control Music in macOS Privacy & Security > Automation.")
-            raise AudioError("FAILED", "macOS rejected the audio command; check Music, local media and output routing.")
+            raise AudioError("UNKNOWN", "macOS did not confirm the audio command; it may have acted. Do not retry automatically.")
         return out.stdout.strip()
 
     def _script(self, script, *args, timeout):
@@ -136,10 +147,10 @@ class AudioDispatcher:
         if args:
             raise AudioError("FAILED", "This prepared music capability accepts no arguments.")
         state = self._script(MUSIC_PLAY, self.config.playlist, timeout=timeout) if cap == "music.play" else self._script(MUSIC_PAUSE, timeout=timeout)
-        expected = "playing" if cap == "music.play" else "paused"
-        if state.lower() != expected:
-            raise AudioError("FAILED", "Music did not report the requested playback state; check local media.")
-        return {"state": expected, "audible_verified": False}
+        expected = {"playing"} if cap == "music.play" else {"paused", "stopped"}
+        if state.lower() not in expected:
+            raise AudioError("UNKNOWN", "Music did not confirm the requested state; it may have acted. Do not retry automatically.")
+        return {"state": state.lower(), "audible_verified": False}
 
 
 class DeviceAgent:
@@ -165,6 +176,11 @@ class DeviceAgent:
             return None
         if frame.get("type") == "ping":
             return {"type": "pong"}
+        if frame.get("type") == "welcome":
+            room = frame.get("room")
+            if isinstance(room, str) and 1 <= len(room) <= 32 and room.isalnum():
+                self.room = room
+            return None
         if frame.get("type") != "do":
             return None
         req = frame.get("req")
@@ -205,7 +221,7 @@ class DeviceAgent:
         except AudioError as exc:
             response = self.error(req, exc.code, exc.message)
         except Exception:
-            response = self.error(req, "FAILED", "Unexpected audio failure; outcome unknown. Not replayed.")
+            response = self.error(req, "UNKNOWN", "Unexpected audio failure; outcome unknown. Not replayed.")
         finally:
             self.busy = False
         self.ledger[req] = response

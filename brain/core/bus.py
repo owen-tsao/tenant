@@ -10,6 +10,8 @@ class Result:
     result: dict | None = None
     code: str | None = None
     message: str | None = None
+    # Internal correlation metadata; keep the existing public response shape.
+    req: str | None = None
 
     def as_dict(self):
         return {"ok": True, "result": self.result} if self.ok else {"ok": False, "code": self.code, "message": self.message}
@@ -30,6 +32,7 @@ class Bus:
             typ = schema["type"]
             if typ == "boolean" and type(value) is not bool: return False
             if typ == "string" and not isinstance(value, str): return False
+            if typ == "string" and "maxLength" in schema and len(value) > schema["maxLength"]: return False
             if typ == "integer" and type(value) is not int: return False
             if typ == "number" and (type(value) not in (int, float) or not math.isfinite(value)): return False
             if "enum" in schema and value not in schema["enum"]: return False
@@ -67,16 +70,18 @@ class Bus:
                     sent = True  # send failure may still have delivered bytes
                     await dev.ws.send_json({"type":"do", "req":req, "cap":cap, "args":args,
                                             "deadline_ms":max(1, int((expires - asyncio.get_running_loop().time())*1000)), "epoch":self.registry.room.epoch})
-                    return await future
+                    result = await future
+                    result.req = req
+                    return result
         except TimeoutError:
             if sent: self.uncertain[req] = dev
-            return Result(False, code="UNKNOWN" if sent else "TIMEOUT", message="Outcome unknown; not retried" if sent else "Queue timeout; nothing sent")
+            return Result(False, code="UNKNOWN" if sent else "TIMEOUT", message="Outcome unknown; not retried" if sent else "Queue timeout; nothing sent", req=req)
         except asyncio.CancelledError:
             if sent: self.uncertain[req] = dev
             raise
         except Exception:
             if sent: self.uncertain[req] = dev
-            return Result(False, code="UNKNOWN" if sent else "FAILED", message="Outcome unknown; not retried" if sent else "Nothing sent")
+            return Result(False, code="UNKNOWN" if sent else "FAILED", message="Outcome unknown; not retried" if sent else "Nothing sent", req=req)
         finally:
             if req:
                 item = self.pending.pop(req, None)

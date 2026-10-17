@@ -127,6 +127,7 @@ class DispatchTests(unittest.TestCase):
         with self.assertRaises(laptop.AudioError) as err:
             d.dispatch('say', {'text': 'hi'}, timeout=.2)
         self.assertIn('unknown', str(err.exception))
+        self.assertEqual(err.exception.code, 'UNKNOWN')
         self.assertEqual(self.runner.calls[0][1]['timeout'], .2)
 
     def test_missing_binary_fails(self):
@@ -163,6 +164,12 @@ class DispatchTests(unittest.TestCase):
             d.dispatch('music.play', {})  # fake runner returns 1, not playing
         with self.assertRaises(laptop.AudioError):
             d.dispatch('music.play', {'name': 'anything'})
+
+    def test_pausing_already_stopped_music_confirms_no_playback(self):
+        d = self.make()
+        d.discover()
+        self.runner.stdout = 'stopped'
+        self.assertEqual(d.dispatch('music.pause', {})['state'], 'stopped')
 
 
 class FakeDispatcher:
