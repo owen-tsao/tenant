@@ -90,11 +90,13 @@ def listen(handle, window_s=180, poll_s=2):
                 print("    raw:", json.dumps(m)[:1500])
             if sent_by.get("handle") != handle or recv.get("kind") != "agent":
                 continue
-            body = {"spaceId": space["id"], "senderId": recv["id"], "parentMessageId": m["id"],
+            body = {"spaceId": space["id"], "senderId": recv["id"],
                     "content": {"type": "text", "format": "plain",
                                 "text": f"Tenant is connected. You said: {text}"}}
+            if not os.environ.get("PHOTON_NO_PARENT"):
+                body["parentMessageId"] = m["id"]
             s2, r2 = call("POST", f"/projects/{PID}/messages", body=body,
-                          headers={"idempotency-key": f"tenant-reply-{m['id']}"})
+                          headers={"idempotency-key": f"tenant-reply-{m['id']}-{'np' if 'parentMessageId' not in body else 'p'}"})
             print(f"  reply: HTTP {s2} {'accepted' if s2 in (200,202) else r2}")
             if s2 in (200, 202):
                 print("PASS: inbound received and reply accepted. Check Messages on the phone.")

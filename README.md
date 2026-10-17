@@ -10,6 +10,7 @@ Built in ~18 hours by two people at DubHacks '26.
 
 - [`PLAN.md`](PLAN.md) — what we're building, for whom, the demo, the timeline, and what was deliberately cut (§11 is the merge record with the Morph plan).
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — the build spec: components, data model, wire protocol, device capability implementations, failure behaviours.
+- [`jay.md`](jay.md) / [`owen.md`](owen.md) — per‑person work files: what each of us owns, in what order, with the check that proves each step.
 
 ## Status
 
