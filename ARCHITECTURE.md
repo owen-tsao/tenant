@@ -160,14 +160,14 @@ Keyboard: `R` = reset (with a 1‑s hold to avoid accidents), `X` = revoke selec
 
 `GET /j/{room_code}` → join page (static). Two buttons:
 
-- **Chat here** → `POST /join {room_code}` → `{guest_id, chat_url:"/g/{guest_id}"}` → redirect. No PII.
+- **Chat here** → `POST /join {room_code}` → `{guest_id, guest_token, chat_url:"/g/{guest_id}#t={guest_token}"}` → redirect. No PII. `guest_id` is public (shown on the display, in logs); `guest_token` is the private credential, carried in the URL fragment so it never reaches server logs, and sent as `?token=` on `/ws/guest`. A WS without a matching token is closed with code 4401.
 - **Text the room** → form with phone number (E.164 normalized client‑side) → `POST /join {room_code, phone}` → Brain calls Photon `POST /v1/projects/{id}/platforms/imessage/assignments {handle: phone}` (first `GET` existing assignments to reuse one for the same handle) → `{guest_id, imessage_number, sms_link}` → page shows a big button "Open Messages" and the fallback "or chat here". `sms_link` uses the cross‑platform form `sms:+1206…?&body=join%207F3A` — iOS wants `&body`, Android wants `?body`; `?&body` is accepted by both. Test on each.
 
 Both paths create a `Lease` (TTL 600 s) and a `Session`. The display shows the guest immediately as "joining…" until their first message.
 
 ### 5.2 Web chat (`channels/webchat.py`, `/ws/guest`)
 
-Guest page opens WS with `guest_id`. Frames: `{"type":"user","text":"turn on a light"}` → Brain runs the agent → streams `{"type":"assistant","text":"…"}` plus `{"type":"action","text":"owen-phone.light(on) ✓"}` events so the guest sees what happened. Hold‑to‑talk button uses the browser `SpeechRecognition` API where available (Chrome/Android; iOS Safari has partial support) and falls back to typing. Audio replies optional via Grok Voice TTS → `<audio>`.
+Guest page opens WS at `/ws/guest?guest_id=…&token=…` (token from the URL fragment). Frames: `{"type":"user","text":"turn on a light"}` → Brain runs the agent → streams `{"type":"assistant","text":"…"}` plus `{"type":"action","text":"owen-phone.light(on) ✓"}` events so the guest sees what happened. When a requested device is unavailable, the agent offers alternatives **in ordinary `assistant` text** and waits for the guest's choice — no new frame type. Hold‑to‑talk button uses the browser `SpeechRecognition` API where available (Chrome/Android; iOS Safari has partial support) and falls back to typing. Audio replies optional via Grok Voice TTS → `<audio>`.
 
 ### 5.3 Photon iMessage (`channels/photon.py`)
 
