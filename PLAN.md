@@ -6,6 +6,8 @@
 
 > **Current execution gate (Jay, October 17):** Implement lighting and room audio first, with access and device adaptation designed in the coordination chat. Photo-to-screen, coordinated outputs and proactive rules stay planning-only until final-revision automated checks, real-device observations, expected denials, reconnect/reset checks and three consecutive integrated guest runs pass. See `notes/jay.md` for decisions and open cross-team feedback; no feature is merge-ready while a required check remains blocked.
 
+**Guest experience (Jay’s current decision):** Scan the QR to open a temporary guest chat powered by Jay’s signed-in Codex. Tenant checks that guest’s room permissions before executing each proposed action. Letting a guest connect their own coding agent is a later, closed gate; it adds no implementation to the current build.
+
 ## 1. What a guest experiences
 
 You walk up to a room — a hotel room, a hospital bed, an Airbnb, a conference table — and there's a QR code. You scan it, type your phone number (or just tap *Join*), and a text thread (or a chat page) opens with the room. You say "turn on a light," "play something calm," "show me what's in here," "take a picture of me." The room does it, using whatever devices it has, and tells you what it did. You text "leave" (or your lease expires, or the host ends it) and the room says goodbye and will no longer take your commands. No app, no account, no pairing with the host's smart‑home system.

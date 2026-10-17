@@ -1,7 +1,8 @@
 # Room audio agent
 
 Feature 2 only. Runs on the room Mac, independently of the Brain host. Computer
-speakers are sufficient. An already paired Bluetooth output uses normal macOS
+speakers are sufficient. Always use the Mac’s currently selected default output;
+Jay explicitly requested no automatic output switching. An already paired Bluetooth output uses normal macOS
 routing; this agent does not discover or pair speakers. Nothing here implements
 slides, scenes, photos, guest authorization or reset policy.
 
@@ -49,9 +50,9 @@ hello on every connect, pong to JSON ping, `do` → req-correlated `ok`/`err`.
 | Capability | Args | Availability / result |
 |---|---|---|
 | `music.play` | `{}` | Configured Music playlist with local file tracks; plays its first local track, checks its location and reported `playing` state |
-| `music.pause` | `{}` | Same music readiness gate; pauses Music and checks reported `paused` state |
+| `music.pause` | `{}` | Same music readiness gate; pauses Music and checks reported `paused` or already `stopped` state |
 | `volume` | `{"level":25}` | macOS + osascript; integer 0–100; checks reported output volume; does not unmute |
-| `say` | `{"text":"Hello from Tenant."}` | macOS + `/usr/bin/say`; nonempty text up to 160 characters; default installed voice; waits for process completion |
+| `say` | `{"text":"Hello from Tenant."}` | macOS + `/usr/bin/say` and `/usr/bin/afplay`; renders a private temporary file and plays it once through the default output, then removes it |
 
 Unexpected or extra args are errors. The manifest describes the prepared song;
 it makes no promise of arbitrary music search. Cloud-only tracks do not qualify.
@@ -64,6 +65,12 @@ on timeout, and run off the asyncio event loop. An Apple event already delivered
 to Music can still have taken effect even if its sender times out.
 Executor scheduling time counts against the request budget: a worker which starts
 after the deadline refuses the action before invoking the dispatcher.
+
+Direct `say` playback returned success but was inaudible in two actual tests, so
+speech is rendered first and played with `afplay`. Both steps share one deadline;
+expiry before playback starts sends no audio, while playback timeout is UNKNOWN
+and is not retried. Human audible acceptance of this replacement is required.
+Tests must preserve Jay’s chosen volume unless he explicitly requests a change.
 
 Speech goes through stdin and playlist/volume through argv into constant
 AppleScript. No shell, user-generated AppleScript, hard-coded voice or account.
@@ -81,11 +88,10 @@ instead of evicting replay protection. A fresh process loses that ledger: the
 Brain must never resend unknown-outcome actions after an agent restart either.
 
 The highest observed epoch persists across reconnects; lower epochs receive STALE.
-This implements the existing spec only. That mechanism cannot discover an unseen
-revocation or distinguish a Brain restart which resets epoch; resetting epochs,
-room-code rotation and lease policy remain coordinator integration decisions.
+This hint cannot discover an unseen revocation or cancel a delivered action. The
+Brain persists room identity/epoch/enrolled aliases but never guest credentials.
 No audio is automatically paused or replayed on reconnect/reset. If room code
-changes, restart with the new code once the coordinator defines enrollment flow.
+changes, authenticated welcome updates the saved invitation used on reconnect.
 
 ## Required physical acceptance (not performed on Linux)
 

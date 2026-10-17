@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import platform
 import subprocess
+import tempfile
 import time
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -117,7 +118,7 @@ class AudioDispatcher:
             return caps
         if self.exists("/usr/bin/osascript"):
             caps["volume"] = {"description": "Set Mac output volume from 0 to 100; output hardware may have fixed volume.", "args": {"level": {"type": "integer", "minimum": 0, "maximum": 100}}}
-        if self.exists("/usr/bin/say"):
+        if self.exists("/usr/bin/say") and self.exists("/usr/bin/afplay"):
             caps["say"] = {"description": "Speak a short phrase through the Mac's current audio output.", "args": {"text": {"type": "string", "maxLength": 160}}}
         if self.music_ready:
             caps["music.play"] = {"description": "Play the first downloaded local track in the prepared room playlist; no streaming or arbitrary search.", "args": {}}
@@ -141,8 +142,17 @@ class AudioDispatcher:
             text = args.get("text")
             if set(args) != {"text"} or not isinstance(text, str) or not text.strip() or len(text) > 160 or "\x00" in text:
                 raise AudioError("FAILED", "say requires 1–160 characters of nonempty text without NUL.")
-            # stdin prevents both option injection and shell/AppleScript injection.
-            self._run(["/usr/bin/say"], timeout, input=text)
+            # Render first, then use the normal default audio output. Direct say
+            # playback returned success but was inaudible on the actual room Mac.
+            # One playback only: never retry an uncertain physical effect.
+            expires_at = time.monotonic() + timeout
+            with tempfile.TemporaryDirectory(prefix="tenant-speech-") as directory:
+                audio = str(Path(directory) / 'speech.aiff')
+                self._run(["/usr/bin/say", "-o", audio], timeout, input=text)
+                remaining = expires_at - time.monotonic()
+                if remaining <= 0:
+                    raise AudioError("FAILED", "Deadline elapsed before speech playback; no audio started.")
+                self._run(["/usr/bin/afplay", audio], remaining)
             return {"spoken": True, "audible_verified": False}
         if args:
             raise AudioError("FAILED", "This prepared music capability accepts no arguments.")

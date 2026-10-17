@@ -5,6 +5,8 @@ import subprocess
 import threading
 import time
 import unittest
+from unittest.mock import patch
+from pathlib import Path
 
 from agent import laptop
 
@@ -92,11 +94,42 @@ class DispatchTests(unittest.TestCase):
         d = self.make()
         text = '-o /tmp/pwn; "\n do shell script "touch /tmp/pwn" $(touch x)'
         result = d.dispatch('say', {'text': text})
-        argv, opts = self.runner.calls[-1]
-        self.assertEqual(argv, ['/usr/bin/say'])
+        argv, opts = self.runner.calls[0]
+        self.assertEqual(argv[:2], ['/usr/bin/say', '-o'])
         self.assertEqual(opts['input'], text)
         self.assertNotIn('shell', opts)
+        playback, playback_opts = self.runner.calls[1]
+        self.assertEqual(playback, ['/usr/bin/afplay', argv[2]])
+        self.assertLessEqual(playback_opts['timeout'], opts['timeout'])
+        self.assertIsNone(playback_opts['input'])
+        self.assertEqual(len(self.runner.calls), 2)
+        self.assertFalse(Path(argv[2]).parent.exists())
         self.assertFalse(result['audible_verified'])
+
+    def test_speech_not_advertised_without_default_output_player(self):
+        self.assertNotIn('say', self.make(exists=lambda p: p != '/usr/bin/afplay').capabilities())
+
+    def test_speech_render_deadline_prevents_late_physical_playback(self):
+        d = self.make()
+        with patch('agent.laptop.time.monotonic', side_effect=[0, 1]), self.assertRaises(laptop.AudioError) as err:
+            d.dispatch('say', {'text': 'hello'}, timeout=.5)
+        self.assertEqual(err.exception.code, 'FAILED')
+        self.assertEqual(len(self.runner.calls), 1)
+        self.assertFalse(Path(self.runner.calls[0][0][2]).parent.exists())
+
+    def test_playback_timeout_is_unknown_and_not_retried(self):
+        calls = []
+        def runner(argv, **opts):
+            calls.append(argv)
+            if argv[0] == '/usr/bin/afplay':
+                raise subprocess.TimeoutExpired('afplay', opts['timeout'])
+            return subprocess.CompletedProcess(argv, 0, '', '')
+        d = self.make(runner)
+        with self.assertRaises(laptop.AudioError) as err:
+            d.dispatch('say', {'text': 'hello'})
+        self.assertEqual(err.exception.code, 'UNKNOWN')
+        self.assertEqual([argv[0] for argv in calls], ['/usr/bin/say', '/usr/bin/afplay'])
+        self.assertFalse(Path(calls[0][2]).parent.exists())
 
     def test_invalid_speech_rejected_before_os(self):
         d = self.make()

@@ -126,7 +126,7 @@ Brain replies `{"type":"welcome","server_time":..., "room":"7F3A"}` and broadcas
 **Device → Brain:**
 ```json
 {"type":"ok","req":"r_8f21","result":{"on":true}}
-{"type":"err","req":"r_8f21","code":"PERMISSION|UNSUPPORTED|BUSY|FAILED|STALE","message":"camera permission denied"}
+{"type":"err","req":"r_8f21","code":"PERMISSION|UNSUPPORTED|BUSY|FAILED|STALE|UNKNOWN","message":"camera permission denied"}
 ```
 **Heartbeat:** Brain sends `{"type":"ping"}` every 5 s; device replies `{"type":"pong"}`. Two missed (10 s) → device marked offline, removed from tool list, display greys it out. A WebSocket `close` event marks it offline immediately. On reconnect the device re‑sends `hello`.
 
@@ -231,7 +231,7 @@ Lease checked before every tool call and again by the bus after queue waits, imm
 
 Model: whichever fast function‑calling model we have a key for (Anthropic Haiku‑class, OpenAI mini‑class, or Grok fast). Budget: p50 turn < 1.5 s including one device action. Transcript trimmed to last 20 messages.
 
-Current available access: Jay has no API key and explicitly chose reuse of existing coding agents. The already-authenticated local Codex CLI is being tested as a structured planner only; Tenant remains the authority/executor, with personal tools disabled and all plans validated. A correct-plan spike took about 3.2 seconds, so the original p50 target is not established; measure the integrated path against the 30-second demo claim. Startup diagnostics and adversarial no-tool/no-action checks must pass before connecting guest input.
+Current model access: the already-authenticated local Codex CLI supplies the structured plan for each guest session; Tenant remains the authority/executor, with personal tools disabled and all plans validated. The constrained adapter passed 16 small cases (15 real model interpretations, one local refusal), with no tool execution. The real public guest-to-cellular-light path took 3.6–3.7 seconds, missing the original 1.5-second target; do not claim that target passed. This is guardrail evidence, not OS isolation or a reliability study. Guests connecting their own coding agents is gated for later.
 
 ### 6.4 Guest without a lease
 
