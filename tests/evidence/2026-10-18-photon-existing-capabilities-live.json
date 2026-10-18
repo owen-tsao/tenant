@@ -1,0 +1,1634 @@
+{
+  "case": "Actual human Photon existing-capabilities music\u2192laterlight\u2192photo/apps",
+  "status": "COMPLETE Photon capability test; follow-up existing-Mac-app case will be separate webUIchannel",
+  "revision": "e294e66f9319c239cd452797d25e7552416a94a6",
+  "guest_id": "73e60a71-6a20-4662-b46d-947c9662169b",
+  "actual_human_onboarding": true,
+  "assignment_owned": false,
+  "assignment_reused_prior_external": true,
+  "source_changes_or_new_infrastructure": false,
+  "parent_effect_or_app_control": false,
+  "claims": [
+    {
+      "claimed_at": 1792307123.220803,
+      "outcome": "ACCEPTED"
+    },
+    {
+      "claimed_at": 1792307174.807219,
+      "outcome": "ACCEPTED"
+    },
+    {
+      "claimed_at": 1792307217.320261,
+      "outcome": "ACCEPTED"
+    },
+    {
+      "claimed_at": 1792307245.174803,
+      "outcome": "ACCEPTED"
+    },
+    {
+      "claimed_at": 1792307300.919032,
+      "outcome": "ACCEPTED"
+    },
+    {
+      "claimed_at": 1792307326.7448452,
+      "outcome": "ACCEPTED"
+    },
+    {
+      "claimed_at": 1792307418.604692,
+      "outcome": "ACCEPTED"
+    },
+    {
+      "claimed_at": 1792307527.703584,
+      "outcome": "ACCEPTED"
+    }
+  ],
+  "events": [
+    {
+      "t": 1792307071.4881222,
+      "kind": "guest.join",
+      "audit": {}
+    },
+    {
+      "t": 1792307123.364543,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd4-549d-7c33-b416-e5d209867a6f",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307163.062908,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd4-549d-7c33-b416-e5d209867a6f",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307163.257209,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "ACCEPTED_NOT_DELIVERED",
+        "reply_kind": "completed_reply"
+      }
+    },
+    {
+      "t": 1792307163.25764,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14dd4-549d-7c33-b416-e5d209867a6f",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307174.834506,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd5-1d9d-7da1-b356-20c7769428ca",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307203.22776,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd5-1d9d-7da1-b356-20c7769428ca",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307203.489035,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "ACCEPTED_NOT_DELIVERED",
+        "reply_kind": "completed_reply"
+      }
+    },
+    {
+      "t": 1792307203.489377,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14dd5-1d9d-7da1-b356-20c7769428ca",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307217.345184,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd5-c3ac-71b0-abf3-1d813ba30671",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307222.713263,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd5-c3ac-71b0-abf3-1d813ba30671",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307223.003362,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "ACCEPTED_NOT_DELIVERED",
+        "reply_kind": "completed_reply"
+      }
+    },
+    {
+      "t": 1792307223.003548,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14dd5-c3ac-71b0-abf3-1d813ba30671",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307245.2051709,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd6-307f-7581-8590-cfd1e5889872",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307259.522954,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd6-307f-7581-8590-cfd1e5889872",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307259.757975,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "ACCEPTED_NOT_DELIVERED",
+        "reply_kind": "completed_reply"
+      }
+    },
+    {
+      "t": 1792307259.758244,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14dd6-307f-7581-8590-cfd1e5889872",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307300.946996,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-0a3e-7f81-a229-50e97eb128cf",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307310.2088902,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-0a3e-7f81-a229-50e97eb128cf",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307310.411183,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "ACCEPTED_NOT_DELIVERED",
+        "reply_kind": "completed_reply"
+      }
+    },
+    {
+      "t": 1792307310.411368,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14dd7-0a3e-7f81-a229-50e97eb128cf",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307326.773057,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307393.723904,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307393.8395221,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307394.20803,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307394.348198,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307394.687198,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307394.860708,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307395.176148,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307395.287152,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307395.654579,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307395.813785,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307396.141215,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307396.192075,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307396.627999,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307396.703861,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307397.1097221,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307397.216286,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307397.586571,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307397.625226,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307398.074687,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307398.1370518,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307398.5618181,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307398.649447,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307399.045266,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307399.163424,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307399.534744,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307399.57313,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307400.014006,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307400.0854678,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307400.4989,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307400.5950239,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307400.978754,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307401.108116,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307401.44866,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307401.584318,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307401.952214,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307402.1060421,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307402.4384818,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307402.540113,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307402.915982,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307402.9502342,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307403.402435,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307403.464122,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307403.880928,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307403.9752069,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307404.37103,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307404.488555,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307404.836971,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307404.8960562,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307405.325866,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307405.41307,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307405.821273,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307405.919714,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307406.307859,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307406.433047,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307406.7827468,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307406.943391,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307407.271755,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307407.360843,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307407.752749,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307407.771927,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307408.243113,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307408.282335,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307408.7238321,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307408.787015,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307409.2094562,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307409.301613,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307409.687165,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307409.740299,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307410.1719658,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307410.2205708,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307410.655787,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307410.673425,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307411.142675,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307411.247796,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307411.618015,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307411.658622,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307412.108649,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307412.166655,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307412.592766,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307412.6787908,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307413.082531,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307413.1896,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307413.562289,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307413.7029078,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307414.0488682,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307414.066761,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307414.536027,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307414.68849,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307415.017044,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307415.210804,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307415.4985,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307415.5461938,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307415.973323,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307416.056107,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307416.474489,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307416.569338,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307416.9361951,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307416.97905,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307417.435445,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307417.451414,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307417.92066,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307418.002059,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307418.403351,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307418.481834,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307418.8818219,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307418.924423,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307419.366281,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307419.420703,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307419.848377,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307419.944423,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307420.330463,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307420.349252,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307420.815944,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307420.8355,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307421.302028,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307421.317462,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307421.7906098,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307421.833189,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307421.8952692,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307422.0549388,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "ACCEPTED_NOT_DELIVERED",
+        "reply_kind": "completed_reply"
+      }
+    },
+    {
+      "t": 1792307422.0572338,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14dd7-6f1d-7540-9f77-4ddff4644628",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307422.077271,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd8-e36b-7330-8fd5-24cb2eddb6f1",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307440.679637,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dd8-e36b-7330-8fd5-24cb2eddb6f1",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307440.740743,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd8-e36b-7330-8fd5-24cb2eddb6f1",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7,
+        "cap": "light"
+      }
+    },
+    {
+      "t": 1792307444.593138,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dd8-e36b-7330-8fd5-24cb2eddb6f1",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307444.80542,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "ACCEPTED_NOT_DELIVERED",
+        "reply_kind": "completed_reply"
+      }
+    },
+    {
+      "t": 1792307444.805653,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14dd8-e36b-7330-8fd5-24cb2eddb6f1",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307527.73026,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dda-801d-77d1-bca2-135da408987f",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307551.802909,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dda-801d-77d1-bca2-135da408987f",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307552.118738,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "ACCEPTED_NOT_DELIVERED",
+        "reply_kind": "completed_reply"
+      }
+    },
+    {
+      "t": 1792307552.1190112,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14dda-801d-77d1-bca2-135da408987f",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792307671.818008,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "DETACHED_PREEXISTING"
+      }
+    }
+  ],
+  "actual_requests": [
+    "Can you play Japanese denim in the Mac? Don\u2019t do anything funky, just play it",
+    "Can you try to make the light pulse on my phone to match the beat? Don\u2019t interrupt the song playing",
+    "Why is it not available?",
+    "You can try by the live feedback of the playing song right?",
+    "There\u2019s the timestamps and the bar that moves right?",
+    "Just do your best no need to be perfect",
+    "Ok stop ",
+    "Take a photo using my connected phone and the display it on my Mac"
+  ],
+  "music": {
+    "native_discovered": "Existing Spotify app, no parent path/source/prep",
+    "initial_turn": "01a14dd4-549d-7c33-b416-e5d209867a6f",
+    "initial_reply": "Playing \u201cJapanese Denim\u201d by Daniel Caesar on the Mac.",
+    "parent_readonly_observed": "Spotify NowPlayingJapaneseDenim DanielCaesar, Pause,2:36/4:30,UIvolume0.5/unmuted,queueempty,repeatcheckboxvalue1 labeledEnableRepeatOne",
+    "physical_audibility": "YES; direct human answer relayed by Root",
+    "continuous_playback": "User asked justplay; Root explicitly overrides original suggested20s autostop; no parent interruption",
+    "physical_exact": "music is playing. the main thing is that it approximates but its not perfect. its fine tho. for now we can do the download + timestamp strat. i think this is fine for now since this is an agent solution"
+  },
+  "light": {
+    "initial_limit": "No live Spotify audio/beat feed; user explicitly requested best-effort approximation",
+    "method": "Native inline orchestration of EXISTING helper light on/off calls; no new adapter/page/file/codebase change",
+    "tempo_bpm": 124,
+    "tempo_source": "Native web lookup, unverified against actual audio",
+    "timestamp_anchor": 1792307370.759,
+    "anchor_position_seconds": 40,
+    "full_pulse": "ON one beat/OFF one beat = fullpulse every2beats",
+    "live_audio_feedback": false,
+    "phase_calibrated": false,
+    "effect_first_cmd": 1792307393.723904,
+    "effect_first_ack": 1792307393.8395221,
+    "effect_loop_last_ack": 1792307421.8952692,
+    "effect_loop_result": "Already exited1 before attemptedCtrlC: helperFAILED/unsent on action_on:false. No cause inferred. Loop finalOFF not confirmed.",
+    "native_pulse_reply": "The phone is pulsing now, approximately timed to the song. I haven\u2019t changed playback or volume.",
+    "ordinary_stop": "Ok stop interpreted for latestpulse; native explicit lightOFF, no Spotify action",
+    "explicit_off_cmd": 1792307440.679637,
+    "explicit_off_ack": 1792307440.740743,
+    "stop_reply": "Stopped the pulses. The phone light is confirmed off.",
+    "post_off_observation": "No subsequent light rows for82.4s as of1792307523",
+    "physical_sync": "Human accepts approximation; no calibrated phase or actual audiofeedback proof",
+    "physical_exact": "Phone pulsed roughly with music, then stayed OFF"
+  },
+  "photo": {
+    "readiness": "Phone onlineadvertisesLIGHTonly, no camera.capture; no setup/consent/build by parent",
+    "actual_request_received": true,
+    "channel": "Photon",
+    "native_turn": "01a14dda-801d-77d1-bca2-135da408987f",
+    "input": "Take a photo using my connected phone and the display it on my Mac",
+    "helper_result": {
+      "ok": false,
+      "code": "PERMISSION",
+      "message": "Current photo permission, consent and source readiness are required."
+    },
+    "reply": "The photo request was blocked because camera permission, photo consent, or camera readiness is missing.\n\nOpen the room page on your phone, allow camera/photo access, and tell me when it\u2019s ready.",
+    "result": "BLOCKED; no photo captured/displayed, no Mac webcam substitute",
+    "provider_accepted_at": 1792307552.118738
+  },
+  "apps": {
+    "readiness": "TextEdit/Preview/Chrome existing/running; Musicinstallednotrunning; no parent preparations",
+    "actual_request_received": false,
+    "result": "TextEdit was not part of actual Photon message; unperformed here, separate newwebUIcase next"
+  },
+  "original_lease": {
+    "created_binding_at": 1792307071.484459,
+    "first_cmd": 1792307123.364543,
+    "seconds_from_creation": 600,
+    "deadline_estimate": 1792307671.484459,
+    "detached_preexisting_at": 1792307671.818008,
+    "renewed": false,
+    "correction": "Activation changesstateonly; deadline is creation+600, not firstcommand+600"
+  },
+  "cleanup": {
+    "checked_at": 1792307788.089098,
+    "active_assignment_count": 1,
+    "preexisting_assignment_preserved": true,
+    "ended_guest_local_binding_count": 0,
+    "ended_naturally": true,
+    "parent_leave_or_revoke": false,
+    "phone_off_confirmed": true,
+    "spotify_preserved": true,
+    "spotify_note": "Root relayed usercontinuousplayback preference; no parentpause solelybecauseexpiry. Do not claim allnativeeffects auto-cleaned."
+  },
+  "public_chat_logs": {
+    "rolling_limit_items": 10,
+    "expiry_clears_public_transcript": true,
+    "source": "brain/core/leases.py57\u201358 and revoke",
+    "exact_user_complaint_cause": "Not established",
+    "tester_observation_error": "Length-based watch missed eighthturn because transcriptbounded; corrected usingnewclaims/timestamps"
+  },
+  "human_goal_correction": {
+    "intended_app_goal": "Native iPhone apps, not Mac apps",
+    "mac_test_qualification": "Actual Mac TextEdit+Calculator PASS retained as extra evidence; does not fulfill native iPhone app goal",
+    "human_reply_relayed_by_Root": "butgoodtoknowcomputerappworks",
+    "next_phone_app_test": "Unperformed; await chosen phone app and fresh release. Existing phone light/camera capability does not grant native iOS app control. No new Shortcuts/companion/control infrastructure authorized."
+  }
+}

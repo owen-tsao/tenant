@@ -1,0 +1,27 @@
+{
+  "evidence_kind": "reported live measurements plus synthetic regression checks",
+  "live_failure": {
+    "bpm": 90,
+    "old_on_window_ms": 166.667,
+    "first_on_result": "UNKNOWN",
+    "human_observation": "Beat and spoken follow-up heard; no phone pulses seen.",
+    "premature_attach_receipt": "running returned before any phone effect"
+  },
+  "same_phone_prior_successful_raw_blink_ack_ms": [57, 165, 197, 56, 141, 46, 68, 140, 51, 65],
+  "inference": "The observed 197 ms acknowledgment exceeds the old 166.667 ms window. An always-sufficient old window is disproven; a hardware flashing speed limit is not established.",
+  "controlled_baseline": {
+    "bpm": 60,
+    "on_window_ms": 500,
+    "off_window_ms": 500,
+    "scheduling": "Strictly future beat on the existing absolute phase; stale unsent ON edges skipped, no backlog.",
+    "receipt": "Participant remains pending until its first correlated ON and OFF both acknowledge. UNKNOWN fails attachment with exact device identity, stops future edges, and is not replayed.",
+    "authorization": "Exact captured lease, controller generation, connection and capability rechecked after Bus queue. Pending status remains readable; revocation/stop can settle pending attachment."
+  },
+  "limits": {
+    "ack_is_optical_onset": false,
+    "physical_sync_measured": false,
+    "physical_baseline_test_performed_after_fix": false,
+    "twenty_beat_sync_acceptance": "UNPERFORMED",
+    "confidence": "Ten ACK samples justify a gentler feasibility baseline; they do not establish reliability or physical synchronization."
+  }
+}

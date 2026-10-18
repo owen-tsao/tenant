@@ -1,0 +1,2 @@
+# Still-photo upload decoding only. Install alongside requirements.txt.
+Pillow==13.0.0

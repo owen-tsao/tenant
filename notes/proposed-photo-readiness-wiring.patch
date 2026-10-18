@@ -1,0 +1,11 @@
+--- a/brain/core/native_devices.py
++++ b/brain/core/native_devices.py
+@@ -260,7 +260,7 @@
+                     **({'programs': self.programs.inventory(grant)} if self.programs is not None else {}),
+                     **({'reply_voice': self.reply_voice.inventory(grant)} if self.reply_voice is not None else {}),
+                     **({'photos': self.photos.inventory(grant.lease, generation=grant.generation)}
+-                       if self.photos is not None and self.photos.enabled else {})}
++                       if self.photos is not None else {})}
+         valid_call = operation == 'call' and set(request) == {'token', 'operation', 'request_id', 'device_id', 'cap', 'args'}
+         valid_blink = (operation == 'light-blink'
+                        and {'token', 'operation', 'request_id', 'device_id'} <= set(request)

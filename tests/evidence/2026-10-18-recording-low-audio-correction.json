@@ -1,0 +1,46 @@
+{
+  "test": "recording-corrected-low-audio-once",
+  "status": "SOFTWARE_PATH_PASS_PHYSICAL_TENTATIVE_TOO_QUIET",
+  "guest_id": "e86daabc-546d-4186-aeaa-bcd810e316c9",
+  "tester_initiated_fresh_guests": 1,
+  "requests": [
+    "Say hello from Tenant"
+  ],
+  "ui_reply": "The room speaker reported finishing: “Hello from Tenant.”",
+  "native_turn_id": "01a14e9a-5638-7971-b098-21e7ab0d0ded",
+  "native_final_status": "completed",
+  "say_receipts": [
+    {
+      "ack": {
+        "ok": true,
+        "result": {
+          "spoken": true,
+          "audible_verified": false,
+          "rendered_duration_ms": 1013
+        },
+        "message": "Room speaker reported that speech playback finished.",
+        "status": "confirmed"
+      },
+      "duration_ms": 3405,
+      "exitCode": 0
+    }
+  ],
+  "ordinary_leave": true,
+  "zero_guests_verified": true,
+  "owned_test_tab_closed": true,
+  "original_display_tab_untouched": true,
+  "physical_tv": "Jay confirmed Tenant visible on Samsung in NORMAL window; fullscreen forbidden",
+  "physical_audio_feedback": [
+    "i think the audio is too low now?",
+    "but it worked prolly"
+  ],
+  "unconditional_audibility_pass": false,
+  "output": "MacBook Pro Speakers",
+  "final_output_volume_percent": 20,
+  "final_output_muted": false,
+  "final_volume_verified_in_native_UI": true,
+  "no_speech_replay_after_volume_correction": true,
+  "no_window_move_fullscreen_or_spaces_change": true,
+  "no_reset_record_music_light_photo_source_or_runtime_actions": true,
+  "previous_physical_fail_preserved_separately": true
+}

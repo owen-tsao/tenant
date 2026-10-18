@@ -1,0 +1,28 @@
+{
+  "test": "fluid-orb-style-refinement",
+  "kind": "finite_owned_host_preview_not_new_guest_e2e",
+  "fps": 60,
+  "frames": 11698,
+  "silent_asset": true,
+  "headless_playing": {
+    "state": "playing",
+    "position_seconds": 0.7018,
+    "rate": 1.0
+  },
+  "headless_avsync_seconds": 2e-06,
+  "host_preview_seconds": 12,
+  "host_player_last_state": {
+    "state": "paused",
+    "position_seconds": 0.0,
+    "rate": 1.0
+  },
+  "owned_preview_closed": true,
+  "visual_manifest_activated": true,
+  "audio_only_refresh": true,
+  "brain_and_tunnel_restarted": false,
+  "volume_changed": false,
+  "guest_count": 0,
+  "room_code": "F679",
+  "physical_style_confirmation": "pending",
+  "prior_real_guest_e2e": "tests/evidence/2026-10-18-cyanide-tv-visual-check.json"
+}

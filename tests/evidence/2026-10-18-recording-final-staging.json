@@ -1,0 +1,33 @@
+{
+  "test": "recording-final-staging",
+  "source_revision": "dbeb227",
+  "reset_count": 1,
+  "reset_response": {
+    "ok": true,
+    "room_code": "F28D",
+    "revoked": 0,
+    "cleanup": "confirmed",
+    "context_cleanup": "confirmed",
+    "program_cleanup": "confirmed"
+  },
+  "room_code": "F28D",
+  "guest_count": 0,
+  "devices": [
+    {
+      "label": "Phone light",
+      "online": true
+    },
+    {
+      "label": "Room speaker",
+      "online": true
+    }
+  ],
+  "public_join_url": "https://writers-detector-strengthen-catalyst.trycloudflare.com/j/F28D",
+  "public_qr_path": "outputs/tenant-room-F28D-qr.svg",
+  "tv": "physically confirmed normal window; fullscreen prohibited",
+  "audio_output": "MacBook Pro Speakers",
+  "volume_percent": 20,
+  "physical_audio": "tentative at3%;20% set without replay",
+  "recording_started": false,
+  "photo_finale": "unverified: current phone advertises light only"
+}

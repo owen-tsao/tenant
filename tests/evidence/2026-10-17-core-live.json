@@ -1,0 +1,567 @@
+{
+  "source_revision": "5bf29bd",
+  "status": "PARTIAL_REQUIRED_PHYSICAL_AND_UI_CHECKS_PENDING",
+  "automated": {
+    "python": 124,
+    "browser_simulation": 10,
+    "failures": 0,
+    "skips": 0
+  },
+  "source_sha256": {
+    "brain/main.py": "0a0e6fb20406791c74cfddc5ed215e4f67e7ce018a02ac97e0441c70270b0234",
+    "brain/state.py": "68f1e121246fe60c8a00062fb6bf91e97cd9b0924ea72ea61f1712f94fa18bbb",
+    "brain/core/bus.py": "bf4e2bbf57aa67839036cdc345900a38900c23babef0f0944c2f8b17eb7847c6",
+    "brain/core/registry.py": "984cb3c2d63627e8e1399486fde2a2b2f997d7e903ef43eafaf065b54ea3b4ad",
+    "brain/core/integration.py": "83cc1f6203106c30e2391e058e2bf4d024ad4f6345bb6f9595db48696412208b",
+    "brain/core/leases.py": "f608f2916b583f8c8554458957a09efba97415e6d09bae8e2c84ebd801948a8e",
+    "brain/core/agent.py": "e18dccfc09378ef2a138a81063faaae7bcaba6226e894a86a03d33240df9b24e",
+    "brain/core/tools.py": "e77f9fcf45dae8b77ce019067ba8bfbbbf0c03e5112a8621f806e9b03d9c1e40",
+    "brain/core/persistence.py": "47e65cccff7ab013a19d4f6bf7345dbb8d63d1556c1e9f4ccd2ccb4231dc5414",
+    "brain/core/planner.py": "a7bb9bd83ea5255723de03983fdd8e69547af3282fee1b4f0b8cf4349ee0fb33",
+    "brain/ws/devices.py": "434195e9f774ea77474b7460af4f3624dc57fed2a81e2ce252ec395c0dfd439a",
+    "agent/laptop.py": "9143c7de3d6183727343b9ab3250029cfce52d9b81ae129ef807c7d1ae567d45",
+    "web/device.html": "0d51881aeaa511eb5cb63c0ddb22db9ae810d8d4eb6432a0fba37519ca035862"
+  },
+  "audio_initial_failure": {
+    "status": "ACK_ONLY_PHYSICAL_OBSERVATION_PENDING",
+    "cases": [
+      {
+        "cap": "volume",
+        "args": {
+          "level": 35
+        },
+        "started_at": "2026-10-17T23:50:20.689855+00:00",
+        "finished_at": "2026-10-17T23:50:20.858785+00:00",
+        "elapsed_ms": 169,
+        "response": {
+          "ok": true,
+          "result": {
+            "level": 35,
+            "audible_verified": false
+          }
+        }
+      },
+      {
+        "cap": "music.play",
+        "args": {},
+        "started_at": "2026-10-17T23:50:20.858887+00:00",
+        "finished_at": "2026-10-17T23:50:21.042615+00:00",
+        "elapsed_ms": 184,
+        "response": {
+          "ok": false,
+          "code": "FAILED",
+          "message": "Music did not report the requested playback state; check local media."
+        }
+      }
+    ],
+    "correlated_log": [
+      {
+        "t": 1792281020.857106,
+        "kind": "ok",
+        "text": "Host: laptop.volume: confirmed [r_b672c74918004eb4afda09f7ac7a25ba]"
+      },
+      {
+        "t": 1792281021.0418,
+        "kind": "err",
+        "text": "Host: laptop.music.play: FAILED [r_d5ed93228cfb429abb49c3737f8c723f]"
+      }
+    ]
+  },
+  "audio_host_retest": {
+    "status": "ACK_ONLY_PHYSICAL_OBSERVATION_PENDING",
+    "cases": [
+      {
+        "cap": "volume",
+        "args": {
+          "level": 35
+        },
+        "started_at": "2026-10-17T23:51:10.765421+00:00",
+        "finished_at": "2026-10-17T23:51:10.930935+00:00",
+        "elapsed_ms": 165,
+        "response": {
+          "ok": true,
+          "result": {
+            "level": 35,
+            "audible_verified": false
+          }
+        }
+      },
+      {
+        "cap": "music.play",
+        "args": {},
+        "started_at": "2026-10-17T23:51:10.931032+00:00",
+        "finished_at": "2026-10-17T23:51:11.205392+00:00",
+        "elapsed_ms": 274,
+        "response": {
+          "ok": true,
+          "result": {
+            "state": "playing",
+            "audible_verified": false
+          }
+        }
+      },
+      {
+        "cap": "say",
+        "args": {
+          "text": "Hello from Tenant."
+        },
+        "started_at": "2026-10-17T23:51:15.205887+00:00",
+        "finished_at": "2026-10-17T23:51:17.567707+00:00",
+        "elapsed_ms": 2362,
+        "response": {
+          "ok": true,
+          "result": {
+            "spoken": true,
+            "audible_verified": false
+          }
+        }
+      },
+      {
+        "cap": "volume",
+        "args": {
+          "level": 15
+        },
+        "started_at": "2026-10-17T23:51:20.568950+00:00",
+        "finished_at": "2026-10-17T23:51:20.751213+00:00",
+        "elapsed_ms": 182,
+        "response": {
+          "ok": true,
+          "result": {
+            "level": 15,
+            "audible_verified": false
+          }
+        }
+      },
+      {
+        "cap": "music.pause",
+        "args": {},
+        "started_at": "2026-10-17T23:51:24.752298+00:00",
+        "finished_at": "2026-10-17T23:51:25.056762+00:00",
+        "elapsed_ms": 304,
+        "response": {
+          "ok": true,
+          "result": {
+            "state": "paused",
+            "audible_verified": false
+          }
+        }
+      }
+    ],
+    "correlated_log": [
+      {
+        "t": 1792281020.857106,
+        "kind": "ok",
+        "text": "Host: laptop.volume: confirmed [r_b672c74918004eb4afda09f7ac7a25ba]"
+      },
+      {
+        "t": 1792281021.0418,
+        "kind": "err",
+        "text": "Host: laptop.music.play: FAILED [r_d5ed93228cfb429abb49c3737f8c723f]"
+      },
+      {
+        "t": 1792281039.4879029,
+        "kind": "err",
+        "text": "Host: laptop.music.pause: FAILED [r_9ffc73090bfc49968299fa0e23da7cfa]"
+      },
+      {
+        "t": 1792281070.929483,
+        "kind": "ok",
+        "text": "Host: laptop.volume: confirmed [r_aa565036e2594dd1b1c4a6eaf82e6de5]"
+      },
+      {
+        "t": 1792281071.204438,
+        "kind": "ok",
+        "text": "Host: laptop.music.play: confirmed [r_0485e7ac0cc64bf6b3035a5ed8748068]"
+      },
+      {
+        "t": 1792281077.566392,
+        "kind": "ok",
+        "text": "Host: laptop.say: confirmed [r_8dec150c9378475d85f78eae123b862e]"
+      },
+      {
+        "t": 1792281080.7502642,
+        "kind": "ok",
+        "text": "Host: laptop.volume: confirmed [r_638a197b0a714ea9ab81f4bb8d1f4bee]"
+      },
+      {
+        "t": 1792281085.0542982,
+        "kind": "ok",
+        "text": "Host: laptop.music.pause: confirmed [r_a9315623d9674e13aa1acae07d901a3d]"
+      }
+    ]
+  },
+  "guest_light": {
+    "source_revision": "5bf29bd",
+    "path": "public HTTPS join \u2192 explicit private WS credential \u2192 signed-in model \u2192 Brain permission dispatch \u2192 real cellular iPhone",
+    "status": "ACK_AND_DENIAL_ONLY_PHYSICAL_OBSERVATION_PENDING",
+    "cases": [
+      {
+        "request": "Turn on the light on phone-a.",
+        "started_at": "2026-10-17T23:54:04.841247+00:00",
+        "finished_at": "2026-10-17T23:54:08.555212+00:00",
+        "elapsed_ms": 3714,
+        "frames": [
+          {
+            "type": "action",
+            "text": "phone-a.light \u2713"
+          },
+          {
+            "type": "assistant",
+            "text": "phone-a: light completed."
+          }
+        ]
+      },
+      {
+        "request": "Turn off the light on phone-a.",
+        "started_at": "2026-10-17T23:54:10.556312+00:00",
+        "finished_at": "2026-10-17T23:54:14.170538+00:00",
+        "elapsed_ms": 3614,
+        "frames": [
+          {
+            "type": "action",
+            "text": "phone-a.light \u2713"
+          },
+          {
+            "type": "assistant",
+            "text": "phone-a: light completed."
+          }
+        ]
+      },
+      {
+        "request": "leave",
+        "started_at": "2026-10-17T23:54:14.170580+00:00",
+        "finished_at": "2026-10-17T23:54:14.182705+00:00",
+        "elapsed_ms": 12,
+        "frames": [
+          {
+            "type": "assistant",
+            "text": "Your room access has ended. Existing effects stay as set."
+          }
+        ]
+      },
+      {
+        "request": "Turn on the light on phone-a.",
+        "started_at": "2026-10-17T23:54:14.182740+00:00",
+        "finished_at": "2026-10-17T23:54:14.195654+00:00",
+        "elapsed_ms": 13,
+        "frames": [
+          {
+            "type": "assistant",
+            "text": "You're no longer in Room 7F3A. Scan the room code to join again."
+          }
+        ]
+      }
+    ],
+    "log": [
+      {
+        "t": 1792281244.596731,
+        "kind": "guest.join",
+        "text": "Guest 1 joined"
+      },
+      {
+        "t": 1792281248.500797,
+        "kind": "cmd",
+        "text": "Guest 1: requested phone-a.light"
+      },
+      {
+        "t": 1792281248.547092,
+        "kind": "ok",
+        "text": "phone-a.light: confirmed [r_06fc505035f14be4b475da1b863cb672]"
+      },
+      {
+        "t": 1792281253.980682,
+        "kind": "cmd",
+        "text": "Guest 1: requested phone-a.light"
+      },
+      {
+        "t": 1792281254.1394749,
+        "kind": "ok",
+        "text": "phone-a.light: confirmed [r_33e17481f4a2432fa458b6e9793d165b]"
+      },
+      {
+        "t": 1792281254.1766028,
+        "kind": "guest.leave",
+        "text": "Guest 1 ended access"
+      },
+      {
+        "t": 1792281254.189315,
+        "kind": "denied",
+        "text": "Guest access ended; further control denied"
+      }
+    ],
+    "ui_tested": false
+  },
+  "guest_audio_leave_reset": {
+    "source_revision": "5bf29bd",
+    "status": "PROTOCOL_AND_OS_STATE_ONLY_PHYSICAL_OBSERVATION_PENDING",
+    "cases": [
+      {
+        "request": "Set Room speaker volume to 25 percent.",
+        "started_at": "2026-10-17T23:55:09.215673+00:00",
+        "elapsed_ms": 3470,
+        "frames": [
+          {
+            "type": "action",
+            "text": "laptop.volume \u2713"
+          },
+          {
+            "type": "assistant",
+            "text": "laptop: volume completed."
+          }
+        ]
+      },
+      {
+        "request": "Play the prepared music on Room speaker.",
+        "started_at": "2026-10-17T23:55:12.685340+00:00",
+        "elapsed_ms": 3535,
+        "frames": [
+          {
+            "type": "action",
+            "text": "laptop.music.play \u2713"
+          },
+          {
+            "type": "assistant",
+            "text": "laptop: music.play completed."
+          }
+        ]
+      },
+      {
+        "request": "Turn on the light on phone-a.",
+        "started_at": "2026-10-17T23:55:16.219976+00:00",
+        "elapsed_ms": 3639,
+        "frames": [
+          {
+            "type": "action",
+            "text": "phone-a.light \u2713"
+          },
+          {
+            "type": "assistant",
+            "text": "phone-a: light completed."
+          }
+        ]
+      },
+      {
+        "request": "leave",
+        "started_at": "2026-10-17T23:55:19.858707+00:00",
+        "elapsed_ms": 13,
+        "frames": [
+          {
+            "type": "assistant",
+            "text": "Your room access has ended. Existing effects stay as set."
+          }
+        ]
+      },
+      {
+        "request": "Pause the music on Room speaker.",
+        "started_at": "2026-10-17T23:55:22.872496+00:00",
+        "elapsed_ms": 17,
+        "frames": [
+          {
+            "type": "assistant",
+            "text": "You're no longer in Room 7F3A. Scan the room code to join again."
+          }
+        ]
+      }
+    ],
+    "music_after_leave_and_denied_pause": "playing",
+    "reset": {
+      "ok": true,
+      "room_code": "EF61",
+      "revoked": 0,
+      "cleanup": "confirmed"
+    },
+    "reset_total_ms": 435,
+    "music_after_reset": "paused",
+    "enrolled_online_after_reset": [
+      {
+        "id": "phone-a",
+        "online": true
+      },
+      {
+        "id": "laptop",
+        "online": true
+      }
+    ],
+    "log_before_reset": [
+      {
+        "t": 1792281244.596731,
+        "kind": "guest.join",
+        "text": "Guest 1 joined"
+      },
+      {
+        "t": 1792281248.500797,
+        "kind": "cmd",
+        "text": "Guest 1: requested phone-a.light"
+      },
+      {
+        "t": 1792281248.547092,
+        "kind": "ok",
+        "text": "phone-a.light: confirmed [r_06fc505035f14be4b475da1b863cb672]"
+      },
+      {
+        "t": 1792281253.980682,
+        "kind": "cmd",
+        "text": "Guest 1: requested phone-a.light"
+      },
+      {
+        "t": 1792281254.1394749,
+        "kind": "ok",
+        "text": "phone-a.light: confirmed [r_33e17481f4a2432fa458b6e9793d165b]"
+      },
+      {
+        "t": 1792281254.1766028,
+        "kind": "guest.leave",
+        "text": "Guest 1 ended access"
+      },
+      {
+        "t": 1792281254.189315,
+        "kind": "denied",
+        "text": "Guest access ended; further control denied"
+      },
+      {
+        "t": 1792281309.019389,
+        "kind": "guest.join",
+        "text": "Guest 2 joined"
+      },
+      {
+        "t": 1792281312.4970481,
+        "kind": "cmd",
+        "text": "Guest 2: requested laptop.volume"
+      },
+      {
+        "t": 1792281312.679939,
+        "kind": "ok",
+        "text": "laptop.volume: confirmed [r_72d304392edc4572bbc94d6411e34337]"
+      },
+      {
+        "t": 1792281315.9317,
+        "kind": "cmd",
+        "text": "Guest 2: requested laptop.music.play"
+      },
+      {
+        "t": 1792281316.214012,
+        "kind": "ok",
+        "text": "laptop.music.play: confirmed [r_3c3b6e0fd2db4d4bb8460d796f14b63e]"
+      },
+      {
+        "t": 1792281319.789435,
+        "kind": "cmd",
+        "text": "Guest 2: requested phone-a.light"
+      },
+      {
+        "t": 1792281319.85406,
+        "kind": "ok",
+        "text": "phone-a.light: confirmed [r_0ec44444ecef48df8e4c7411b9d91c94]"
+      },
+      {
+        "t": 1792281319.8663208,
+        "kind": "guest.leave",
+        "text": "Guest 2 ended access"
+      },
+      {
+        "t": 1792281322.880619,
+        "kind": "denied",
+        "text": "Guest access ended; further control denied"
+      }
+    ],
+    "log_after_reset": [
+      {
+        "t": 1792281323.178236,
+        "kind": "guest.leave",
+        "text": "Host reset revoked access and rotated the invitation"
+      },
+      {
+        "t": 1792281323.2345128,
+        "kind": "ok",
+        "text": "Reset: Phone light.light: confirmed [r_fe1dc7bfae5e4f188055506699ad5d06]"
+      },
+      {
+        "t": 1792281323.47263,
+        "kind": "ok",
+        "text": "Reset: Room speaker.music.pause: confirmed [r_b98999e027b04682ad53f3c0bd7c475a]"
+      },
+      {
+        "t": 1792281323.4728498,
+        "kind": "ok",
+        "text": "Reset cleanup: confirmed"
+      }
+    ],
+    "ui_tested": false
+  },
+  "restart": {
+    "source_revision": "5bf29bd",
+    "online": [
+      "laptop",
+      "phone-a"
+    ],
+    "observed_recovered_within_seconds": 6.171,
+    "note": "Includes orchestrator delay; no device effect or replay inferred from registration."
+  },
+  "human_evidence": {
+    "host_light": "Jay confirmed three ON\u2192OFF cycles ending OFF; see 2026-10-17-lighting-host.json",
+    "cellular_enrollment": "Jay reported Connected on cellular after refreshed QR",
+    "audio_audibility": "FOLLOW-UP: Jay heard file-rendered Hello from Tenant (long test timed out UNKNOWN); he also heard the guest-Codex Tenant is ready, which completed cleanly. Original direct-say failures remain recorded.",
+    "guest_light_physical": "PASS: Jay confirmed one guest ON\u2192OFF cycle and that it stayed OFF after access ended.",
+    "second_phone": "PENDING: setup was unclear; the product guest QR and separate light-enrollment QR have now been distinguished."
+  },
+  "limits": [
+    "Guest requests were sent by a protocol test client; Owen guest/display UI was not exercised.",
+    "Ack timing is not optical/acoustic effect latency.",
+    "Model guest turns about3.5\u20133.7s miss the original1.5s target.",
+    "Small fixed cases do not establish reliability with unseen participants.",
+    "No photo, coordinated-output or proactive-rule acceptance is claimed."
+  ],
+  "speech_followup_152cf0a": {
+    "long_phrase": {
+      "source_revision": "152cf0a",
+      "started_at": "2026-10-18T00:00:10.949649+00:00",
+      "elapsed_ms": 4041,
+      "response": {
+        "ok": false,
+        "code": "UNKNOWN",
+        "message": "OS command timed out; outcome unknown. Do not retry automatically."
+      },
+      "output_settings_before": "88, false",
+      "output_settings_after": "44, false",
+      "volume_commands_sent": 0,
+      "physical_observation": "PENDING"
+    },
+    "short_guest_phrase": {
+      "source_revision": "152cf0a",
+      "volume_commands_sent": 0,
+      "cases": [
+        {
+          "request": "Say \"Tenant is ready\" on Room speaker.",
+          "started_at": "2026-10-18T00:00:59.219269+00:00",
+          "elapsed_ms": 7315,
+          "frames": [
+            {
+              "type": "action",
+              "text": "laptop.say \u2713"
+            },
+            {
+              "type": "assistant",
+              "text": "laptop: say completed."
+            }
+          ]
+        },
+        {
+          "request": "leave",
+          "started_at": "2026-10-18T00:01:06.533930+00:00",
+          "elapsed_ms": 42,
+          "frames": [
+            {
+              "type": "assistant",
+              "text": "Your room access has ended. Existing effects stay as set."
+            }
+          ]
+        }
+      ],
+      "physical_observation": "PENDING",
+      "ui_tested": false
+    },
+    "attestation_long": "ok i heard hello from tenant! lets go",
+    "attestation_short": "i head that asw tenant is ready",
+    "limit": "Long phrase timed out UNKNOWN; only the short phrase has clean completion. No automatic retry or volume command was issued for these two checks."
+  }
+}

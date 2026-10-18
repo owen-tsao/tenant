@@ -1,0 +1,71 @@
+{
+  "time": "2026-10-18T06:53:55.432585-07:00",
+  "scope": "Explicit deterministic user+agent drawing simulation; real local speech, BellEngine and photo playback",
+  "url": "http://127.0.0.1:57633/simulation.html",
+  "source_sha256": {
+    "drawing/core.mjs": "bf53e466786bc59b0c47e3d1e6b192f4e791c9f249aa9a01efc9ad5f8f8061c0",
+    "drawing/simulation-state.mjs": "7e60333443f53e22e3dce45fb3159e16d8e55364727eea9eb4acc062dc059bdb",
+    "drawing/simulation.mjs": "47b88f0211ffc2b5f96ece0721b2af1a284dc776c03ee0daebe4f7771e7234fb",
+    "drawing/simulation.html": "792accdb363c98d4891649a8009b91c2300d4bc10685302f6cfbf22eb7640569",
+    "drawing/simulation.css": "43bdf67502b17cdb47e54679292eb43de2373425f790c27bd96517ba9f90bca9",
+    "prepare_simulation_audio.py": "3f80b3730a599c25eb9e02ca7b95faa4f1977e68a5dffaf2bc3d3a55d3773e26",
+    "tests/test_simulation.mjs": "d2a137b96ec359003dc0d7f9b625afe10b4860a4f429a2778963959245454391",
+    "drawing/simulation-cues.json": "c6b57ca312cc92d259d9ced4e1665c0a0acb317f769b43a4316c2658d7e11006"
+  },
+  "software": {
+    "node_checks": 17,
+    "node_result": "PASS",
+    "speech_files": 9,
+    "speech_files_non_silent": true,
+    "browser_checks": {
+      "accepted_loop": "PASS:8strokes(user5,agent3),6bellstarts,6photochanges,7finished voice lines,oneoffer,noeffects beforeacceptance,allagentpoints>=0.55,zeroheldstrokes/voices,closedaudio",
+      "declined_loop": "PASS:oneoffer,zero bellstarts,zero photochanges,closedaudio",
+      "reset_during_deliberate_late_setup_failure": "PASS:freshidle state/Playlabel/zero oldcounters maintained after late failure",
+      "stop_during_dialogue": "PASS:closedaudio,no later acceptance/effects",
+      "normal_window_1280x720_layout": "PASS:pageHeight720,viewport720; conversation471/471, no required scrolling"
+    }
+  },
+  "review": {
+    "owner": "Tenant \u2014 End-to-end Tester",
+    "initial_finding": "Reset async setup/finally could overwrite fresh UI; fixed by retiring active and epoch/abort guard",
+    "final_static_review": "No additional findings in reset fix scope; no physical testing by reviewer"
+  },
+  "normal_speed_live_run": {
+    "player_result": "PASS",
+    "duration_seconds": 43.08010000002384,
+    "check_mode": false,
+    "finished_voice_lines": 7,
+    "bell_starts": 6,
+    "photo_changes": 6,
+    "final_photo": "coastal-dusk",
+    "final_audio_context": "closed",
+    "final_voices": 0,
+    "final_active_strokes": 0
+  },
+  "physical_confirmation": {
+    "observer": "Jay",
+    "result": "PASS",
+    "answer": "Yes \u2014 everything is visible and audible",
+    "question": "As this run plays, can you see the drawing, photos and conversation on the TV, and hear both simulated voices plus the bells?"
+  },
+  "cleanup": {
+    "sound_off": true,
+    "drawing_photo_preserved": true,
+    "page_left_open": true,
+    "replay_button_ready": true,
+    "original_live_lock_released_and_independently_probed_free": true
+  },
+  "unchanged": [
+    "Mac audio output/volume",
+    "approved BellEngine synthesis",
+    "Tenant services/room code/guest state",
+    "Owen web files",
+    "Celsius lab"
+  ],
+  "not_established": [
+    "genuine model reasoning or autonomous general screen perception",
+    "iPad/Notability/Pencil connection",
+    "arbitrary creative agent drawing",
+    "reliability beyond this bounded run"
+  ]
+}

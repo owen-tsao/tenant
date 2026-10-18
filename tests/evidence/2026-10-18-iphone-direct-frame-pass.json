@@ -1,0 +1,132 @@
+{
+  "case": "One verified new still frame from actual paired iPhone camera via existing installed tool",
+  "result": "PASS: new iPhonevideo-framePNGdecodedanddisplayedlocally",
+  "revision": "3433c25bf7f98193cf9155e8ae7a3b81e12c762e",
+  "guest_id": "3b2c9417-3e9e-4ed5-842e-cf88a08c1987",
+  "channel": "actualfreshwebguest, notPhoton/phonebrowserQR",
+  "scope_provenance": "Root authorized this separatefreshcontinuation afterpriorcaseexpired/cleaned; installed-toolassessmentselectedexistingFFmpegroute. No parentcamera preparation/capture or claim of zero-hint methoddiscovery.",
+  "original_lease": {
+    "creation_audit": 1792312169.0421572,
+    "deadline_estimate": 1792312769.0421572,
+    "normal_leave_before_deadline": true,
+    "artificial300guard": false,
+    "renewal": false
+  },
+  "input": "UsealreadyinstalledFFmpegAVFoundation; listactualdevices/exactpairediPhonevideo-only/noaudio; boundedcaptureonefreshuniqueprivatefile/nooverwrite; verifydecodeandshowinPreview; noMacfallback/oldalbums/QR/newinfra/install/broadpermission/network/account/musicchanges.",
+  "native_work": [
+    {
+      "at": "2026-10-18T08:29:50.393Z",
+      "action": "Discoverffmpegpath and listrealAVFoundationdevices"
+    },
+    {
+      "at": "2026-10-18T08:30:10.586Z",
+      "action": "InvokeinstalledFFmpegviaordinaryboundedsubprocess; exactpairediPhoneCamera:none, map0:v:0,-an,-frames:v1,-n, uniqueprivatedirectory,30stimeout"
+    },
+    {
+      "at": "2026-10-18T08:30:14.442Z",
+      "action": "Receivefinishedcapture; decodeonlynewPNGwithFFmpeg,nulloutput,10stimeout"
+    },
+    {
+      "at": "2026-10-18T08:30:19.689Z",
+      "action": "ExistingOSfileopeneropen-aPreview exactnewimage"
+    },
+    {
+      "at": "2026-10-18T08:30:21.861Z",
+      "action": "CUAgetAppPreview verifiesnewimagewindow"
+    },
+    {
+      "at": "2026-10-18T08:30:27.993Z",
+      "action": "Actualselectedfinal confirmsnew1920\u00d71440still/privatenooverwrite/noaudio"
+    }
+  ],
+  "source_and_invocation_audit": {
+    "exact_paired_source_in_actual_discovery_unique_count": 1,
+    "capture_source_matches_human_confirmed_paired_name": true,
+    "capture_invocations": 1,
+    "frames_limit": 1,
+    "microphone_selected": false,
+    "audio_disabled": true,
+    "finite_timeout_seconds": 30,
+    "no_overwrite": true,
+    "new_file_private_and_decodes": true,
+    "capture_consumer_still_running": false,
+    "photo_booth_main_process_running": false,
+    "checked_at": 1792312427.959401
+  },
+  "new_image": {
+    "bytes": 555575,
+    "birthtime": 1792312216.285629,
+    "mtime": 1792312216.2857716,
+    "width": 1920,
+    "height": 1440,
+    "format": "PNG",
+    "sha256": "a5fd230f97092d194993cc590fae57faa795e0ee7e15f2347804cef46ac5e746",
+    "file_permissions": "0o600",
+    "directory_permissions": "0o700"
+  },
+  "private_file_handoff": ".venv/tenant-runtime/iphone-direct-frame-private.json0600; actualphoto/privatePreviewproofnotpublished",
+  "independent_parent_verification": {
+    "file_newer_than_actual_case": true,
+    "PIL_load_and_dimensions": "1920\u00d71440PNG555575bytes, actuallydecoded",
+    "pixel_view": "Onlynewartifactviewedprivately; physicalroomobjectframe, notoldimage orMacwebcamsubstitute",
+    "Preview": "ExactnewfileURL inactualPreviewwindowwithimage, privateAX/screenshotproofsavedwork0600",
+    "phone_source": "Captureargvexactlymatchesoneactualdiscoverynameandhumanconfirmedpairedtarget; privatefriendlynameredacted",
+    "parent_live_capture_actions": false
+  },
+  "method_qualification": "This is one still VIDEOFRAME fromContinuityCamera/iPhoneAVFoundationfeed; notfull-resolutionnativeiPhoneCameraAppPhotoShutter. EarlierPhotoBoothsingleUIattemptremainsUNKNOWN, notretroactivelydeclaredfailed/successful.",
+  "cleanup": {
+    "normal_guest_leave": true,
+    "final_ui": "Accessended/composerdisabled",
+    "FFmpegcamera_consumer": "Exited; independentprocesschecknomatchingAVFoundationcapture",
+    "PhotoBoothprocess": "Absent",
+    "Previewstillwindow": "Retainedasrequestedlocaldisplay; notalivecamerapreview",
+    "file": "Retainedprivate0600with0700directory, nooverwrite/delete",
+    "Spotify_output_volume": "Untouched",
+    "phonebrowser_viewer_roles": "StillHOLD/nochange"
+  },
+  "no_new_infrastructure": "No productcode/helper/service/integration/install. Ordinaryone-shotexistingCLIinvocation+boundedsubprocessorchestrationexplicitlyauthorized.",
+  "events": [
+    {
+      "t": 1792312169.0421572,
+      "kind": "guest.join",
+      "audit": {}
+    },
+    {
+      "t": 1792312186.684206,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14e21-9736-71a1-a7ff-c58e01322720",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792312228.039225,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14e21-9736-71a1-a7ff-c58e01322720",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792312228.040631,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14e21-9736-71a1-a7ff-c58e01322720",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 7
+      }
+    },
+    {
+      "t": 1792312472.878685,
+      "kind": "guest.leave",
+      "audit": {}
+    }
+  ],
+  "limitations": [
+    "OnepairediPhoneMacgatewayproof; notautomaticarbitraryQRphonecameraaccess",
+    "Video-framecapturehasdifferentresolution/processingfromnativefullresphoneshutter",
+    "EarlierpossiblePhotoBoothlocalcopyunconfirmedandnotdeleted; currentCLIexactlyoneframe"
+  ]
+}

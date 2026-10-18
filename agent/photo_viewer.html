@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Tenant private photo viewer</title>
+<style>
+  body { margin: 1rem; font: 16px system-ui; }
+  #photo { min-height: 1px; }
+  #photo img { display: block; max-width: 100%; max-height: calc(100vh - 6rem); object-fit: contain; }
+</style>
+<main id="tenant-photo-viewer">
+  <p id="status" role="status">Connecting private photo viewer…</p>
+  <form id="connect" hidden>
+    <label>Host credential <input id="credential" type="password" autocomplete="off" spellcheck="false"></label>
+    <button id="connect-button" type="submit">Connect</button>
+  </form>
+  <div id="photo" aria-label="Room photo"></div>
+</main>
+<script src="/photos/viewer.js"></script>
+</html>

@@ -1,0 +1,88 @@
+{
+  "case": "Native iPhone app discovery, superseded by explicit QR-only/no-mirroring constraint",
+  "status": "ABANDONED Mirroring route; native iPhone app goal unfulfilled",
+  "revision": "e294e66f9319c239cd452797d25e7552416a94a6",
+  "guest_id": "7f5d9eb4-90c7-4df3-9f78-e29faab3b892",
+  "channel": "webUI",
+  "input": "Look through the apps installed on my connected iPhone, choose one harmless app at random from the apps you actually observe, and do one small visible action in it. Tell me which app and what you actually did. Use existing connections and apps; don\u2019t install or build anything.",
+  "native_actions": [
+    {
+      "at": "2026-10-18T07:26:18.566Z",
+      "action": "Existing helper inventory + available tools discovery"
+    },
+    {
+      "at": "2026-10-18T07:26:20.605Z",
+      "action": "CUA getState; existing installed app discovery"
+    },
+    {
+      "at": "2026-10-18T07:26:25.572Z",
+      "action": "Native agent opened existing iPhone Mirroring app without parent hint/prep"
+    },
+    {
+      "at": "2026-10-18T07:26:33.399Z",
+      "action": "Clicked observed Continue on iPhone on Your Mac welcome screen"
+    }
+  ],
+  "observed_os_gate": "Unlock iPhone. Follow the instructions on configured iPhone to unlock and use it on this Mac. Your iPhone will be fully accessible from this Mac when connected.",
+  "reply": "iPhone Mirroring is waiting for the iPhone to be unlocked. I couldn\u2019t observe its apps or perform an in-app action.\n\nUnlock the iPhone and follow its mirroring prompt so I can continue.",
+  "later_independent_parent_observation": "Existing running Welcome to iPhone Mirroring window: Unable to Connect to iPhone, configured phone must be poweredon/nearby withBluetooth/WiFi; SetUpLater/TryAgain. Parent read-only; no setup or TryAgain.",
+  "human_latest_constraints": [
+    "im saying without mirroring, its just with the qr code",
+    "like qr code + agent backend and your phone is connected to stuff yk"
+  ],
+  "phone_apps_observed": false,
+  "phone_app_chosen": false,
+  "phone_app_action": false,
+  "phone_full_access_granted": false,
+  "parent_setup_or_phone_state_changes": false,
+  "no_new_infrastructure": true,
+  "cleanup": {
+    "ordinary_guest_leave": true,
+    "final_ui": "Access ended; composerdisabled",
+    "watchdog": "DISARMED without firing",
+    "test_owned_mirroring_welcome": "Fresh unchanged Welcome/UnableConnect state observed; parent clicked observed normalclosebutton5 only. App process stillrunning perinventory, no forcequit or account/settings change.",
+    "spotify": "Untouched/userongoing",
+    "phone_light": "No testcommands, priorOFFpreserved"
+  },
+  "events": [
+    {
+      "t": 1792308356.385279,
+      "kind": "guest.join",
+      "audit": {}
+    },
+    {
+      "t": 1792308373.0421388,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14de7-662a-7cb0-a870-80ffc6b86462",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 11
+      }
+    },
+    {
+      "t": 1792308405.175628,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14de7-662a-7cb0-a870-80ffc6b86462",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 11
+      }
+    },
+    {
+      "t": 1792308405.176238,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14de7-662a-7cb0-a870-80ffc6b86462",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 11
+      }
+    },
+    {
+      "t": 1792308507.324918,
+      "kind": "guest.leave",
+      "audit": {}
+    }
+  ],
+  "qr_only_current_capability_limit": "Current phonebridge advertises LIGHT only; camera wiring future/unapplied. No installed-app enumeration/nativeappcontrol capability exposed. Do not claim Mac app or Mirroring satisfies QR-only goal.",
+  "next_action": "No further modelturn/newguest/phoneask. Root implementing camera separately; nativephoneapp requires actual app-exposed integration/capability, not assumed fromQR."
+}

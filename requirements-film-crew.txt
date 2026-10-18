@@ -1,0 +1,4 @@
+# Reuse the capability lab environment when available; no production Brain change.
+obsws-python==1.8.0
+qrcode==8.2
+pillow==13.0.0

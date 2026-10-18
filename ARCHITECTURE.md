@@ -47,6 +47,41 @@ Companion to `PLAN.md`. This is the build spec: components, data model, wire pro
 
 ## 2. Data model (in‑memory; `state.py`)
 
+### Selected recording timeline increment (Audio, October 17)
+
+The optional Mac song adapter advertises `song.prepare {program_id,song_id,expires_at_ms}`,
+`song.start {program_id}`, `song.status {program_id}`, `song.stop {program_id}` only
+when a host-prepared local recording and player are available. `song_id` identifies
+one exact canonical PCM cache with its SHA256, Daniel Caesar title/artist metadata,
+provenance and recording-derived beat timestamps in seconds. The selected official
+CYANIDE YouTube source is resolved by existing yt-dlp and decoded by FFmpeg into a
+private cache automatically; no manually downloaded file, account or purchase is
+required. Only this exact source is configured; no arbitrary catalog search,
+download, generated backing track or guessed BPM fallback is implied.
+Preparation never plays. Start/status return exact source identity, playback
+state and mpv's actual `audio-pts` in that same PCM timeline via private JSON IPC.
+The player visibly identifies Daniel Caesar / CYANIDE and preserves the Mac's
+current default output and volume. Stop is scoped
+to the owned program, and EOF, expiry and agent disconnect stop the child.
+
+Native `program-start` additionally accepts `{request_id,device_id,song_id}`;
+song IDs/labels are discovered in program inventory. The existing generated-beat
+shape remains distinct. Song BPM edits are unsupported; phone cadence changes
+interpolate the detected beat timestamps, preserving nonuniform timing. Existing
+phone claims, first-cycle receipts, independent phone OFF/detach and owned cleanup
+are reused. Raw song capabilities are not exposed as unowned native calls.
+
+The Brain brackets each live playhead read between its actual Bus dispatch and
+receipt, maps it to its own monotonic clock, and reports the bracket uncertainty.
+It does not compare clocks on two hosts. Stale, nonadvancing, implausibly slow or ambiguous samples suppress
+unsent phone ON and report pending; pause/seek/failure cannot replay old beats.
+Progress must remain coherent across reads, and recovery requires an observed
+advancing segment; per-read jitter tolerance cannot accumulate unbounded drift.
+Transport timing does not measure acoustic/optical offset. The selected recording
+and beat estimates require actual listening/phase acceptance before synchronization
+is claimed. No new registry, lease, channel, public frame or web field is required;
+Audio owns this optional driver/program/helper seam, Root deploys, Owen owns web.
+
 ```python
 @dataclass
 class Device:
@@ -96,6 +131,8 @@ class Session:              # conversation state per guest
 
 Registry = `dict[str, Device]`. Leases = `dict[str, Lease]`. Sessions = `dict[str, Session]`. Everything is also appended to `log/events.jsonl` (one line per event) for the display's live log, VEYZL audit evidence, and post‑mortem.
 
+Internal state also carries a stable room identity independent of the rotating invitation code, a private guest-cookie digest, and any pending alternative-device choice. These are backend fields, never guest credentials in public display state; existing public JSON fields stay unchanged. A room's code admits new guests, while its stable identity binds enrolled devices and leases.
+
 ---
 
 ## 3. Wire protocol — devices (`/ws/device`)
@@ -120,17 +157,19 @@ Brain replies `{"type":"welcome","server_time":..., "room":"7F3A"}` and broadcas
 ```json
 {"type":"do","req":"r_8f21","cap":"light","args":{"on":true},"deadline_ms":5000,"epoch":3}
 ```
-`epoch` is the room's lease epoch, incremented on every revoke/reset. The device keeps the highest epoch it has seen and replies `err STALE` to any `do` with a lower one, so a frame queued before a reset can never fire after it. Args are always absolute state (`on:true`), never toggles — a timed‑out `do` has unknown outcome and is reported as such, not resent.
+`epoch` is the room's lease epoch, incremented on every revoke/reset. A device rejects a lower epoch after it has seen a newer one; this does not cancel commands already received or executing, or teach a disconnected device about a reset. Revocation blocks new and queued guest dispatch at the Brain; already-dispatched work remains in flight or unknown until confirmed, never falsely reported as physically cancelled. Args are absolute state where supported (`on:true`, never toggle); timed-out work has unknown outcome and is not automatically resent or substituted.
 **Device → Brain:**
 ```json
 {"type":"ok","req":"r_8f21","result":{"on":true}}
-{"type":"err","req":"r_8f21","code":"PERMISSION|UNSUPPORTED|BUSY|FAILED|STALE","message":"camera permission denied"}
+{"type":"err","req":"r_8f21","code":"PERMISSION|UNSUPPORTED|BUSY|FAILED|STALE|UNKNOWN","message":"camera permission denied"}
 ```
 **Heartbeat:** Brain sends `{"type":"ping"}` every 5 s; device replies `{"type":"pong"}`. Two missed (10 s) → device marked offline, removed from tool list, display greys it out. A WebSocket `close` event marks it offline immediately. On reconnect the device re‑sends `hello`.
 
 **Device auth:** the device page and laptop agent include `?t=DEVICE_TOKEN` (shared secret from env) when opening `/ws/device`; otherwise anyone who guesses `/d/` could register a fake device during judging.
 
-`core/bus.py` implements `await bus.call(device_id, cap, args, timeout=5.0) -> Result`, with per‑device serialization (one `do` in flight per device; others queue) and a `Future` keyed by `req`.
+`core/bus.py` implements `await bus.call(device_id, cap, args, timeout=5.0, authorize=policy) -> Result`, preserving the original positional arguments. The synchronous policy runs after acquiring the per-device lock, immediately before send, and checks originating guest identity, current lease state/absolute expiry/scopes, room membership, current connection and capability; a missing policy denies. Authenticated host actions supply explicit host authority. One `do` is in flight per device; queued work stays bound to its original connection, and sent timeouts are unknown outcomes with no replay.
+
+Known devices authenticated with `DEVICE_TOKEN` remain bound to the same stable room across invitation-code rotation. Reconnect may present their saved prior alias; `welcome.room` gives the current code, which device clients adopt. Unknown device IDs still need the current admission code. Public device-frame names remain unchanged.
 
 ---
 
@@ -142,32 +181,50 @@ Brain → Display on every change (debounced 50 ms):
  "room":{"code":"7F3A","label":"Room 7F3A","join_url":"https://room.example/j/7F3A"},
  "devices":[{"id":"owen-phone","label":"Owen's phone","caps":["light","flash",...],"online":true,"busy":false}],
  "guests":[{"guest_id":"g_1","display_name":"Guest 1","channel":"photon","expires_in":412,"scopes":["*"]}],
- "log":[{"t":1760740000.1,"kind":"guest.join|guest.leave|cmd|do|ok|err|denied","text":"Guest 1: turn on a light → owen-phone.light(on=true) ✓"}]}
+ "log":[{"t":1760740000.1,"kind":"guest.join|guest.leave|cmd|do|ok|err|denied","text":"Owen’s phone turned its flashlight on."}]}
 ```
 Display → Brain (host actions, require `HOST_TOKEN` from env, entered once):
 ```json
-{"type":"host.reset"}            // revoke all leases, release Photon seats, rotate code, clear log, torch off
-{"type":"host.revoke","guest_id":"g_1"}
-{"type":"host.do","device_id":"owen-phone","cap":"light","args":{"on":false}}  // manual override
+{"type":"host.reset","token":"HOST_TOKEN"}            // revoke all leases, release Photon seats, rotate code, clear log, torch off
+{"type":"host.revoke","guest_id":"g_1","token":"HOST_TOKEN"}
+{"type":"host.do","token":"HOST_TOKEN","device_id":"owen-phone","cap":"light","args":{"on":false}}  // manual override
 ```
 Keyboard: `R` = reset (with a 1‑s hold to avoid accidents), `X` = revoke selected guest.
+
+Public log text is a sentence with visible device labels. Request IDs, device IDs, capability names and result codes live in the private JSONL audit metadata and are omitted from public log rows, which stay `{t,kind,text}`. `GET /qr.svg` returns a real QR for the current public guest join URL with no caching; the display must refresh it when the invitation changes. At UI revision `8c8ba15`, Owen’s display still renders a placeholder and needs his renderer update before its QR can be called scannable.
 
 ---
 
 ## 5. Guest channels
 
+Core acceptance at `6075a3a` includes the production display QR update from `ba6248c`: actual display pixels decode correctly before/after reset, and Jay scanned the rotated QR on a phone, joined and heard a new guest speech request. The earlier placeholder limitation describes the older UI revision only.
+
 ### 5.1 Join flow (`api/join.py`)
 
 `GET /j/{room_code}` → join page (static). Two buttons:
 
-- **Chat here** → `POST /join {room_code}` → `{guest_id, guest_token, chat_url:"/g/{guest_id}#t={guest_token}"}` → redirect. No PII. `guest_id` is public (shown on the display, in logs); `guest_token` is the private credential, carried in the URL fragment so it never reaches server logs, and sent as `?token=` on `/ws/guest`. A WS without a matching token is closed with code 4401.
+- **Chat here** → `POST /join {room_code}` → `{guest_id, guest_token, chat_url:"/g/{guest_id}?room={room_code}#t={guest_token}"}` → redirect. No PII. `guest_id` is public (shown on the display, in logs); `guest_token` is the private credential, carried in the URL fragment so it never reaches server logs, and sent as `?token=` on `/ws/guest`. A WS without a matching token is closed with code 4401.
 - **Text the room** → form with phone number (E.164 normalized client‑side) → `POST /join {room_code, phone}` → Brain calls Photon `POST /v1/projects/{id}/platforms/imessage/assignments {handle: phone}` (first `GET` existing assignments to reuse one for the same handle) → `{guest_id, imessage_number, sms_link}` → page shows a big button "Open Messages" and the fallback "or chat here". `sms_link` uses the cross‑platform form `sms:+1206…?&body=join%207F3A` — iOS wants `&body`, Android wants `?body`; `?&body` is accepted by both. Test on each.
 
 Both paths create a `Lease` (TTL 600 s) and a `Session`. The display shows the guest immediately as "joining…" until their first message.
 
+The web response also sets an opaque per-guest HttpOnly, SameSite=Strict cookie (Secure under HTTPS) for same-origin `/leave`; only the credential digest is retained by the server. Guest WS requires the explicit fragment credential, even when the cookie exists, matching Owen’s pages at `7c8ed8b`. Join/leave and guest WebSockets check the same-origin browser context. Multiple tabs keep distinct per-guest cookies; revoked credentials permit only the deterministic denial, not renewed access. Uvicorn access logging is disabled because WS query strings contain private tokens.
+
 ### 5.2 Web chat (`channels/webchat.py`, `/ws/guest`)
 
-Guest page opens WS at `/ws/guest?guest_id=…&token=…` (token from the URL fragment). Frames: `{"type":"user","text":"turn on a light"}` → Brain runs the agent → streams `{"type":"assistant","text":"…"}` plus `{"type":"action","text":"owen-phone.light(on) ✓"}` events so the guest sees what happened. When a requested device is unavailable, the agent offers alternatives **in ordinary `assistant` text** and waits for the guest's choice — no new frame type. Hold‑to‑talk button uses the browser `SpeechRecognition` API where available (Chrome/Android; iOS Safari has partial support) and falls back to typing. Audio replies optional via Grok Voice TTS → `<audio>`.
+Guest-journey refinement (Jay, October17): the authenticated socket also publishes its own permission view before conversation frames and whenever it changes (checked once per second), independently of model execution:
+
+```json
+{"type":"lease","state":"joining","expires_in":119,"access_expires_in":599,"controls":[{"label":"Jay phone","caps":["light"]}]}
+```
+
+`expires_in` is the effective current deadline: `min(joining_until, expires_at)` while joining, original `expires_at` while active. The page labels these “Start within” and “Access remaining”; `access_expires_in` always counts down to the original issued grant. Opening/reconnecting the socket never activates or renews a lease. Ended or expired authority sends `state:"released"`, `reason:"ended"|"expired"|"unavailable"`, zero remaining time and empty controls. Health failure clears displayed authority with `reason:"unavailable"`; it pauses controls rather than ending the internal lease. A later authoritative joining/active frame may restore controls only while the same original grant remains valid. Genuinely ended/expired grants never reactivate. Controls include only online devices in this room, filtered by this guest's scopes and the shipped capability allowlist; ambiguous duplicate labels are omitted. No credentials, device IDs, schemas, histories, audit metadata or other guests belong in this frame. A socket send lock keeps each action/assistant result batch adjacent; permission updates do not cancel already-dispatched effects. Dispatch-time checks remain authoritative.
+
+The guest page offers free chat plus prompts derived from actual controls: “What can I control?”, “Say hello” and “Play music” when supported. It shows permitted controls, the deadline, an explicit Leave button using the existing authenticated `/leave`, and a clear ended state. Leaving ends control and preserves existing effects; host reset turns lights off and pauses music. Text-message, photo and room-scene suggestions remain hidden while those paths are gated. Owen retains the guest-facing files; coordinate this scoped refinement in `notes/jay.md` before applying it.
+
+Guest page opens WS at `/ws/guest?guest_id=…&token=…` (token from the URL fragment). Frames: `{"type":"user","text":"turn on a light"}` → Brain runs the agent → streams `{"type":"assistant","text":"…"}` plus `{"type":"action","text":"Owen’s phone turned its flashlight on."}` events so the guest sees what happened. When a requested device is unavailable, the agent offers alternatives **in ordinary `assistant` text** and waits for the guest’s choice — no new frame type. Hold‑to‑talk button uses the browser `SpeechRecognition` API where available (Chrome/Android; iOS Safari has partial support) and falls back to typing. Audio replies optional via Grok Voice TTS → `<audio>`.
+
+The optional guest `lease` frames in Owen’s UI are not emitted by the current backend; the countdown stays absent and access ending is shown by the deterministic assistant response. The guest URL carries the current room code for its header. Relative CSS/JS URLs in Owen’s static pages are supported at both `/j/` and `/g/` by exact asset aliases.
 
 ### 5.3 Photon iMessage (`channels/photon.py`)
 
@@ -211,7 +268,7 @@ Tool names are deterministic so the model's memory of "I used `owen_phone__light
 
 ### 6.2 System prompt (fixed text + live block)
 
-> You are Room {code}, a physical room that a guest is talking to. You control real devices in the room through tools. Rules: (1) When the guest asks for something, act — call a tool — then confirm in one short sentence naming the device you used. (2) If several devices can do it, pick the most sensible one using their labels; if truly ambiguous, pick one and say which. (3) If nothing in the room can do it, say exactly what's missing; never pretend. (4) Never claim an action succeeded unless the tool returned ok. (5) Keep replies under 25 words; this is a text thread. (6) If the guest says goodbye/leave/done, call `room__leave`.
+> You are Room {code}, a physical room that a guest is talking to. Interpret requests using the provided inventory, including offline device labels. For a generic capability request, choose an available permitted device and name it. If the requested device is unavailable, explain and suggest suitable alternatives, then wait for the guest's explicit choice before acting elsewhere. Questions, unclear requests and unsupported requests may produce no action. Never claim success before a confirmed result; a timeout may mean the action happened, so do not retry or substitute automatically. Keep replies under 25 words. A clear leave request ends access. Until the core gate opens, perform at most one requested physical action per turn; coordinated outputs and proactive rules remain gated.
 > Currently in the room: {bulleted device/caps list}. Guest: {display_name}, access expires in {mm:ss}.
 
 ### 6.3 Loop
@@ -221,9 +278,13 @@ user text → append → LLM(tools=tools_for(lease)) →
   while tool_calls: for each: parse device/cap → bus.call(...) → append tool result (ok/err verbatim) → LLM again (max 4 rounds)
 → final assistant text → send via channel → log
 ```
-Lease checked **before** every tool call (not just at turn start) so a mid‑turn revoke is honored. Denied → tool result `{"error":"lease revoked"}` and the agent is told to inform the guest. One turn in flight per guest; a second message while a turn runs is queued (not dropped).
+Lease checked before every tool call and again by the bus after queue waits, immediately before dispatch. Already-ended access gets a fixed denial without a model call; current tool failures are reported truthfully. One turn is in flight per guest. Pending alternatives store the original requested action; confirmation rechecks access and availability rather than replaying a stale permission decision.
 
 Model: whichever fast function‑calling model we have a key for (Anthropic Haiku‑class, OpenAI mini‑class, or Grok fast). Budget: p50 turn < 1.5 s including one device action. Transcript trimmed to last 20 messages.
+
+Current model access: the already-authenticated local Codex CLI supplies the structured plan for each guest session; Tenant remains the authority/executor, with personal tools disabled and all plans validated. The constrained adapter passed 16 small cases (15 real model interpretations, one local refusal), with no tool execution. The real public guest-to-cellular-light path took 3.6–3.7 seconds, missing the original 1.5-second target; do not claim that target passed. This is guardrail evidence, not OS isolation or a reliability study. Guests connecting their own coding agents is gated for later.
+
+Current implementation chooses one validated plan per turn (action, question/refusal, leave, or an unavailable-device suggestion). It uses the last 20 session messages with a bounded subset passed to Codex. Deterministic code supplies the physical-result response; the four-round API loop above remains a design reference, not implemented behavior.
 
 ### 6.4 Guest without a lease
 
@@ -288,13 +349,37 @@ Bluetooth speaker is simply the laptop's audio output. Test music + `say` overla
                         expired  ◀──────────────────────────────  released
                                    (Photon assignment deleted, session kept 10 min for the denial reply)
 ```
-Background task every 5 s: expire leases, release Photon seats, push display state. Every revoke/expiry/reset increments `room.epoch`, which is stamped on all subsequent `do` frames (§3). Expiry warning: at 60 s remaining the agent (on next turn) mentions it; we do not send unsolicited messages (Photon can't; webchat could but we keep parity).
+Background task every 5 s: expire leases, release Photon seats, push display state. Absolute expiry is authoritative at every dispatch, including between sweeps; activation does not extend the 600-second issued grant, and an unused joining grant dies after 120 seconds. Revocation/expiry/reset increments `room.epoch`. Ordinary leave/expiry/revoke preserves existing effects unless the host configured explicit cleanup defaults; stopping authority and observing cleanup are separate outcomes.
 
 ---
 
 ## 10. Host console & reset
 
-`host.reset` performs, in order: cancel in‑flight `do`s → `light off` on every device that has it → delete all leases → release Photon assignments (best effort, parallel) → rotate `room.code` → clear display log → broadcast state. Target < 1 s wall time. Rotating the code invalidates any stale QR a judge photographed.
+`host.reset` first revokes guest authority, invalidates queued guest work, increments the epoch, rotates only the invitation alias, and broadcasts the new admission state while preserving enrolled devices' stable room binding. Target <1 s for the local authority transition; this is not a promise of physical cleanup in <1 s. Already-dispatched commands retain their confirmed/unknown outcomes. Jay confirmed reset defaults: turn every enrolled light off and pause Music. Cleanup runs as explicit host actions, with each outcome recorded; unreachable devices mean cleanup is unconfirmed; no undo is assumed, and ordinary access ending still preserves effects. Photon assignment release is best effort and cannot delay local denial. Old invitation codes cannot create new leases; existing devices stay connected or reconnect using their saved enrollment.
+
+**Retired enrollment recovery (implemented00594fa):** authenticated `POST /host/devices/retire` accepts exactly `{"device_ids":["obsolete-id"],"reason":"Why the enrollment is obsolete","physical_off_confirmed":true}` with `Authorization: Bearer HOST_TOKEN`. This is an explicit host observation, not a device acknowledgment. The operation rejects live, busy, pending, uncertain or program-claimed targets; audits the request; and atomically persists removal of only the requested disconnected enrollment aliases. It performs no device action, rotates no invitation, and returns only `ok`/`retired`. A409 changes nothing; a503 means recovery is unconfirmed and control stays disabled—inspect state/audit before further action. A separate host reset must still obtain fresh acknowledgments from the remaining enrolled devices. Retired IDs may enroll again using a fresh current invitation; their old saved aliases no longer work.
+
+---
+
+### Current host setup and stop contract — deployed 0b4a1ec
+
+`GET /` and `/setup` serve Owen's unchanged setup page. Authenticated `POST /host/room {"label":"..."}` persists and broadcasts the room label without rotating the room, invitation or access. The normal Bearer credential works; a nonempty matching `X-Host-Token` is accepted only for this endpoint with an approved Origin. Explicit invalid Bearer cannot fall through. Save failure returns503 without claiming success. Owen owns the host-credential and response-error UI.
+
+Room programs support `light_beats_per_state` on `program-update` with the exact `light_device_id`. Default0.5 preserves the earlier cadence;1 gives one full beat ON and one full beat OFF (2s per state at30BPM). Positive finite, representable cadence is required. First ON+OFF acknowledgments establish only the transport cycle; they do not establish optical/acoustic synchronization.
+
+A current guest's freshly requested absolute light OFF is a separate compensating action, using existing `call`/`light`/`{on:false}`. It invalidates future program ON, waits boundedly for already-sent work and actual Bus uncertainty to resolve, then sends one newly authorized OFF on the exact connection. Only its matching acknowledgment releases the matching phone claim. It neither replays an old ON nor automatically retries UNKNOWN; an uncertain OFF prevents another new-ID OFF in the same native turn. Local Disconnect/release camera remains the recovery path when confirmation is unavailable. Phone OFF does not wait on unrelated Mac cleanup.
+
+Program stop lets already-sent bounded phone commands and actual audio-status reads settle before owned cleanup. Host reset still has sequential context/program/host cleanup phases; its pause budget accounts for already accepted narration. It can wait for audio in an unknown-phone case, so this is not an all-case instant-reset promise. Physical stop and model-intent acceptance remain separate from the452 Python +12 Node source checks; the earlier600s live expiry attempt was interrupted and is not a pass.
+
+---
+
+### Reply voice — deployed f228b39
+
+New guests get text replies. A genuine native turn may interpret an explicit ongoing-voice request through private helper `reply-voice`: `{request_id,enabled:true,device_id,speaker_ref}` using exact inventory values, or `{request_id,enabled:false}` to opt out. Consent belongs to the exact lease/controller generation and enrolled speaker connection; reconnect/replacement/new guest never silently inherits it. One-off requested `say` stays independent and suppresses duplicate automatic narration.
+
+Web and Photon share the policy. Final text is published first, then an explicitly owned background job may speak only while consent, revision, connection and access still match after queue waits. Opt-out blocks unsent narration; already-started speech may finish. Cleanup is bounded, and optional speech-close failure cannot skip native/helper teardown. A newly enrolled speaker can prompt a choice in the next genuine conversational turn; no proactive model loop or OS/Bluetooth output observer is claimed. Selected output and volume remain unchanged.
+
+Validation:484 Python +12 unchanged Node checks and independent exact-hash review pass. A real public HTTPS/WSS guest request to the fixed native room conversation returned text, recorded `TEXT_DEFAULT`, sent zero room `say` requests and left successfully. Natural ongoing opt-in/opt-out and physical effects are now owned by the local tester. Source and real default-text evidence are separate from unobserved optical/acoustic outcomes.
 
 ---
 
@@ -302,7 +387,7 @@ Background task every 5 s: expire leases, release Photon seats, push display sta
 
 - Secrets only in env (`PHOTON_API_KEY`, `LLM_API_KEY`, `HOST_TOKEN`, `DEVICE_TOKEN`); `.env` gitignored; keys scoped to one Photon project.
 - Guests can only reach `/join`, `/g/*`, `/ws/guest`, `/upload`; host endpoints need `HOST_TOKEN`; device WS needs `DEVICE_TOKEN` plus a `room_code` that matches.
-- Lease check on every tool call; scopes default to all room caps but can exclude (`camera.capture` off for guests by default? — **decision: on**, it's part of the demo; mention in the pitch that scopes exist).
+- Lease check on every tool call; scopes restrict dispatch. Until the agreed feature gate opens, the planner only exposes `light`, `volume`, `say`, `music.play`, and `music.pause`; photo, coordinated outputs and proactive rules remain unavailable.
 - Rate limit: 1 command / 2 s per guest; 10 photos / lease.
 - Camera photos stored in memory with a 10‑min TTL, never to disk.
 - Confirm‑before‑act hook exists for caps flagged `sensitive` (none today; this is the VEYZL "finding changed the build" candidate if their audit asks for human‑in‑the‑loop).
@@ -313,14 +398,17 @@ Background task every 5 s: expire leases, release Photon seats, push display sta
 
 | Failure | Guest sees | Display shows |
 |---|---|---|
-| Device timeout (5 s) | "Owen's phone didn't respond — try again or ask for another device." | `err timeout` row, device marked slow |
-| Device offline | tool not offered; if asked: "There's no light I can reach right now." | device greyed |
-| Lease revoked mid‑command | "You're no longer in Room 7F3A." | `denied` row |
+| Device timeout (5 s) | "That device didn't confirm. It may have acted; I won't repeat it automatically." | unknown-outcome row, device marked slow |
+| Requested device offline | Explain which device is unavailable; suggest suitable alternatives and wait for choice, or state that none exist | device greyed |
+| Lease revoked before dispatch | "You're no longer in Room 7F3A."; no model call for subsequent requests | `denied` row; zero new guest `do` frames |
+| Lease revoked after dispatch | Further control denied; already-sent action reported as confirmed or unknown, with no false cancellation | original request outcome retained |
 | LLM error / slow (>8 s) | "The room's thinking is slow — say that again?" | `err llm` |
 | Photon send fails | retry once; log; webchat unaffected | `err photon` |
 | Brain restart | devices reconnect in <8 s and re‑hello; leases lost → room effectively reset | state rebuilds |
 
 ---
+
+The demo services can run independently of a chat command session using `python scripts/runtime.py start|status|stop brain|audio|tunnel`. Ownership records and private logs stay under `.venv/tenant-runtime/`; this does not install login items or recurring automation. The optional `TENANT_STATE_PATH` preserves only room identity, invitation, epoch and enrolled aliases across restarts, never guest credentials or sessions.
 
 ## 13. Repo layout
 

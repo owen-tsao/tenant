@@ -1,0 +1,101 @@
+{
+  "case": "Existing Mac apps, separate actual webUI guest",
+  "result": "PASS",
+  "revision": "e294e66f9319c239cd452797d25e7552416a94a6",
+  "guest_id": "d739dd77-df6b-4948-ab76-11d51d73e1a2",
+  "channel": "webchat, not Photon",
+  "input": "Open TextEdit on the Mac and create a new document saying Tenant can use this Mac. Then open Calculator and calculate 137 times 29. Use existing apps; do not install or build anything.",
+  "reply": "Created a new TextEdit document saying \u201cTenant can use this Mac.\u201d Calculator shows 137 \u00d7 29 = 3,973.",
+  "native_actions": [
+    {
+      "at": "2026-10-18T07:18:11.411Z",
+      "action": "CUA getApp TextEdit"
+    },
+    {
+      "at": "2026-10-18T07:18:13.775Z",
+      "action": "super+n new document"
+    },
+    {
+      "at": "2026-10-18T07:18:16.415Z",
+      "action": "type requested sentence; getApp Calculator"
+    },
+    {
+      "at": "2026-10-18T07:18:21.559Z",
+      "action": "keys137*29Return; observeAX"
+    },
+    {
+      "at": "2026-10-18T07:18:26.832Z",
+      "action": "selected final reply"
+    }
+  ],
+  "independent_parent_verification": {
+    "TextEdit": "Existing app new Untitled document text exactly Tenant can use this Mac.",
+    "Calculator": "Last Expression137\u00d729, Edit field3,973",
+    "screenshots_visually_reviewed": true,
+    "parent_actions": "Read-only getApp/getAXState/screenshot after native final; no typing/calculating/preparing content on agent behalf"
+  },
+  "events": [
+    {
+      "t": 1792307869.672828,
+      "kind": "guest.join",
+      "audit": {}
+    },
+    {
+      "t": 1792307888.6486342,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14de0-01fe-7052-9484-a5d0a69b844e",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 9
+      }
+    },
+    {
+      "t": 1792307906.880936,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14de0-01fe-7052-9484-a5d0a69b844e",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 9
+      }
+    },
+    {
+      "t": 1792307906.881834,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14de0-01fe-7052-9484-a5d0a69b844e",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 9
+      }
+    },
+    {
+      "t": 1792307946.577044,
+      "kind": "guest.leave",
+      "audit": {}
+    }
+  ],
+  "watchdog": {
+    "armed": 1792307879.5294569,
+    "seconds": 300,
+    "disarmed": 1792307954.915732,
+    "fired": false
+  },
+  "final_guest_ui": "Access ended, Message/Send disabled after ordinary Leave",
+  "retained_results": [
+    "Requested harmless new TextEdit document",
+    "Calculator result"
+  ],
+  "preserved": [
+    "Spotify ongoing music untouched",
+    "OSaudio route/volume",
+    "Phone/light",
+    "Unrelated documents/apps/settings"
+  ],
+  "no_new_infrastructure": true,
+  "no_installs_downloads_source_UI_adapter_changes": true,
+  "human_goal_correction": {
+    "intended_app_goal": "Native iPhone apps, not Mac apps",
+    "mac_test_qualification": "Actual Mac TextEdit+Calculator PASS retained as extra evidence; does not fulfill native iPhone app goal",
+    "human_reply_relayed_by_Root": "butgoodtoknowcomputerappworks",
+    "next_phone_app_test": "Unperformed; await chosen phone app and fresh release. Existing phone light/camera capability does not grant native iOS app control. No new Shortcuts/companion/control infrastructure authorized."
+  }
+}

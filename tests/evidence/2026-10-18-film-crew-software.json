@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-18T09:58:35.394613+00:00",
+  "kind": "isolated_software_acceptance",
+  "command": ".venv/film-crew-lab/bin/python -m unittest discover -s tests -p test_film_crew*.py -q",
+  "tests": 139,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "pip_check": "No broken requirements found.",
+  "source_sha256": {
+    "film_crew/__init__.py": "e768f0e1d779f4a9171741a7b55c57423d5b979714e17db9c19011cd6088ff32",
+    "film_crew/__main__.py": "6ea4b02cb30522b3d55b02c34fd2c656a9a8ed6eb2c7dd6d17f56d56207b1cbe",
+    "film_crew/cameras.py": "eb8fa4b0479a54f79fe660a9d523364d57738db6ad88db9b0484a3b14c225930",
+    "film_crew/config.py": "7ae0be97015a456cb8da5e4935c6020dff50319f5cb576b024a747769be6eb90",
+    "film_crew/controller.py": "4ace53fda3b75e94e5ff4ddafb7cd00f6d0346611aba58041f3dbc1ad8bde64e",
+    "film_crew/obs_control.py": "fb80d9f324eddf1062672800e503788821586d17f1c8eb7acb14bffb1d911618",
+    "film_crew/policy.py": "01970da7d71583cea6f8d6d0f01201b4bfe68be3a6f0fafaf57f4c92c379d299",
+    "film_crew/vision.py": "cac13fbccc66a073b9ad35d87c2d5953f16140be191328ed35c31450a2c23188",
+    "requirements-film-crew-vision.txt": "d7468db3faecabb4ec35d59ee33b317303096c4eb2e7b633a480f6dc5a8b8762",
+    "requirements-film-crew.txt": "4b5fa582f3570df84194ad88eb553341a1ddfdf0e7d115c42fad0b7bbac9f276",
+    "tests/test_film_crew_cameras.py": "aa66966ced5b949a2014b6a111ee655dfa2a436d10e7175c4c0460dc6f5c6cbd",
+    "tests/test_film_crew_config.py": "3b9182d0d5f07cbbe3f8e603cf687506bedf6bba374736cb5902b5947364530e",
+    "tests/test_film_crew_controller.py": "5b7ab84b97265666948af7e187a8b8c49c8fd9cb1cf15d0434fe26e04f6d96d9",
+    "tests/test_film_crew_obs.py": "c0306c41caad90e12c1075bed36ae2aff634ad4b94362b104dbeb94d9fb715f0",
+    "tests/test_film_crew_policy.py": "d5bb0077fcc1db774296a5b8ae314c83c028c203a1869ec5ef2e3951277795ff",
+    "tests/test_film_crew_runner.py": "e92a426de65279c5e2695968ad15fdf883a0d17f357b4821d1ac1f1dc62ee87b"
+  },
+  "physical_evidence": "2026-10-18-film-crew-manual-cuts.json",
+  "not_established": [
+    "final useful framing/phone-role challenge",
+    "camera disconnect/reconnect",
+    "proactive semantic choice",
+    "held-out semantic reliability",
+    "projector output",
+    "Tenant guest lease integration"
+  ],
+  "production_services_changed": false,
+  "web_files_changed": false,
+  "status": "PAUSED_BY_USER_AFTER_CHECKS",
+  "automatic_trial": "never armed or attempted"
+}

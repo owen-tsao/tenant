@@ -1,0 +1,172 @@
+{
+  "display_settings_before": {
+    "external_mirror": "off",
+    "external_mode": "1280x720 @50Hz",
+    "internal_mirror": "off"
+  },
+  "display_settings_changed": true,
+  "exclusive_lock": "released_and_verified_free_after_display_isolation",
+  "gate_owner": "Root",
+  "gate_state": "held",
+  "limitations": [
+    "OS display detection and software window rendering do not prove readable wall projection",
+    "Mac output relation only; no projector device card/control integration created",
+    "Model identified from box relay and corroborated by manufacturer archive; external OS name remains generic and does not identify the projector. Adapter electrical specifications remain unknown."
+  ],
+  "not_performed": [
+    "audio/volume/output change",
+    "audio/phone effect",
+    "native guest turn",
+    "source/web edits",
+    "new visual/dashboard",
+    "service restart",
+    "installation"
+  ],
+  "physical_confirmation": {
+    "question_asked_once": true,
+    "answer": "i see that my computer thinks i am mirroring/extending, but the projector is not turning on",
+    "projection_confirmed": false,
+    "focused_power_status_question": "Is there a lit power/status light on the projector, or is it completely dark?",
+    "power_status_answer": "Completely dark",
+    "next_coordination": "Root will explain projector charger/brick versus remote and request one underside photo to locate model/rating. DeviceRuntime asks no question and makes no UI/settings action; Tester’s exclusive internal Music window continues.",
+    "root_relayed_power_answer": "I don’t have its power adapter connected",
+    "root_relayed_power_answer_source": "Root relayed Jay’s direct answer; no claim that adapter is missing.",
+    "latest_root_relay": "Jay sees a remote, cannot find a power adapter or label, and needs a plain-language explanation of adapter terminology.",
+    "compatible_adapter_established": false,
+    "projector_power_attempt_confirmed": false
+  },
+  "public_url": "https://writers-detector-strengthen-catalyst.trycloudflare.com/display",
+  "recorded_at_utc": "2026-10-18T05:36:41.755981+00:00",
+  "recovery": "System Settings > Displays > GenericDisplay > Use as > Mirror for Built-in Display restores the observed pre-task mirroring; leave extended for the internal-only visualizer test. No resolution/refresh/audio setting was touched.",
+  "revision": "063dd01deae21f33a8ac2bd3c0dd4cf4e44fc017",
+  "route": "dedicated new Chrome window; loaded existing public Tenant page before moving; native Window > Move to (sole external display); native full screen",
+  "sanitized_inventory": [
+    {
+      "connection": "internal",
+      "mirror": "off",
+      "name": "Color LCD",
+      "pixel_resolution": "3456x2234 Retina"
+    },
+    {
+      "connection": "not reported by OS display inventory",
+      "mirror": "off",
+      "name": "spdisplays_display",
+      "pixel_resolution": "1280x720",
+      "resolution": "1280x720 @50Hz"
+    }
+  ],
+  "source_of_hdmi_connection": "Jay reported directly connected HDMI-to-HDMI; no cable action by agent",
+  "status": "MAC_DISPLAY_PATH_CONFIGURED_PHYSICAL_POWER_BLOCK_ADAPTER_UNVERIFIED",
+  "ui_observation": {
+    "guests": "Nobody is here right now",
+    "only_public_page_in_new_window": true,
+    "public_ui_screenshot_observed": true,
+    "ready_devices": 2,
+    "room": "8157",
+    "settled_fullscreen_observed_at_local": "22:20:30 PT",
+    "title": "Tenant — Room"
+  },
+  "window_changes": [
+    "created one dedicated public Chrome window",
+    "moved only that window to external display",
+    "entered full screen"
+  ],
+  "hardware_next_step": "Await Root’s adapter identification evidence. No compatible adapter or DC rating is established.",
+  "window_closeout": "Dedicated public Tenant window intentionally remains prepared full-screen on external display. All other windows remain on their prior displays. No further UI move was made after power failure report.",
+  "photo_observations_relayed_by_root": {
+    "provenance": "Root inspected Jay’s IMG_7337/7338; DeviceRuntime did not independently inspect photos and does not copy or publish them.",
+    "photo_1": "Root reports a likely DC barrel power jack: large round socket on vented side near corner. Identification is provisional.",
+    "photo_2": "Root reports AV/audio, VGA, connected HDMI, USB and IR.",
+    "not_established": [
+      "exact projector model",
+      "input voltage",
+      "polarity",
+      "compatible adapter or power rating",
+      "whether original adapter is available"
+    ],
+    "user_context": "Jay is unsure he has the needed cables."
+  },
+  "freeze": "Only DeviceRuntime projector notes and evidence reconciled. Code frozen; no private photo copied or published. No gate or lock mutation.",
+  "adapter_availability": "unknown_not_found_by_user; not confirmed absent",
+  "projector_model": {
+    "name": "AAXA LED Showtime 3D Microprojector",
+    "identification": "Root relayed text from Jay box photo IMG_7341.HEIC; DeviceRuntime has not independently viewed or published photo.",
+    "box_native_resolution": "1280x800",
+    "box_power_usage": "85 watts maximum consumption; not a compatible power-supply specification",
+    "official_archive_verified": "https://aaxatech.com/products.html",
+    "official_archive_result": "Historical archive lists LED Showtime 3D Micro Projector (2012).",
+    "manual_reference": "https://www.aaxatech.com/pdf/ShowtimeManual.pdf",
+    "manual_access": "Search-indexed title/text verified as LED Showtime 3D User Guide; direct open returned HTTP 404. PDF was not fetched or visually inspected.",
+    "electrical_adapter_specification": "unknown; no output voltage, polarity, connector dimensions, or compatible adapter established"
+  },
+  "latest_display_state": {
+    "source": "DeviceRuntime fresh native UI and passive system_profiler verification",
+    "internal_mirror": "off",
+    "external_mirror": "off",
+    "internal_main": true
+  },
+  "readiness_plan": {
+    "state": "completed_display_isolation; Tester may resume only after Root coordination",
+    "gate_observed": "Root/held, 063dd01deae21f33a8ac2bd3c0dd4cf4e44fc017",
+    "after_release": [
+      "Acquire coordinated flock and recheck owner/state/revision/scope.",
+      "Read current Displays UI via CUA and preserve observed prior settings. If mirroring remains enabled, change only the external display Use as setting to extended display. Keep built-in display as main if already so; make no resolution/refresh/audio changes.",
+      "Verify the Mac displays are separated and built-in display available for Tester’s local Music visualizer. Do not operate audio UI. Return Root/held and release flock; record any setting changed and recovery path."
+    ],
+    "test_ownership": "Tester; native Music experiment was not started, open-file dialog canceled, Music not playing, no effects started, per Root relay."
+  },
+  "display_isolation": {
+    "result": "VERIFIED_MAC_EXTENDED_INTERNAL_MAIN",
+    "gate_revision": "063dd01deae21f33a8ac2bd3c0dd4cf4e44fc017",
+    "before_native_ui": {
+      "internal_use_as": "Main display",
+      "external_use_as": "Mirror for Built-in Display",
+      "external_refresh": "50 Hertz"
+    },
+    "action": "System Settings > Displays > GenericDisplay > Use as > Stop Mirroring",
+    "after_native_ui": {
+      "external_use_as": "Extended display",
+      "external_resolution": "1280 x 720 (Default)",
+      "external_refresh": "50 Hertz"
+    },
+    "passive_after": [
+      {
+        "name": "Color LCD",
+        "connection": "internal",
+        "pixelresolution": "3456x2234 Retina",
+        "mirror": "off",
+        "main": true
+      },
+      {
+        "name": "spdisplays_display",
+        "resolution": "1280 x 720 @ 50.00Hz",
+        "pixelresolution": "1280x720",
+        "mirror": "off"
+      }
+    ],
+    "ui_limitations": [
+      "Post-change built-in button AX click failed offscreen; coordinate fallback then reported noWindowsAvailable. No additional settings action occurred; passive inventory independently verifies built-in remains main."
+    ],
+    "public_window": "Dedicated Tenant — Room /display window still observed at 22:35:40 PT; only Tenant tab. Window menu offered Move to Built-in Retina Display, supporting that public window remains on external. Menu dismissed with exposed Cancel action. No private window was moved.",
+    "public_room_snapshot": {
+      "room": "8157",
+      "guests": "Nobody is here right now",
+      "ready_count": 1,
+      "phone_light": "offline",
+      "room_speaker": "ready"
+    },
+    "recovery": "System Settings > Displays > GenericDisplay > Use as > Mirror for Built-in Display restores the observed pre-task mirroring; leave extended for the internal-only visualizer test. No resolution/refresh/audio setting was touched.",
+    "player_actions": "none; Tester owns Music/visualizer placement and readiness verification on built-in screen"
+  },
+  "finalization": {
+    "state": "frozen",
+    "root_acceptance": "Root accepted native UI plus passive inventory verification: external extended, internal main, both mirror-off, public Tenant external window preserved.",
+    "handoff": "Root relayed successful free-flock acquisition after DeviceRuntime closeout and rereleased Tester/ready for local Music experiment. DeviceRuntime made no further UI/settings or gate/lock action.",
+    "gate_fields_scope": "gate_owner/gate_state describe DeviceRuntime closeout snapshot; they are not a live gate claim after Tester handoff.",
+    "physical_block": "Projector power adapter not found; availability and electrical output rating remain unknown. No physical projection confirmation.",
+    "files": [
+      "notes/projector-connection.md",
+      "tests/evidence/2026-10-17-projector-display.json"
+    ]
+  }
+}

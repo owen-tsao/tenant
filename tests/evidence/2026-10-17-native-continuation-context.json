@@ -1,0 +1,73 @@
+{
+  "frozen_at_utc": "2026-10-18T04:51:05.097022+00:00",
+  "status": "READY_FOR_ROOT_INTEGRATION_SOFTWARE_PASS",
+  "base_head": "575e53299b22ab0f8e10a051c9720b43f7d48173",
+  "baseline_deployed": "e4b84265a821b1741196fc25a8b8f069ca80d5f9",
+  "files_sha256": {
+    "agent/room_session.py": "570c91c1f84713df0842034dc694084580f23f8acea019ba9d1088cb635c9686",
+    "brain/core/room_conversation.py": "7980b7c443cd3cc4f1b7d984c9f7b52ac6e71501220ec1116e46dd5dddbd7118",
+    "tests/test_native_continuation_context.py": "c0c6fbe73a79a97e0392cccf297185f1054f5bdc109cc32ec94bd90a505e38a3",
+    "tests/test_room_program_integration.py": "443e7050085c258b05e7d3d519a1671203d61a3492e5ee5a873740f66e471732"
+  },
+  "validation": [
+    {
+      "command": ".venv/bin/python -m unittest discover -s tests -p test_native_continuation_context.py -v",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 0.059
+    },
+    {
+      "command": "PYTHONPATH=.:tests .venv/bin/python -m unittest tests.test_room_session tests.test_room_conversation tests.test_native_terminal_events tests.test_native_devices",
+      "passed": 79,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 0.52
+    },
+    {
+      "command": "git diff --check -- agent/room_session.py brain/core/room_conversation.py tests/test_native_continuation_context.py",
+      "passed": true
+    },
+    {
+      "command": "PYTHONPATH=.:tests .venv/bin/python -m unittest tests.test_room_program_integration",
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.897,
+      "reason": "26 prior failures shared obsolete4000 fixture;4 othermodulechecks retained"
+    }
+  ],
+  "review": {
+    "independent_agent": "continuation_contract_review",
+    "remaining_findings": 0,
+    "reviewed_sha256": {
+      "agent/room_session.py": "570c91c1f84713df0842034dc694084580f23f8acea019ba9d1088cb635c9686",
+      "brain/core/room_conversation.py": "7980b7c443cd3cc4f1b7d984c9f7b52ac6e71501220ec1116e46dd5dddbd7118",
+      "tests/test_native_continuation_context.py": "c0c6fbe73a79a97e0392cccf297185f1054f5bdc109cc32ec94bd90a505e38a3"
+    },
+    "resolved_finding": "Do not infer audio stopped from stopped program while audio cleanup unconfirmed"
+  },
+  "scope": [
+    "private per-turn playback-continuation and exact-helper-prefix guidance",
+    "unqualified generic continuity phrase removed from supplied context",
+    "fresh post-OFF read request identity + same owned program/song + ready advancing selected-recording snapshot required",
+    "snapshot-only wording; program/player status and cleanup separate",
+    "no helper path reconstruction/search/guessing or previous-turn reuse",
+    "named bounded application context limit6000; guest text and native authority unchanged"
+  ],
+  "limits": [
+    "GUIDANCE/DELIVERY fix, not deterministic semantic filtering or native model compliance proof",
+    "Existing native setup lacks supported automatic shell environment binding; no authority-transferring stable helper alias invented",
+    "No actual current playback or acoustic/optical claim from software tests",
+    "Headphone pause cause remains unproven",
+    "No tenant_device.py/native_devices.py/webchat/web/integration edits by this owner; Audio owns helper error-stage change",
+    "Not staged, committed, deployed or live tested"
+  ],
+  "next_live_release": "Root integrates/deploys; targeted phoneOFF+freshstatus+songstop then genuine original600slease expiry near deadline, no shortened/globalTTL changes; no live before ready gate",
+  "fixture_followup": {
+    "change": "import MAX_APPLICATION_CONTEXT and replace hardcoded4000 in one begin assertion; all behavioral/authority assertions unchanged",
+    "sha256": "443e7050085c258b05e7d3d519a1671203d61a3492e5ee5a873740f66e471732",
+    "independent_review": "approved by continuation_contract_review; diffcheckclean; prior3frozenhashesstable",
+    "recorded_at_utc": "2026-10-18T04:53:32.206038+00:00"
+  }
+}

@@ -1,0 +1,4 @@
+html, body, #root { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent !important; }
+.orb { width: 100%; height: 100%; opacity: 0; transition: opacity 180ms ease-out; pointer-events: none; }
+.orb > div { width: 100%; height: 100%; }
+canvas { display: block; background: transparent; }

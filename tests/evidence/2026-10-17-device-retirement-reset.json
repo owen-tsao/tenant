@@ -1,0 +1,175 @@
+{
+  "source_revision": "00594fa",
+  "started_at": 1792290031.795734,
+  "before": {
+    "room": {
+      "code": "0C4C",
+      "label": "Room 0C4C",
+      "join_url": "https://writers-detector-strengthen-catalyst.trycloudflare.com/j/0C4C"
+    },
+    "devices": [
+      {
+        "id": "laptop",
+        "label": "Room speaker",
+        "online": true,
+        "caps": [
+          "volume",
+          "say",
+          "beat.prepare",
+          "beat.start",
+          "beat.stop",
+          "beat.status",
+          "music.play",
+          "music.pause"
+        ]
+      },
+      {
+        "id": "jay-visible-phone-oct17",
+        "label": "Phone light",
+        "online": true,
+        "caps": [
+          "light"
+        ]
+      }
+    ]
+  },
+  "human_attestation": "Jay confirmed BOTH physical iPhone torches OFF; observation is not device ACK.",
+  "retirement": {
+    "at": 1792290031.8217869,
+    "http_status": 200,
+    "response": {
+      "ok": true,
+      "retired": [
+        "phone-a",
+        "phone-b"
+      ]
+    }
+  },
+  "fresh_reset": {
+    "at": 1792290032.524906,
+    "http_status": 200,
+    "response": {
+      "ok": true,
+      "room_code": "9162",
+      "revoked": 0,
+      "cleanup": "confirmed",
+      "context_cleanup": "confirmed",
+      "program_cleanup": "confirmed"
+    }
+  },
+  "after": {
+    "room": {
+      "code": "9162",
+      "label": "Room 9162",
+      "join_url": "https://writers-detector-strengthen-catalyst.trycloudflare.com/j/9162"
+    },
+    "devices": [
+      {
+        "id": "laptop",
+        "label": "Room speaker",
+        "online": true,
+        "caps": [
+          "volume",
+          "say",
+          "beat.prepare",
+          "beat.start",
+          "beat.stop",
+          "beat.status",
+          "music.play",
+          "music.pause"
+        ]
+      },
+      {
+        "id": "jay-visible-phone-oct17",
+        "label": "Phone light",
+        "online": true,
+        "caps": [
+          "light"
+        ]
+      }
+    ]
+  },
+  "finished_at": 1792290032.528398,
+  "audit": [
+    {
+      "t": 1792290031.8203032,
+      "kind": "host.retire",
+      "audit": {
+        "actor": "host",
+        "operation_id": "849fc022914e4913aeae8f56ebfa1fe6",
+        "device_ids": [
+          "phone-a",
+          "phone-b"
+        ],
+        "reason": "Obsolete replaced enrollment IDs; Jay observed both iPhone torches OFF",
+        "physical_off_confirmed": true,
+        "evidence": "host_observation_not_device_ack",
+        "outcome": "requested"
+      }
+    },
+    {
+      "t": 1792290031.820972,
+      "kind": "host.retire",
+      "audit": {
+        "actor": "host",
+        "operation_id": "849fc022914e4913aeae8f56ebfa1fe6",
+        "device_ids": [
+          "phone-a",
+          "phone-b"
+        ],
+        "reason": "Obsolete replaced enrollment IDs; Jay observed both iPhone torches OFF",
+        "physical_off_confirmed": true,
+        "evidence": "host_observation_not_device_ack",
+        "outcome": "persisted"
+      }
+    },
+    {
+      "t": 1792290032.055844,
+      "kind": "ok",
+      "audit": {
+        "actor": "host.reset",
+        "device_id": "laptop",
+        "cap": "music.pause",
+        "req": "r_509505583ce84cb9baefbeda9ccceb6c",
+        "ok": true,
+        "ack_ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792290032.521417,
+      "kind": "ok",
+      "audit": {
+        "actor": "host.reset",
+        "device_id": "jay-visible-phone-oct17",
+        "cap": "light",
+        "req": "r_b062f82c4f6b48efa592982e26b55fc3",
+        "ok": true,
+        "ack_ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792290032.522325,
+      "kind": "ok",
+      "audit": {
+        "cleanup": "confirmed"
+      }
+    }
+  ],
+  "automated_checks": {
+    "python_pass": 407,
+    "phone_runtime_node_pass": 12,
+    "retirement_focused_pass": 10,
+    "failures": 0,
+    "skips": 0,
+    "independent_review": "Scoped engine, integration and retirement PASS; reviewed hashes matched before commit."
+  },
+  "limits": [
+    "Retirement is metadata recovery backed by host physical OFF attestation; it is not a physical action or reset acknowledgement.",
+    "Fresh reset independently obtained current phone OFF and Mac music pause acknowledgements; context/program cleanup confirmed.",
+    "Earlier unconfirmed reset and failed166ms pulse remain in their original evidence.",
+    "The deployed60BPM pulse and narration fixes still require the newly requested human test.",
+    "No output route or volume changes."
+  ]
+}

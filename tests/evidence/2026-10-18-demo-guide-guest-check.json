@@ -1,0 +1,32 @@
+{
+  "time": "2026-10-18T06:02:28.499603-07:00",
+  "source_revision": "981bb90",
+  "entry": "existing public /j/C630 \u2192 Chat here \u2192 actual guest UI",
+  "request": "Stop the drawing bells, but keep the photo album exactly as it is. Do not start any music, drawings or samples.",
+  "native_turn_id": "01a14f17-d271-7a91-bc86-7f4e834f36b4",
+  "guide_read_in_actual_native_turn": true,
+  "observed_action": "Actual Stop sound button through existing native Chrome controls after tab ownership conflict",
+  "independent_after_state": {
+    "status": "Sound stopped, including echoes. Your Mac volume is unchanged.",
+    "photo": "Coastal dusk",
+    "stroke": 0,
+    "album_tab_selected": true
+  },
+  "result": "PASS for guide discovery, actual stop control, photo preservation; not a full sequence or audible stop test",
+  "initial_sound_enabled": false,
+  "album_physical": {
+    "result": "PASS",
+    "observer": "Jay",
+    "method": "Manual normal-window move to TV after automation did not move it",
+    "confirmation": "Done \u2014 album visible on TV"
+  },
+  "limitations": [
+    "iPad transport not physically re-tested; guest browser path used",
+    "Notability/Pencil unconnected",
+    "Co-drawing queued, not implemented",
+    "Initial tab ownership conflict and ScreenCaptureKit failure; native AX fallback completed, no latency promise",
+    "No live sound, light, song, sample, camera, volume or output changes",
+    "No full demo rehearsal"
+  ],
+  "cleanup": "Guest Leave requested through its actual UI; final closed state verified separately"
+}

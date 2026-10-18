@@ -1,0 +1,155 @@
+{
+  "status": "PASS_EXPLICIT_GUEST_SPEECH_NO_CODE_CHANGE",
+  "recorded_at": "2026-10-18T00:56:26.342050+00:00",
+  "source_revision": "6d4af9902844f4042cd7b9e9b7e443f511f36c35",
+  "reported_live_runtime": "80358f2",
+  "reported_observation": {
+    "requested_rehearsal_phrase": "Say Tenant test one",
+    "human_report": "Chat opened, but no speech",
+    "reported_assistant_reply_excerpt": "Room speaker can play or pause music, speak and change its volume...",
+    "root_live_audit_observation": "Guest joined and activated, but no new cmd/ok/err rows.",
+    "exact_sent_text": "tenant test one",
+    "exact_sent_text_source": "Jay supplied the sent user bubble to the root chat."
+  },
+  "deduction": "The actual sent text was a noun phrase with no request to speak. The reported help reply is the safe no-action branch for an unclear request. Explicit action forms succeeded in isolated checks; there is no demonstrated audio failure or interpretation regression.",
+  "unknowns": [
+    "The original raw model message was not retained; unclear-intent classification is inferred from the confirmed sent noun phrase, matching fallback, and no-dispatch audit."
+  ],
+  "inventory_fixture": {
+    "physical_authority": false,
+    "devices": [
+      {
+        "id": "phone-a",
+        "label": "Phone lightJay phone",
+        "online": true,
+        "caps": [
+          "light"
+        ]
+      },
+      {
+        "id": "phone-b",
+        "label": "Phone light",
+        "online": true,
+        "caps": [
+          "light"
+        ]
+      },
+      {
+        "id": "laptop",
+        "label": "Room speaker",
+        "online": true,
+        "caps": [
+          "volume",
+          "say",
+          "music.play",
+          "music.pause"
+        ]
+      }
+    ],
+    "schema_shape": "Current bounded laptop capability arguments and descriptions; both phones have boolean light(on)."
+  },
+  "isolated_planner_checks": [
+    {
+      "request": "Say Tenant test one",
+      "kind": "action",
+      "device_id": "laptop",
+      "cap": "say",
+      "args": {
+        "text": "Tenant test one"
+      },
+      "elapsed_ms": 4395,
+      "model_calls": 1,
+      "tool_items": 0
+    },
+    {
+      "request": "Ask Room speaker to say \"Tenant test one\"",
+      "kind": "action",
+      "device_id": "laptop",
+      "cap": "say",
+      "args": {
+        "text": "Tenant test one"
+      },
+      "elapsed_ms": 3701,
+      "model_calls": 1,
+      "tool_items": 0
+    },
+    {
+      "request": "Say hello",
+      "kind": "action",
+      "device_id": "laptop",
+      "cap": "say",
+      "args": {
+        "text": "hello"
+      },
+      "elapsed_ms": 3326,
+      "model_calls": 1,
+      "tool_items": 0
+    }
+  ],
+  "isolated_core_sequence": {
+    "transport": "Direct Agent.turn with real CodexPlanner and synthetic Registry/Bus; ACK-only Python sockets; no physical bridge or guest token.",
+    "calls": [
+      {
+        "request": "What can I control?",
+        "kind": "message",
+        "mock_dispatches": 0,
+        "elapsed_ms": 3495,
+        "model_calls": 1,
+        "tool_items": 0
+      },
+      {
+        "request": "Say Tenant test one",
+        "kind": "action",
+        "mock_dispatches": 1,
+        "mock_args": {
+          "text": "Tenant test one"
+        },
+        "elapsed_ms": 3155,
+        "model_calls": 1,
+        "tool_items": 0
+      },
+      {
+        "request": "Have Room speaker say \"Tenant test one\"",
+        "kind": "action",
+        "mock_dispatches": 1,
+        "mock_args": {
+          "text": "Tenant test one"
+        },
+        "elapsed_ms": 4182,
+        "model_calls": 1,
+        "tool_items": 0
+      }
+    ]
+  },
+  "read_only_transport_review": "guest.html trims input then connectGuest sends {type:user,text}; websocket passes frame.text into Agent.turn. No automatic help request or input rewrite found.",
+  "deterministic_tests": {
+    "command": ".venv/bin/python -m unittest tests.test_planner tests.test_access_core -q",
+    "passed": 64,
+    "failed": 0,
+    "skipped": 0
+  },
+  "decision": "Retain the planner and authority checks. The original noun-only input caused no dispatch. A subsequent whole explicit speech command passed the live guest path with physical human confirmation; no code change or automatic replay was needed.",
+  "physical_tests_performed_in_this_investigation": true,
+  "acceptance_remaining": [],
+  "limits": "Isolated plan checks and one explicit live guest speech confirmation are bounded debugging evidence, not a reliability estimate. Keyboard dictation itself and the new broad computer/voice/reset path are not established by this check.",
+  "source_explanation": {
+    "input_guard_blocks_exact_sent_text": false,
+    "planner_instructions": "Use message for refusals, questions, unclear requests, unsupported requests or more than one requested action; never force an action.",
+    "validated_message": "Planner.validate_plan replaces model message text with fixed NO_ACTION.",
+    "agent_message_branch": "Agent.execute_plan returns help_text for a valid message plan and sends no device command.",
+    "interpretation": "The noun-only request can safely ask for clarification rather than assume speech. Automatically treating arbitrary text as speech would introduce false physical interventions."
+  },
+  "product_followup": "Feature request only: make the fixed no-action reply distinguish an unclear action request from a capabilities question, without forwarding arbitrary model text. Owen owns all UI changes; no web files edited.",
+  "physical_test_owner": "Root coordinated the actual guest request; Jay confirmed audibility and chat confirmation.",
+  "live_confirmation": {
+    "runtime_revision": "80358f2",
+    "room_code": "E39D",
+    "requested_full_command": "Say “Tenant test one” through Room speaker.",
+    "guest_command_log_time": 1792285050.159433,
+    "speech_finished_log_time": 1792285052.978452,
+    "dispatch_to_device_report_ms": 2819,
+    "human_attestation": "Yes — heard speech and saw confirmation",
+    "automatic_replay": false,
+    "volume_or_output_changes": false
+  }
+}

@@ -1,116 +1,202 @@
 # Tenant demo acceptance
 
-Owner: demo planning. Current through reviewed runtime89a0b4c; consolidated October17, 18:31 PT.
+Owner: demo planning. Updated October17,18:47 PT.
+Main inspected for this planning revision: b748ca15a3bdaf4fabf2c88388d78e02ba151594.
+Latest evidence updates below are attributed to Root; planning has not independently rerun live checks.
 
-Root coordinates every live host/device test and consolidates notes/jay.md. Owen owns ALL web files. This workstream maintains evidence and test cards; it does not run competing hardware tests, restart services or implement extensions.
+Root schedules all live tests and human questions, one at a time. Audio owns music/timing; Lighting owns execution/permission acceptance; Owen owns ALL web files. Planning evaluates experience and records claims, not implementation.
 
 ## Evidence rules
 
-PASS: the named check passed within its recorded scope and revision.
-FAIL: a completed check violated its stated criterion.
-BLOCKED: implementation, authorization, evidence, hardware or a decision is missing.
+PASS = named check passed within recorded scope/revision.
+FAIL = completed check violated its criterion.
+BLOCKED = missing implementation, decision, equipment or evidence.
 
-Separate reviewed source, automated tests, live transport observations and human physical observations. A mock, subprocess success, HTTP202, WS acknowledgement or native navigate=true does not prove a delivered message, visible window or audible effect. A historical PASS does not accept changed code.
-
-Current facts below come from Root's verified handoffs and previously inspected repository evidence; this documentation workstream has not independently rerun the live checks.
+Reviewed source, automated tests, live transport, human experience and physical timing are separate evidence. HTTP202, ACK, waveform or navigate=true do not prove delivery, audibility, physical onset or visible chat. Historical passes do not accept changed runtime. Local test counts are not final integrated acceptance.
 
 ## Current matrix
 
-| Check | State | Evidence / limit | Owner or next unblock |
-| --- | --- | --- | --- |
-| Historical bounded room core | PASS, historical | Evidence published6075a3a; runtime4c4b474, QR ba6248c. Three fresh physical guest runs; explicit alternative choice; light/speech/music; access-ending denial; actual600s expiry denied in14ms; two physical resets OFF+pause and four queued guest turns denied. | Root; final changed path must pass separately. |
-| Genuine native conversation wire | PASS | ff6ab19 public HTTPS/WS natural question -> “What would you like to create on this Mac?” about3555ms. Supported read_thread verified exact request/reply on sole native room thread. Conversation mode does not use/fall back to old restricted planner. | Root. |
-| Human free-form phone conversation | PASS, bounded | Jay confirmed natural phone conversation; request/reply stored in fixed native thread. | Not general device/voice acceptance. |
-| Native local-read/web tools | PASS, bounded | Actual local read and web tool execution observed in genuine conversation. | Does not establish intended interactive Mac/phone actions. |
-| One real guest replacement | PASS, bounded | Earlier working context cleared; stale guest request denied with no native turn. | More final-path lifecycle checks required. |
-| Explicit guest speech | PASS, historical human | At80358f2 an explicit speech request produced the heard phrase. Earlier noun-only input had no action verb; no planner fix is pending for it. | Not automatic conversation read-aloud or mic-input proof. |
-| Speech/cleanup source | PASS, reported | c3ef922 reviewed/deployed;239 Python+12 Node. Cleanup queue-before-interrupt, bounded overall deadline and history traversal reviewed. Automatic speech hook exists. | Current audible result still pending. |
-| Latest source suite | PASS, reported | Latest reviewed runtime89a0b4c has296 Python+12 Node checks; Photon was introduced atd8fef91. | Counts prove source checks, not physical outcomes. |
-| Photon adapter source | PASS, reported | Same exact core.agent/native room conversation, no second model; optional authenticated web linking preserves credential/expiry. No web edits. | Live channel acceptance pending. |
-| Photon credential preflight | PASS, read-only | HTTP200; ONE external pre-existing assignment under assignments, not items. No preflight assignment/message changes. | Preserve external assignments. |
-| Actual Tenant Photon enrollment/inbound | BLOCKED | Zero actual new Tenant Photon enrollments and zero native inbounds through that channel so far. Existing external assignment is not ours. | Root's pending Text the room trial. |
-| Messages delivery / automatic audio | BLOCKED | Current dictated Photon greeting question is pending. No new human delivery or audio result yet. | Root owns next question; no duplicates. |
-| Same-enrollment web continuity | BLOCKED | Existing Text the room enrollment's Chat here fallback must retain context/credential/expiry without a fresh join. | Root card C2. |
-| Final-path end access / second guest | BLOCKED | Need denial, no stale native turn/device dispatch, owned-assignment cleanup and clean second-guest context. | Root cards C3/C4. |
-| Native app visible rendering | BLOCKED | Storage/readback proven; navigate=true did not make Jay see the chat. | Actual human screen observation. |
-| Native enrolled-device Bus tools | BLOCKED | Existing-thread dynamicTools registration unsupported by installed schema; private native-shell Bus helper reviewed/deployed at89a0b4c (296 Python+12 Node). Actual live helper use remains unaccepted. | Computer owner + Root. |
-| Intended interactive Mac/phone effects | BLOCKED | Old restricted-path effects do not establish genuine conversation tool wiring. | Root card C5 after implementation. |
-| Voice / lighter guest UI / cold rehearsal | BLOCKED for complete journey | Keyboard dictation input, meaningful automatic response, adapted live UI and unbriefed use need final evidence. | Audio, Owen and Root. |
-| Features5–7 / performance | BLOCKED, CLOSED | No photo/scene/rule unlock. Rhythm generation, synchronization and projector untested. | Explicit selection/authorization plus relevant evidence. |
+Photon evidence correction, October17: actual records show two real Photon inbound messages processed by the configured fixed native Tenant conversation at18:35–18:36PT, with two provider-accepted replies. Inbound/same-thread processing is VERIFIED; earlier pending-only rows are historical and superseded on those points. Provider acceptance does not independently prove handset receipt. Existing evidence is being reconciled in notes/photon-status.md before asking for any repeat.
 
-## Retained limits
+Root20:08 PT: **c7e902b deployed**, independently reviewed496Python+12Node, zero failures/skips. Actual UI tester completed voice consent/one-off/new-guest isolation and requested30BPM2sON/2sOFF → phoneOFF whilebeatcontinued → separatebeatstop; Jay confirmed physical results. Subsequent text-only display batch verified actual guest/room conversation,120s joiningring, original600s activegrant and cleared conversation after Leave. Both test batches ended quiet; Root checked zero guests, devices online/idle and lock unheld. Full scoped evidence: `tests/evidence/2026-10-17-local-e2e.json` and `notes/tester.md`. Two UI findings remain Owen-owned: gated-photo entry offer and oldest-first headline/rail. Do not infer physical expiry, optical/acoustic alignment, Photon delivery or an unbriefed journey from these smoke passes.
 
-- Earlier physical alternative attempt lost its selected phone and returned UNKNOWN without retry. Later successful runs do not erase it; its physical root cause was not proven by duplicate-registration unit tests.
-- Original1.5s latency target FAIL; reported model turns were roughly3.6–3.7s and speech can take longer. Ack/response timing is not acoustic or optical onset.
-- Long speech previously became UNKNOWN despite audibility. Current automatic speech is a brief whole first line up to12words/100chars, otherwise a short first sentence or on-screen fallback; do not claim full narration.
-- Three smoke runs and one replacement do not establish field reliability.
-- Preserve Mac's selected default output/current volume. Ordinary access ending preserves produced effects; host reset has explicitly configured light-OFF/music-pause cleanup. Report unconfirmed cleanup honestly.
-- Requested unavailable device: explain, offer alternatives and wait for choice. UNKNOWN outcome: never automatically retry or substitute.
+Latest music direction from Jay: actual Daniel Caesar recordings plus phone following the song's beat. No further standalone generated-beat trials. Current engine follows its generated audio phase; arbitrary-song beat phase is not implemented. Any future real-song trial must establish the actual playback source and confirmed pause/cleanup before starting. Existing generated-beat evidence remains historical evidence for its own scope.
 
-## Root-only cards, in coordinated order
+Root19:59 PT: **voicef228b39 deployed**,484Python+12Node independentPASS; actualpublicHTTPS/WSS nativeguestdefaulttext returned TEXT_DEFAULT,0say andLeave200. Local E2E Tester nowowns autonomousinterfaceexperiments; Jayonlyconfirmsunobservablephysicalresults, nottestinitiation. Cloudownerswere replacedwithlocalMacchats; no sourcefakescountasphysicalproof. Programphysicalexpiry remainsunverified, with noforcedrepeat.
 
-These are procedures for Root when prerequisites exist, not requests for simultaneous tests. Root supplies actual links and names; never publish credentials.
+Root19:48 PT: follow-up real expiry/fullbeat run **NOT STARTED** after Jay questioned repeating physical tests. Preserve manualstopPASS; automaticexpiry source checks pass but its post-fix physical outcome remainsUNVERIFIED. No automatic new ON/audio, no claim that the earlier interrupted expiry passed.
 
-### C1 — pending Photon greeting / automatic reply
+Root19:46 PT: **post-fix stop PASS on0b4a1ec**. Actual native guest30BPM/1sON/1sOFF → freshly requested phoneOFF while beatcontinues → separately requested beatstop; Jay confirmed both observations, matching OFFACK and cleanup phone/audioConfirmed. See tests/evidence/2026-10-17-stop-recovery-live.json. Fullbeat2s states were not requested in this run. A separate SAMEguest fullbeat/expiry trial is pending; no real expiry or UNKNOWN-injection physical pass claimed.
 
-Prerequisite: deployed d8fef91 and Root's already-pending dictated greeting trial.
+Latest Root update, October17 19:43 PT: **deployed0b4a1ec**, independently reviewed452 Python +12 Node checks, zero failures/skips. This includes3348165 fullbeat cadence/host setup and fresh explicit phone-OFF recovery. Brain alone restarted; room8157 and both enrolled devices survived, public routes200 and unauthorized room-label write403. Jay confirmed the emergency recovery left the phone physicallyOFF. The fresh guest OFF-with-beat-continuing test is now pending; no post-fix physical pass or600s expiry pass is claimed. Preserve the later stop failure and all historical failures below. No root web edits or output/volume changes.
 
-Use Text the room, complete the intended enrollment, send the greeting in Messages. Confirm the real delivered reply and, separately, whether the meaningful brief response is heard on the Mac. Correlate inbound ID -> guest/lease -> exact fixed native thread/turn -> outgoing reply and speech request.
+Stop incident update: later guest OFF failed while an unknown/stopped performance retained the phone claim. Host OFF acknowledged and Jay confirmed physically OFF; current room8157. An unrequested30→45BPM→stop was also observed. Actual expiry trial INTERRUPTED, notPASS. Source3348165 fullbeat/setup430Python+12Node is reviewed but not deployed; graceful stop/explicit OFF recovery and native intent guidance are under review. No live effects running. Keep the earlier30BPM smoke separate from this later failure.
 
-PASS components independently: correct enrollment/inbound, correct same-thread reply, actual delivery, actual audibility. HTTP acceptance or a speech ACK alone cannot pass the latter two. Dictation confirmation proves input method only if the human reports the recognized/sent words. Record zero/one native turn and duplicate handling. Do not resend an uncertain action.
 
-### C2 — same enrollment, second channel
+Latest deployment:00594fa,407Python+12Node, independent review PASS. Audited retirement of the two absent legacy enrollments was followed by a SEPARATE fresh reset: current phone OFF and Mac pause ACKs, cleanup/context/programs confirmed, room9162. Half-period first-cycle receipt and speech-budget fixes are live; The fresh guest naturally chose30BPM: beat, repeated visible pulses and explicit stop ALL human-confirmed. This is not a60BPM physical pass. Fullbeat-cadence adjustment and actual currentlease expiry checks remain open. The earlier failures and unconfirmed reset below remain historical evidence.
 
-Prerequisite: C1 enrollment exists. Use that enrollment's existing Chat here fallback; do not create another guest.
+Root update, October17 19:13 PT: Brain6cb644a and Mac audio af6f8be were used for the latest live music trial. Jay confirmed a continuous 90 BPM beat and the spoken tempo answer. First longer narration returned UNKNOWN; reviewed player-budget fix4198998 is committed but not yet deployed. Phone attachment FAILED at its first ON after a166 ms acknowledgement window; no retry. Explicit host reset rotated the room to0C4C, confirmed context/program cleanup and acknowledged OFF/pause, but aggregate cleanup remained unconfirmed. Audio/core owners are reviewing a60 BPM/500 ms pulse baseline and truthful first-cycle receipt before the next physical check. These outcomes supersede pending-only statements in the historical rows below; no synchronization claim passes.
 
-Ask a natural follow-up referring to an innocuous detail established in Messages. Observe correct conversation continuity and exact same native thread. Verify linking is authenticated and guest identity/credential/original expiry unchanged; reconnect must not renew TTL or replay requests. New enrollment must not be confused with linking.
+| Check | State and evidence | Owner/blocker |
+| --- | --- | --- |
+| Historical bounded core | PASS at evidence6075a3a, runtime4c4b474/QR ba6248c: three physical guest runs, explicit alternatives, light/audio, access-ending denial, actual600s expiry, two resets OFF+pause and four queued turns denied. | Root; historical scope only. |
+| Genuine conversation | PASS: ff6ab19 natural public guest request/reply verified in fixed native thread; human phone conversation and native local-read/web tools observed. Old restricted planner not used/fallback. | Root; not all physical tools. |
+| Dictation + automatic Mac speech | PASS human-confirmed on genuine native web conversation. Root published actual voice/helper inventory evidence atb058309. | Not full music/native-phone acceptance or long-answer narration. |
+| One real guest replacement | PASS: earlier working context cleared; stale request denied without native turn. | Lighting/Root; broader final-path lifecycle still open. |
+| Deployed helper baseline | PASS reviewed source89a0b4c,296Python+12Node,19 private helper tests. Per-turn Unix helper via additionalContext, not dynamically registered MCP. | Historical deployed baseline, not final multi-action acceptance. |
+| Native inventory | PASS observed Mac and Jay phone; evidence publishedb058309. | Inventory is not a physical effect. |
+| Requested multi-blink | Historical refusal and two incomplete trials retained. Fresh-enrollment trial at6cb644a:10 phone ACKs and Jay confirmed visible blinks; Mac speech FAILED before playback. | Phone smoke only. The combined phone/speech trial did not pass. |
+| Photon enrollment | PASS actual enrollment occurred. Verified native iMessage inbound/delivery remains BLOCKED on evidence supplied here. | Root owns live card. |
+| Same-browser Photon recovery | Earlier PHONE_IN_USE reproduced. Fix9c479c6 is included in deployed8f1b7ee; original secret/expiry preserved in reviewed tests. | Actual fresh phone recovery, native inbound and delivered reply remain pending. |
+| Photon live card/test | Root reportsf1fc5b2 locally. | A test/card artifact is not a delivered reply or human audio observation. |
+| Multi-action source | PASS reviewed/deployed8f1b7ee:324Python in isolated current-base snapshot plus12 unchanged phone-runtime checks. Both same-device sequencing and receipt findings fixed; local access and Lighting owners reviewed. | One real request produced10 phone ACKs and explicit Mac speech ACK; human observation pending. Audio programs excluded. |
+| Music/timing | AUTHORIZED. Earlier90BPM beat plus conversational answer heard. Later30BPM beat/phone/explicit stop human-confirmed after fix, with60 acknowledged edges over59s. Original first-ON UNKNOWN retained. | One physical smoke passes; AV alignment, fullbeat-cadence adjustment and final expiry remain open. User reported slight misalignment. |
+| Native visibility / interactive effects | BLOCKED: navigate/readback not visible rendering; intended native Mac/phone effects need observation. | Root/Lighting. |
+| Same-enrollment continuity / final lifecycle | Post-leave old-guest request PASS: denied with0 native/device commands. Linking, real expiry/reset, queued work and second guest on final integrated program runtime remain open. | Root/Lighting. |
+| Adapted UI / unbriefed evaluation | Owen main9c5e6fa guest/setup pages integrated as8cdeb82; his exact display retained. Final selected unbriefed journey remains BLOCKED. | Owen/Root/E1. |
 
-PASS: meaningful contextual reply plus identity/deadline/turn records, no duplicate native turn. A new lease with a copied transcript is not a pass.
+## Retained limits and invariants
 
-### C3 — ending access, stale input and assignment ownership
+- Earlier physical alternative attempt lost its selected phone and returned UNKNOWN without retry. Later successes do not erase it; its physical root cause was not proven by duplicate-registration tests.
+- Original1.5s latency target FAIL; reported model turns about3.6–3.7s are not acoustic/optical onset.
+- Long speech previously timed out despite audibility. Current automatic speech is a brief excerpt, not full narration.
+- Preserve Mac's selected default output/current volume.
+- Ordinary Leave ends authority and preserves produced effects. Host reset has explicit light-OFF/music-pause defaults; report unconfirmed cleanup honestly.
+- Unavailable requested device: explain, offer alternatives and wait for the guest's choice.
+- UNKNOWN outcome: never automatically retry or substitute.
+- Known-unsent and UNKNOWN must be distinguished from actual send evidence. A pre-dispatch denial/validation failure must not be misreported as an attempted physical action.
+- Same-device program actions must follow the reviewed serialization/cancellation contract. Do not accept overlapping blink programs merely because each individual call passed a unit test.
+- Multi-step natural requests are authorized. Do not restore arbitrary one-action or three-blink ceilings; real authority, cancellation, resource deadlines and no-replay rules still apply.
 
-End the active enrollment, then attempt a harmless further request from both linked channels. Observe denial/no new native turn or device dispatch. Exercise expiry and host-reset paths on the final integrated revision, including work waiting before dispatch.
+## Engineering acceptance cards — Root coordinates
 
-PASS: original expiry enforced; authority rechecked at dispatch; old/pending commands cannot run under another guest; owned Photon assignments cleaned according to lifecycle; external pre-existing assignments untouched. If deletion/result is UNKNOWN, retain ownership/error evidence and do not claim confirmed cleanup.
+These are owner procedures and prerequisites, not competing instructions to Jay. Root selects the exact deployed revision and supplies links/device names privately.
 
-Already-started effects are not promised to be undone by ordinary Leave. Host-reset explicit defaults require their own physical confirmations. Repeat after restart to check durable dedupe/ownership without replay.
+### C1 — Photon and same-enrollment channel continuity
 
-### C4 — new guest and context reset
+Complete actual enrollment -> native inbound -> SAME native room conversation -> delivered Messages reply. Record audibility separately. Then use that SAME enrollment's existing Chat here fallback for a natural contextual follow-up.
 
-Root specifies admission/takeover boundary and treatment of already-running work first.
+Require unchanged identity/secret/original expiry and no duplicate native turn. Re-enrollment/recovery must not silently grant fresh authority. Verify recovery from the same authenticated browser after the PHONE_IN_USE fix.
 
-A establishes harmless working context and queues an observable safe action; B becomes a new guest before queued dispatch. Inspect new working context/authority and old queue records. B makes an unrelated request; stale A input is attempted.
+PASS components independently: enrollment, inbound, same-thread reply, delivered message, human-heard response and linked-context continuity. HTTP acceptance and speech ACK cannot pass delivery/audibility. Dictation counts as observed input only when recognized/sent words are confirmed.
 
-PASS: B starts fresh; A commands/proposals/tool outputs are canceled or denied under A, never reassigned; stale A input produces no native turn/action; B works. One visible room chat may retain presentation history, so a visible nonce is not proof of isolation: inspect actual supplied context and dispatch identity. Reconnect grants no renewed authority. Unconfirmed cleanup of room-owned jobs blocks the next grant. Already-started OS/file effects may remain; this is not OS isolation.
+Preserve external assignments. Cleanup deletes only assignments durably owned by the adapter. The earlier read-only preflight found ONE external assignment under assignments, not items.
 
-### C5 — visible chat and actual computer/phone work
+### C2 — access, cleanup, restart and guest replacement
 
-Prerequisite: reviewed runtime89a0b4c; first verify native inventory and an invalid-device request produce zero device sends, then coordinate an actual phone effect.
+Exercise Leave, expiry, reset, reconnect and NEW guest on the final integrated path. Include work waiting before native turn/device dispatch and an active program where the approved lifecycle contract permits testing.
 
-Human visibly opens the sole native Tenant chat and watches a fresh guest turn. Through genuine conversation request one harmless computer task, such as creating/opening a disposable text artifact with a unique marker in an agreed demo location; inspect actual content/window. Separately request an enrolled phone effect and observe it physically.
+Inspect identity/context/queue records, not model memory alone. Old work must not be reassigned to the next guest. Same-enrollment linking preserves context; a new guest clears working context and pending commands. Reconnect renews neither authority nor TTL.
 
-PASS: correct visible turn and intended effects, exact tool/request correlation, permission checks and honest errors/UNKNOWN. Text claiming completion does not prove the artifact/effect. Read/web tools alone do not pass interactive controls. No unrequested account actions, settings changes or installations.
+PASS: stale requests produce no unauthorized native turn/device dispatch; cleanup is bounded and accurately reported; unconfirmed required cleanup blocks a fresh grant; restart does not replay requests or lose assignment ownership/deduplication guarantees.
 
-### C6 — actual conversation voice and failure paths
+Already-started OS/file effects may remain; this is not OS isolation. Ordinary Leave does not promise undo. Host-reset explicit defaults require actual physical confirmations.
 
-Use supported phone/browser dictation or voice entry into the SAME conversation. Speak a fresh short request; observe recognized words, meaningful reply and brief audible response. Follow up naturally. Separately deny mic permission and use typing.
+### C3 — corrected multi-action execution and receipts
 
-PASS: actual input -> same conversation -> correct response/effect, audible once, typed fallback works. No phantom command, stale audio replay or reconnect replay. End/revoke authority before queued speech dispatch and confirm denial. Source-level once-per-native-turn behavior and human hearing are separate checks.
+Basic prerequisite PASS at8f1b7ee: both review findings fixed and independently reviewed,324Python+12 unchanged phone checks. Background program changes require their own final combined review/checks. Earlier318 count is intermediate.
 
-### C7 — guest UI and unbriefed rehearsal
+Execute supported multi-step natural requests without the arbitrary guard. Check authority at every actual dispatch after queue waits. Test sequential calls, concurrent same-device requests, program replacement/stop, expiry/cancellation, partial failure and disconnect.
 
-Prerequisite: Owen's adapted live revision integrated; selected journey's relevant cards pass.
+PASS: intended ordering/serialization matches the reviewed contract; stop prevents queued old pulses from appearing afterward; completed subactions reported independently; known-unsent cases have zero sends; uncertain dispatched outcomes remain UNKNOWN without retry/substitution.
 
-First inspect real permitted controls, TTL, suggestions+free input, Leave and unavailable/ended behavior. Details may be one tap away; copy need not be a terms sheet. The displayed grant must match backend authority; reconnect cannot extend it.
+No aggregate “done” when only part succeeded. Source checks do not pass physical blink behavior.
 
-Then give a fresh unbriefed participant only the public QR, necessary consent and goal: use the room/computer for something useful, then end access. Allow an unscripted follow-up. Do not teach command wording or repair navigation.
+### C4 — music, conversation, synchronization and stop
 
-PASS: selected journey completed without coaching, intended effects observed, participant understands access ending, subsequent control denied, no hidden manual cues. Record raw feedback/help/errors and scan-to-first-effect timing against a preselected presentation budget. Assisted completion FAILS unassisted acceptance; fix and use a fresh trial.
+Audio/Root prove an audible beat continues while the guest converses, the phone joins in time, a requested change takes effect and explicit stop ends the requested performance.
 
-## Evidence record
+Stop covers both requested outputs and queued pulses. Record initial/final skew, per-pulse offsets, drift, missing/extra pulses and catch-up bursts with known recording resolution. Do not infer synchronization from command/ACK times.
 
-For every card: full deployed revision, UTC start/end, device/OS/browser, guest pseudonym, exact request, inbound/outbound/native-turn/device-request IDs, original/current expiry, native-turn/dispatch counts, machine result, human visible/audible observation, expected vs actual, PASS/FAIL/BLOCKED, owner/next unblock. Keep tokens, phone numbers, assignment identifiers and private content in private evidence, not public copy.
+Use demo-ideas.md's predeclared timing screen, agreed before testing. Two20-second takes are a feasibility screen, not reliability. An inconclusive recording is BLOCKED. No projector dependency and no output/volume changes.
 
-Implementation acceptance requires reviewed exact source, reproducible final-revision checks without unexplained failures/skips, intended integrated physical effects and correct negative paths. Historical commands: .venv/bin/python -m unittest discover -s tests and node --test tests/device-runtime.test.cjs; owners supply additional final checks.
+If only prepared audio works, label it prepared. If synchronization fails, sequential actions must not be described as synchronized. A reduced demo needs Jay/Root's explicit choice.
 
-Root publishes evidence and opens gates. No backend test count alone opens features5–7. Performance timing proposal remains in demo-ideas.md and requires separate authorization.
+### C5 — native visible chat and useful interactive work
+
+Human visibly opens the sole native Tenant chat and watches a fresh guest turn. Through genuine conversation request one harmless computer task, such as creating/opening a disposable text artifact with a unique marker in an agreed demo location; inspect actual contents/window. Separately request an enrolled phone effect and observe it physically.
+
+PASS: correct visible turn and intended effects, exact tool/request correlation, permission checks and honest failure/UNKNOWN handling.
+
+Text claiming completion does not prove a file/effect. Native read/web tools and inventory do not pass interactive controls. No unrequested account actions, settings changes or installations.
+
+### C6 — voice and response coexistence
+
+Use supported phone/browser dictation into the SAME conversation. Speak a fresh short request, observe recognized words and meaningful reply, then follow up naturally while the beat is actually running.
+
+Observe whether the brief response is audible and understandable without changing output/volume. Distinguish music masking speech from absent playback; no automatic output switching/ducking is assumed.
+
+Test typed fallback and mic denial where applicable, authority ending before queued speech dispatch, and reconnect without replay. Source-level once-per-native-turn behavior and human hearing are separate checks.
+
+Preserve the existing human-confirmed web dictation/speech PASS; these additional coexistence/failure checks are not implied passed by it.
+
+## E1 — short unbriefed performance journey
+
+Planning owns evaluation design/results; Root conducts one participant at a time after engineering acceptance. No overlapping live test or competing human question.
+
+Prerequisites: final integrated source reviewed; relevant automated checks pass without unexplained failures/skips; Audio timing/stop and Lighting authorization/execution acceptance pass; required devices online; Owen's actual entry path available. Test web first; Photon separately after its channel passes. Do not silently enroll a tester twice to fix continuity.
+
+Sample: TWO fresh first-use participants individually. If only one is available, report1/1 observed and second trial BLOCKED. Retain failures in the denominator; repaired reruns are separate attempts. This is a small experience sample, not reliability evidence.
+
+Predeclare a proposed three-minute budget from opening invitation through explicit stop/Leave. Jay/Root may choose another budget BEFORE trials. Record functional completion separately from meeting the budget.
+
+Give only necessary consent and this goal:
+
+“Use the room to make a short performance with computer sound and the phone light in time with it. Change it while it runs, then stop it and end your access.”
+
+No command wording, architecture explanation, navigation coaching, hidden cues or narration. Observer silently records raw requests and visible/audible results. The goal asks for coordination: success does NOT prove spontaneous discovery of synchronization.
+
+### PASS criteria
+
+1. Entry without help.
+2. Natural request produces an audible beat.
+3. Follow-up is understood while output is actually running.
+4. Phone visibly joins in time, supported by engineering timing acceptance.
+5. Adjustment observed during output without unintended restart/duplicate playback.
+6. Explicit stop ends requested audio/light program with no delayed pulses.
+7. Leave ends authority; subsequent harmless control attempt denied with no dispatch.
+8. Completion within predeclared budget; otherwise report functional outcome and budget FAIL separately.
+
+Do not require a specific mood, rhythm, phrase or action count. One request may contain multiple steps.
+
+### Failure and blocked criteria
+
+FAIL: coaching/hidden cues, missing/wrong effect, lost context, refusal of supported multi-step request, false completion, silent substitution, retry after UNKNOWN, continued program after explicit stop or stale authority dispatch.
+
+Safety intervention is allowed but makes unassisted completion FAIL. A budget miss is a budget FAIL even if functional completion succeeds.
+
+BLOCKED: implementation/device/evidence missing, unresolved lifecycle contract or timing inconclusive. Do not average away a component failure.
+
+Ordinary Leave preserves effects; explicit stop comes BEFORE Leave. Authority expiry mid-program must follow the owner-approved program lifecycle contract. Lighting/Root test expiry/interruption races separately.
+
+### Observation record and claims
+
+Record each participant's deployed revision; entry/first-effect/adjust/stop/Leave times; raw requests; turn/program/device IDs privately; assistance/errors; actual output; expected/actual results; functional and budget outcomes.
+
+Afterward ask “What did you control, and what did ending access do?” Retain their words.
+
+If2/2 pass, claim only these two people completed this final-revision journey without narration, with observed composition, continuity, adjustment, stop and bounded denial.
+
+Do NOT claim field reliability, arbitrary devices/rhythms, hard realtime, untested channels/projector, perception/photo, complete OS isolation or all failure modes.
+
+## Concrete UI requests — Root routes to Owen
+
+Preserve compact plum presentation and permission details one tap away.
+
+- Truthful session/controller, TTL/Leave and actual device availability.
+- Free input remains usable while audio runs.
+- Same-enrollment Text the room recovery without new identity/expiry.
+- Program starting/running/stopping/stopped/unknown only from authoritative backend evidence; never infer stopped from requested state or elapsed timer.
+- A Stop affordance is contingent on a defined backend seam. Text stop also needs integrated acceptance. No new frame assumed.
+
+Read Owen's main notes through17:52: QR only on printed card/deck last slide; operational display is not a judge QR surface. Do not restore a display QR or older API-key/Photon-absent assumptions. No web edits from planning.
+
+## Evidence and gates
+
+For every engineering card: full deployed revision; UTC timestamps; request/native-turn/message/program/device IDs; expiry before/after; native-turn/send/dispatch counts; machine outcomes; actual optical/acoustic/window observations; expected/actual; PASS/FAIL/BLOCKED; owner/next unblock.
+
+Keep secrets, phone numbers and private identifiers out of public copy. Root publishes exact evidence.
+
+Current local work must be reviewed, integrated and deployed before its results are called final. b058309 publishes voice/helper inventory evidence; localf1fc5b2 is a Photon live card/test, not a human delivery result. Earlier318 checks were intermediate; execution/receipt findings are now fixed in reviewed/deployed8f1b7ee. See tests/evidence/2026-10-17-native-multi-action.json. Automatic narration after explicit speech returned UNKNOWN at the legacy4s budget; Audio owns suppression/deadline fixes, not yet deployed. Do not replay that uncertain output.
+
+Music coordination is OPEN for implementation, BLOCKED for physical acceptance. Photo, perception, proactive rules and guest-supplied agents remain CLOSED. Backend counts alone prove no working demo.

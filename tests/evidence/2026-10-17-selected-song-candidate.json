@@ -1,0 +1,221 @@
+{
+  "recorded_at_utc": "2026-10-18T03:29:58.715883+00:00",
+  "status": "READY_TO_INTEGRATE_SOFTWARE_PASS_LIVE_ACCEPTANCE_PAUSED",
+  "base_head": "36c21c18ca82e00d4721da5a9328ed2e2737511a",
+  "deployed_brain_reported": "c7e902b; new song path not deployed",
+  "pause": {
+    "requested_by": "Jay via Root",
+    "scope": "ALL test execution, new cases, live/UI/device/audio trials, retries, restarts and deployment paused until explicit resume. Implementation and read-only review may continue.",
+    "subagents_notified": [
+      "song_design_review",
+      "song_driver_tests",
+      "song_clock_tests",
+      "song_program_tests"
+    ],
+    "historical": true,
+    "current_scope": "Software implementation/tests resumed; ALL end-to-end/live testing, restarts and deployment remain paused under Root-held gate."
+  },
+  "current_owned_files_sha256": {
+    "ARCHITECTURE.md": "c1f2f3bc787ea82f3f69959ed22d41ff3a48ed8960a17d6ae44ec27e925685e1",
+    "agent/AUDIO.md": "b7628d3c771616b9af937e65ea90ad33cbae812c1650e081022e689ff242fbcb",
+    "agent/laptop.py": "025326471483d3aee81e341b2c0efb23ecad7aae851c9358469702bbab919aeb",
+    "agent/tenant_device.py": "da46e8a22f143fdcd9e0d704e91984b61cb160cfb0656aa79f9030bab99d45cb",
+    "agent/song_audio.py": "d3d6c15d9195d55aa1000ac7bf3943e5fb27755b327704596bb4f2102887af88",
+    "agent/prepare_song.py": "962c911f3d9bbcbc889596458747a577f4cadf21426edfee38d174bd0f139456",
+    "brain/core/room_programs.py": "9eea0a1b06e8f57941de57e2818adf8c90349edbfdbe2a9d7ba8a7a929c5109f",
+    "brain/core/native_devices.py": "28c041ccc2936f939fc95edc05dffa5b0422148d3afdc705cc1b777622266d55",
+    "brain/core/song_timing.py": "7e63248b4008363e246291e8684aba51fe000dd9fa2f105ba0c448da571e6814",
+    "requirements-song-analysis.txt": "9e55a6c5d24863d72c3b4d374caa4d9c620e7ac96698dcfe20b5d68f2fefa70a",
+    "tests/test_song_audio.py": "47ccd9109a136bf04a880591fc7b4aee26732df97c849259bf7c350e677c7e7f",
+    "tests/test_song_timing.py": "55628962438d669e78af79b7181b8dd518b1143de27474fbb83ded4cf81e42d2",
+    "tests/test_song_programs.py": "e17f387429c95c774b89c9d3930e066be55e4e62721b9dba39dd1d1615c89826"
+  },
+  "source_review": {
+    "independent_result": "PASS; all13 owned source/test/docs hashes independently matched, no remaining concrete blocker.",
+    "fixed_findings": [
+      "Decoder/initial audio clock readiness uses bounded read-only polling without repeating unpause.",
+      "Original lease bounds IPC and local monotonic expiry; shutdown interrupts blocked IPC and does not wait for operation lock.",
+      "Stop while hashing/spawning/reading fences future start and cannot report late preparation ready.",
+      "Exact original playback bytes/checksum checked; known wrong path/speed rejected before buffering returns.",
+      "Read-only status after preparation retains prepared lifecycle, permitting the one authorized first start without extending expiry.",
+      "Frozen playing playhead cannot replay the same beat.",
+      "Tiny positive progress cannot reset a tolerance on every read: cumulative elapsed/progress coherence gates readiness; coherent recovery reanchors future beats without catch-up."
+    ],
+    "historical_failure_evidence": "Before fixes, independent fake reproductions froze or barely advanced audioPTS and produced repeated ON beatnumbers[2,2,2,2] while ready. Final fake regression reports only one pre-detection beat2, pending thereafter, independent OFF, then future beat6 after coherent recovery.",
+    "final_validation": "All final production edits covered by final268-test focused regression and independently reviewed/hash-matched. No current untested owned source edits."
+  },
+  "latest_completed_checks_before_pause": {
+    "song_driver": {
+      "tests": 30,
+      "failures": 0,
+      "skips": 0,
+      "source_sha256": "542c4183daddc36ac1f1901cd89d963aced581ff51e514be9f05ecf7b43c1764"
+    },
+    "song_timing_before_stall_fix": {
+      "tests": 14,
+      "failures": 0,
+      "skips": 0,
+      "source_sha256": "bf2f9c62fb351e160368083066cae896830f6d7710738999dbda865d77adcc2d"
+    },
+    "song_program_helper_cli_before_stall_fix": {
+      "tests": 18,
+      "failures": 0,
+      "skips": 0,
+      "source_sha256": "9eea0a1b06e8f57941de57e2818adf8c90349edbfdbe2a9d7ba8a7a929c5109f"
+    },
+    "song_and_voice_before_stall_fix": {
+      "tests": 119,
+      "failures": 0,
+      "skips": 0,
+      "seconds": 7.029
+    },
+    "shared_checkout_intermediate_before_final_helper_cases_and_stall_fix": {
+      "tests": 573,
+      "failures": 0,
+      "skips": 0,
+      "seconds": 17.382,
+      "scope": "Includes concurrent metadata/photo owner work; not a frozen reviewed combined revision."
+    },
+    "unchanged_phone_protocol": {
+      "tests": 12,
+      "failures": 0,
+      "skips": 0
+    },
+    "installed_mpv_machine_ipc": {
+      "result": "PASS",
+      "fixture": "synthetic silent WAV with --ao=null --vo=null --force-window=no",
+      "observed": [
+        "prepared paused",
+        "one unpause",
+        "audio-pts advances",
+        "owner close/reap"
+      ],
+      "physical_output": false
+    }
+  },
+  "selected_recording": {
+    "song_id": "daniel-caesar-cyanide-42b58460277a",
+    "title": "CYANIDE",
+    "artist": "Daniel Caesar",
+    "source_url": "https://www.youtube.com/watch?v=Jnm3ukzmJe4",
+    "source_id": "Jnm3ukzmJe4",
+    "source_format_id": "251",
+    "sha256": "42b58460277a07cf8be74731bb593d8df13aa1df3cee47bb55fa3558da1854a0",
+    "duration_seconds": 194.95968253968255,
+    "estimated_bpm": 79.50721153846153,
+    "analysis": {
+      "tool": "librosa",
+      "version": "0.11.0",
+      "method": "beat_track",
+      "sample_rate": 22050,
+      "hop_length": 256,
+      "timeline": "zero is first PCM sample; same exact WAV is played",
+      "physical_alignment_verified": false
+    }
+  },
+  "beat_map": {
+    "events": 253,
+    "first_six_seconds": [
+      4.0751020408163265,
+      4.818140589569161,
+      5.5495691609977325,
+      6.315827664399093,
+      7.058866213151927,
+      7.825124716553288
+    ],
+    "last_beat_seconds": 194.20009070294785,
+    "cache": "Private ignored .venv/song-assets/cyanide; media not committed",
+    "timeline": "Same exact canonical PCM bytes analyzed by librosa and played by mpv. Live audio-pts mapped to Brain dispatch/receipt bracket with reported uncertainty. BPM is descriptive only."
+  },
+  "scope": [
+    "Selected official Daniel Caesar CYANIDE only, no arbitrary catalog",
+    "No manually downloaded file required: exact selected public source resolved/decoded automatically without login or cookies",
+    "No generated backing track or guessed phase substitute",
+    "Text default/explicit voice consent preserved",
+    "Current default output/system volume preserved",
+    "Independent phone OFF/detach leaves song playing; program stop cleans owned player",
+    "Stale/buffering/mutated/ambiguous clock fences ON; UNKNOWN never replays start/edge; exact scopes/connection/lease checked",
+    "No state/registry/channel/public/web seam required; architecture addition only \u00a72 selected recording subsection"
+  ],
+  "prepared_experiment_not_authorized_to_run_while_paused": {
+    "release": "Only after Jay explicitly resumes LIVE/end-to-end testing and Root coordinates candidate deployment, refreshed audio bridge, idle source and an exclusive live gate.",
+    "preflight": [
+      "Exact selected song_id advertised on laptop with song.prepare/start/status/stop",
+      "Chosen phone online/light capable with no unresolved effects",
+      "No competing guest/program and current output/volume preserved",
+      "Independent named-test-guest revoke watchdog established, child expiry/EOF cleanup path known"
+    ],
+    "natural_start": "Play Daniel Caesar CYANIDE and have the connected phone follow this recording\u2019s beat. Keep replies text-only and preserve my output and volume. Do not add a generated backing beat.",
+    "observations": [
+      "Actual mpv title/artist and advancing playhead visible",
+      "Selected recording audible, no substitute",
+      "Phone timing receipts reference analyzed beat seconds plus fresh playhead bracket; actual perceived phase separately confirmed by Jay",
+      "A contextual follow-up during playback works without restarting music",
+      "Natural phone OFF yields one confirmed fresh OFF with song playhead continuing",
+      "Separate natural music stop yields exact owned song.stop plus phone/audio cleanup, no late ON",
+      "Leave and final gate/lock cleanup recorded"
+    ],
+    "safeguard": "Root/tester sets a finite test-only named-guest revoke watchdog before initiating; no product duration/action cap. Disarm only after confirmed cleanup. UNKNOWN stops the experiment without effect replay.",
+    "human_request": "Ask Jay only for physical outcome after initiation, never to initiate playback/test."
+  },
+  "pending": [
+    "Root central integration and its offline combined source/hash checks",
+    "Coordinated Brain/audio-bridge rollout only when Root/Jay permits; no restart or deployment by Audio",
+    "ALL actual song selection/hearing/phone-to-song phase/conversation/independent-stop trials remain paused pending explicit release",
+    "Verify phone readiness at future release; latest prior tester batch reported it offline",
+    "Native terminal interruption feedback remains Tester-owned (room_session/room_conversation/webchat); Audio did not overlap it"
+  ],
+  "cleanup": "No active Audio cleanup. No live music, phone action or guest was started. No live calls after software-only resume; prior silent null-sink player had already been reaped before original pause. Root retains held live gate.",
+  "environment": "Installed librosa0.11.0 analysis dependencies in project Python3.12 venv and official Homebrew mpv0.41.0_10 with dependency upgrades. See notes/audio-local.md for tool-link changes and ca-certificates post-install warning. No services restarted.",
+  "actions_not_taken": "No staging/commits, runtime restart, deployment, live playback, phone command, output/volume change, web/source-reference edit, or messages to other chats by Audio.",
+  "updated_at_utc": "2026-10-18T03:45:01.700490+00:00",
+  "base_head_at_final_review": "e36f3436b70abc7d3ef49dabd54cab802a68c83c",
+  "independent_freeze_manifest_sha256": "60c0455a7f2022846160ef832102037d335bfb6fe9fe4084c5050343604499aa",
+  "independent_freeze_manifest": ".venv/acceptance/song-ready-manifest.json; same file map embedded in this evidence",
+  "software_resume": {
+    "authority": "Jay clarified via Root: implementation and SOFTWARE unit/component/isolated fake integration tests resume; ALL end-to-end/live testing remains paused.",
+    "scope": "Temporary files and stubbed model/device/player transports only. No public UI/chat, actual model-room turns, live device/camera/music/output, deployed-service experiment, restart or deployment.",
+    "subagents_notified": [
+      "song_clock_tests",
+      "song_program_tests",
+      "song_driver_tests",
+      "song_design_review"
+    ]
+  },
+  "completed_software_checks_after_resume": {
+    "final_focused_regression": {
+      "command": "PYTHONPATH=tests .venv/bin/python -m unittest tests.test_song_audio tests.test_song_timing tests.test_song_programs tests.test_laptop_audio tests.test_beat_audio tests.test_room_programs tests.test_room_program_sync tests.test_room_program_stop tests.test_room_program_races tests.test_room_program_integration tests.test_reply_voice_acceptance tests.test_reply_voice_helper tests.test_reply_voice_policy tests.test_conversation_speech",
+      "tests": 268,
+      "failures": 0,
+      "skips": 0,
+      "seconds": 28.366,
+      "scope": "Audio-owned song, driver, generated-program lifecycle, private helper/CLI and text-default/opt-in voice regression using fakes/temp files/stubbed transports. Not an end-to-end/live test."
+    },
+    "bounded_agent_components": {
+      "song_driver": 33,
+      "song_timing": 17,
+      "song_program_helper_cli": 22,
+      "all_pass": true,
+      "source_hashes": {
+        "ARCHITECTURE.md": "c1f2f3bc787ea82f3f69959ed22d41ff3a48ed8960a17d6ae44ec27e925685e1",
+        "agent/AUDIO.md": "b7628d3c771616b9af937e65ea90ad33cbae812c1650e081022e689ff242fbcb",
+        "agent/laptop.py": "025326471483d3aee81e341b2c0efb23ecad7aae851c9358469702bbab919aeb",
+        "agent/tenant_device.py": "da46e8a22f143fdcd9e0d704e91984b61cb160cfb0656aa79f9030bab99d45cb",
+        "agent/song_audio.py": "d3d6c15d9195d55aa1000ac7bf3943e5fb27755b327704596bb4f2102887af88",
+        "agent/prepare_song.py": "962c911f3d9bbcbc889596458747a577f4cadf21426edfee38d174bd0f139456",
+        "brain/core/room_programs.py": "9eea0a1b06e8f57941de57e2818adf8c90349edbfdbe2a9d7ba8a7a929c5109f",
+        "brain/core/native_devices.py": "28c041ccc2936f939fc95edc05dffa5b0422148d3afdc705cc1b777622266d55",
+        "brain/core/song_timing.py": "7e63248b4008363e246291e8684aba51fe000dd9fa2f105ba0c448da571e6814",
+        "requirements-song-analysis.txt": "9e55a6c5d24863d72c3b4d374caa4d9c620e7ac96698dcfe20b5d68f2fefa70a",
+        "tests/test_song_audio.py": "47ccd9109a136bf04a880591fc7b4aee26732df97c849259bf7c350e677c7e7f",
+        "tests/test_song_timing.py": "55628962438d669e78af79b7181b8dd518b1143de27474fbb83ded4cf81e42d2",
+        "tests/test_song_programs.py": "e17f387429c95c774b89c9d3930e066be55e4e62721b9dba39dd1d1615c89826"
+      },
+      "note": "Agents ran changed component suites; parent then ran final combined scoped regression once. No unchanged passing suite was rerun without a new correction/review need."
+    },
+    "independent_review": "All13 exact hashes match; reviewer semantically inspected regressions, not implementation-mirror assertions.",
+    "post_run_hash_check": "PASS; unchanged since final independent review",
+    "whitespace_diff_check": "PASS before final freeze; no source edits after test/review.",
+    "phone_protocol_support": "12 Node tests passed before the testing pause; web/phone runtime unchanged by Audio. No fresh Node run was needed for this increment."
+  }
+}

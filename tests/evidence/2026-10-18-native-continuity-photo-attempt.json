@@ -1,0 +1,140 @@
+{
+  "case": "One private new photo from paired iPhone using existing native Continuity Camera routes",
+  "result": "BLOCKED / NO PHOTO; named iPhone found but safe capture readiness unverified",
+  "revision": "3433c25bf7f98193cf9155e8ae7a3b81e12c762e",
+  "guest_id": "1b988c59-2419-42ae-89c5-f584c2328ca7",
+  "channel": "actual webguest, not phonebrowser/QR/Photon",
+  "original_creation_plus600": true,
+  "artificial_guard_or_renewal": false,
+  "routes": [
+    {
+      "app": "Preview",
+      "native_actions": "Open existingPreview, Filemenu/deviceimportinspection, no file opened or capture",
+      "actual_menu": "Empty Import From Device submenu; Import from Camera\u2026 disabled",
+      "reply": "No photo was taken. Preview showed no named iPhone in its device-import menu, and Import from Camera\u2026 was disabled. I couldn\u2019t verify your paired iPhone as the selected camera, so I stopped. Music and volume were untouched.",
+      "qualification": "Preview device/stillimport is not proof that webcamContinuity route is unavailable"
+    },
+    {
+      "app": "Photo Booth",
+      "authorization": "Root explicitly authorized one sameguest alternative via existing Camera menu; zero earliercapture means no recapture/UNKNOWNretry",
+      "native_actions": [
+        {
+          "at": "2026-10-18T08:07:53.645Z",
+          "action": "getAppPhotoBooth"
+        },
+        {
+          "at": "2026-10-18T08:07:57.633Z",
+          "action": "InspectCamera menu"
+        },
+        {
+          "at": "2026-10-18T08:08:09.158Z",
+          "action": "Click named pairediPhoneCamera entry"
+        }
+      ],
+      "reply_redacted": "No photo was taken. Photo Booth lists [paired iPhone Camera]; after selecting it, take photo remained disabled. The app exposed no specific reason or verifiable selection indicator, so I stopped. I didn\u2019t capture, grant permissions, inspect existing photos, or touch music or volume.",
+      "native_final_at": "2026-10-18T08:08:14.996Z",
+      "paired_iphone_camera_named": true,
+      "source_clicked_by_native": true,
+      "selected_source_indicator_verified": false,
+      "shutter": "Disabled"
+    }
+  ],
+  "independent_parent_observation": {
+    "after_native_idle": "PhotoBoothstillpicturemode selected, takephoto disabled after initialstreamstartuptime",
+    "camera_menu_readonly": "MacBookProCamera, namedpairediPhoneCamera, AutomaticCameraSelection; no sourcecheckmark/state in AX",
+    "screenshot": "API reportedScreenshotunavailableforPhotoBooth; cause not inferred, no bypass attempted",
+    "normal_wait": "Cancelledonlyread-onlymenu, waited5sONCE thenfreshAX confirmedtakephotostilldisabled",
+    "exact_os_reason": "None exposed in AX; no inventedpermission/network/physicalcause",
+    "parent_camera_selection_or_shutter": "None"
+  },
+  "capture": {
+    "new_stills": 0,
+    "mac_webcam_substitute": false,
+    "old_image_substitute": false,
+    "albums_inspected": false,
+    "uploads_sends_calls": false
+  },
+  "scope_preserved": [
+    "No install/build/scripts/newintegration/source/UI/adapter changes",
+    "No phonebrowserQR/source/viewer/hostphoto roleconfiguration",
+    "No TCC grants/accounts/networksettingschange",
+    "Spotify/defaultaudio/volume unchanged",
+    "Privatecamera/source metadata inworkonly; friendlyname redactedpublicly"
+  ],
+  "cleanup": {
+    "ordinary_leave": true,
+    "guest_final_ui": "Accessended; Message+Senddisabled",
+    "PhotoBooth": "NormalobservedQuit menu; freshmainprocessABSENT",
+    "PhotoBooth_process_running": false,
+    "Preview": "ExistinguserPreviewnotquit/oldimagesnotopened; no livecamera preview there",
+    "phone_camera_release": "OwnedPhotoBoothprocessended, no activepreviewheldbythisapp",
+    "new_image_retained": "None created"
+  },
+  "events": [
+    {
+      "t": 1792310682.88428,
+      "kind": "guest.join",
+      "audit": {}
+    },
+    {
+      "t": 1792310704.777907,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14e0a-fa80-74f1-b6a5-e13e67eb609d",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 3
+      }
+    },
+    {
+      "t": 1792310743.952008,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14e0a-fa80-74f1-b6a5-e13e67eb609d",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 3
+      }
+    },
+    {
+      "t": 1792310743.9541829,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14e0a-fa80-74f1-b6a5-e13e67eb609d",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 3
+      }
+    },
+    {
+      "t": 1792310870.594062,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14e0d-822c-7fe1-bebf-2393c3c39c76",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 3
+      }
+    },
+    {
+      "t": 1792310895.0446432,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14e0d-822c-7fe1-bebf-2393c3c39c76",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 3
+      }
+    },
+    {
+      "t": 1792310895.046122,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14e0d-822c-7fe1-bebf-2393c3c39c76",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 3
+      }
+    },
+    {
+      "t": 1792311081.1285079,
+      "kind": "guest.leave",
+      "audit": {}
+    }
+  ],
+  "remaining_goal": "Actual new pairediPhonephoto stillnotobtained; namedsourceexists but startup/capture-readinesscause unresolved. This is not a universalContinuityCameraunsupported claim."
+}

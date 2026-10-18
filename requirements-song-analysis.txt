@@ -1,0 +1,2 @@
+# Offline preparation only; never imported by the running room agent/Brain.
+librosa==0.11.0

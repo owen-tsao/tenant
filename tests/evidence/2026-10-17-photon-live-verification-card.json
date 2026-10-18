@@ -1,0 +1,148 @@
+{
+  "status": "READY_FOR_ROOT_EXECUTION_NOT_YET_RUN",
+  "required_patch": "9c479c6",
+  "scope": "One phone enrollment, one Photon memory message, one same-enrollment web follow-up, one access-ending negative message. No device-control or music experiment is required.",
+  "offline_readiness": {
+    "photon_tests": 45,
+    "failures": 0,
+    "new_regression": "Implicit exact-cookie recovery waiting for enrollment lock is revoked before lock release:404 INVITATION_EXPIRED; no new allocation, native turn, credential or deadline change.",
+    "production_code_changed_since_reviewed_retry_patch": false
+  },
+  "preconditions": [
+    "Root deploys the reviewed retry patch with TENANT_PHOTON_ENABLED=1 and existing conversation/thread/anchor configuration; no new native chat.",
+    "Root confirms the configured room invitation from the current display; do not hard-code an old code.",
+    "One current online say bridge; default audio output and volume remain as Jay selected.",
+    "Record baseline native turn IDs and Photon claim count privately; leave unrelated room work idle for this short check.",
+    "Never print API keys, phone handles, guest tokens, cookies, sms links with phone handles, or chat URL fragments."
+  ],
+  "sequence": [
+    {
+      "stage": "1_enrollment",
+      "operator": "Root guides one phone through Text the room in the original browser tab.",
+      "pass": [
+        "POST /join returns200 and required fields are present (record only booleans).",
+        "Exactly one live joining/active lease and active binding correspond; no native cmd/new inbound claim before the phone actually texts.",
+        "If the same phone form is repeated with its original cookie, the same guest, credential and original deadlines are returned; no allocation or native call."
+      ],
+      "failure_evidence": "Record only error.code and HTTP status plus safe JOIN_REJECTED audit. Do not repeatedly allocate or resend on an unknown outcome."
+    },
+    {
+      "stage": "2_real_inbound_and_native_reply",
+      "operator": "Within120 seconds of enrollment, replace the SMS draft with: Our demo word is <fresh word>. Please confirm it briefly. Send once.",
+      "pass": [
+        "Exactly one new durable claim for the verified received direct message; outcome reaches ACCEPTED.",
+        "Exactly one native cmd and final ok on the configured fixed thread, correlated by the same guest and turn; actual stored input/final answer verified privately.",
+        "Phone user confirms an iMessage reply mentioning the fresh word arrived."
+      ],
+      "separate_results": [
+        "native_turn_verified",
+        "provider_accepted",
+        "phone_received"
+      ],
+      "limit": "ACCEPTED / ACCEPTED_NOT_DELIVERED is not evidence of actual phone delivery."
+    },
+    {
+      "stage": "3_optional_room_speech",
+      "operator": "During the same brief reply, user listens to the Mac without changing output or volume.",
+      "pass": [
+        "Speech audit is for the same guest/thread/turn/generation and audio_status ACKNOWLEDGED.",
+        "User confirms the Mac actually spoke a meaningful response."
+      ],
+      "limit": "A speech acknowledgement alone does not prove audibility. Texting may pass while room speech remains unconfirmed."
+    },
+    {
+      "stage": "4_same_enrollment_web_context",
+      "operator": "Return to the SAME original browser tab and use its Chat here fallback. Ask: What is our demo word?",
+      "pass": [
+        "Guest ID, credential and original expiry are unchanged.",
+        "Reply gives the fresh word; one additional native turn is appended on the SAME fixed thread/generation, without new guest admission or history reset.",
+        "If audio is included, separately confirm the second reply was heard."
+      ],
+      "do_not": "Do not start a fresh /j join; that intentionally creates a new guest and resets working context."
+    },
+    {
+      "stage": "5_access_ends",
+      "operator": "After replies settle, root either uses authenticated /host/revoke for this guest or waits until its ORIGINAL expires_at; record which transition actually ran. Then send one further message from the old Messages thread.",
+      "pass": [
+        "The exact old lease is released/expired locally and absent from active guest state.",
+        "No new native cmd, accepted reply or speech occurs for that guest after the end time. A fresh rejected inbound normally creates NO claim because matching rejects it before claim.",
+        "A known adapter-owned assignment yields RELEASED after successful cleanup; a reused external assignment yields DETACHED_PREEXISTING; network uncertainty yields CLEANUP_UNCONFIRMED."
+      ],
+      "observation": "Observe at least10 seconds under healthy polling. If provider delivery/polling is not established, classify the live negative result as inconclusive rather than claiming proven local denial.",
+      "limit": "Manual revoke does not prove real timed expiry. Keep expiry marked offline-only unless the original timer actually expires. Already submitted replies/effects cannot be unsent."
+    }
+  ],
+  "safe_evidence_fields": {
+    "enrollment": [
+      "http_status",
+      "required_response_fields_present",
+      "same_guest",
+      "same_credential_boolean",
+      "lease_state",
+      "original_issued_expiry",
+      "joining_deadline",
+      "allocation_count_delta"
+    ],
+    "join_rejection_audit": [
+      "t",
+      "kind=photon",
+      "audit.photon_status=JOIN_REJECTED",
+      "audit.code",
+      "audit.http_status"
+    ],
+    "private_claim": [
+      "message_id (or stable alias)",
+      "guest_id (or stable alias)",
+      "claimed_at",
+      "outcome"
+    ],
+    "native_audit": [
+      "t",
+      "kind=cmd/ok",
+      "audit.guest_id",
+      "audit.thread_id",
+      "audit.turn_id",
+      "audit.generation when present"
+    ],
+    "photon_acceptance_audit": [
+      "t",
+      "kind=photon",
+      "audit.guest_id",
+      "audit.photon_status=ACCEPTED_NOT_DELIVERED"
+    ],
+    "speech_audit": [
+      "t",
+      "kind=speech",
+      "audit.guest_id",
+      "audit.thread_id",
+      "audit.turn_id",
+      "audit.generation",
+      "audit.audio_status",
+      "audit.device_id",
+      "audit.req"
+    ],
+    "cleanup_audit": [
+      "t",
+      "kind=photon",
+      "audit.guest_id",
+      "audit.photon_status=RELEASED/DETACHED_PREEXISTING/CLEANUP_UNCONFIRMED"
+    ],
+    "human_observations": [
+      "phone_received_yes_no",
+      "meaningful_mac_speech_heard_yes_no",
+      "web_remembered_fresh_word_yes_no"
+    ],
+    "timings": [
+      "phone_send_time_if_observed",
+      "claim_time",
+      "native_start_time",
+      "native_complete_time",
+      "Photon_acceptance_time",
+      "speech_ack_time",
+      "local_access_end_time"
+    ],
+    "timing_limit": "These are separate stage timings. Do not label API acceptance or speech acknowledgement as phone delivery/acoustic latency."
+  },
+  "overall_acceptance": "Report channel/native shared-context, phone delivery, room audio and access-ending separately. One passing trial establishes a bounded working path, not reliability. No native-app visual rendering claim unless separately seen.",
+  "live_actions_performed_by_this_worker": false
+}

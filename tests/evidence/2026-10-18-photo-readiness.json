@@ -1,0 +1,82 @@
+{
+  "frozen_at_utc": "2026-10-18T07:28:41.056225+00:00",
+  "status": "NARROW_PHOTO_READINESS_SOFTWARE_PASS_PENDING_ROOT_INTEGRATION",
+  "base_head": "d79b3551bd52e945fb56bd9f012727f266e4796d",
+  "scope": "Host-only configuration diagnostic and safe guest/native readiness reasons. Existing capture/upload/ACK/viewer authentication and receipt protocol unchanged.",
+  "policy": "Isolated software only. Root holds live-source/deploy gate. No live API/UI/model/camera/device effects/restart/deploy or staging/commits by this owner.",
+  "accepted_phone_constraint": "QR phone connection plus existing agent backend and explicitly connected phone services only. No iPhone Mirroring. Camera permission is not app-control authority. No general native-app inventory/automation/new adapters are authorized by this camera task.",
+  "owned_files_and_sha256": {
+    "brain/core/photos.py": "63867f0da92764c0d661f8d6825ef8e9899c5b55912145cee112c170ed43d9d5",
+    "brain/api/photos.py": "6cfa275d9825ccda21c13613bb95f97ad0dde26c6cac6f6ca3403296e42d7312",
+    "tests/test_photo_readiness.py": "e83212f027cff0d6c6f19bffb743e3b7fde5459186031793a992f9ae2ad525d2",
+    "tests/test_photo_config_api.py": "7be74332c33f4e0f2f8dee5673ad1a8f7e22cdf795a992785d08c017eeb5fec5",
+    "tests/photo_readiness_wiring_checks.py": "54b4bc23a5afac70bd04b5368abfdc7db7389734b96892d207474160dce8aa04",
+    "notes/proposed-photo-readiness-wiring.patch": "4ad19028deaeba42d7942e40e307c3f5475365ba15b2265b2408e59b404b9a01"
+  },
+  "snapshot_dependency_files_and_sha256": {
+    "brain/core/native_devices.py": "eb7c108380a0a44546c77cd0cd9d87df4425960e41f529cee84d4b551edab83e",
+    "brain/core/bus.py": "601c2c2587a38940f14e3118c34272cc59414703af1999d62d9b0840e71791d0",
+    "brain/core/leases.py": "fb83bba8e4b1b1123937df057c293f71e4fffef9c59c1df53abfedd100facf5a",
+    "brain/core/log.py": "362d952539ff9a9800af6b0b96c9dfe80c2ff1a027d48d2743bd2a70ce45ff59",
+    "brain/core/registry.py": "c0a7f260bbad1e3de732d98b2b9d94009428b4d2ac8f5070abffb44ec73b57bf",
+    "brain/core/device_metadata.py": "7b6a4ec48bdffa9a1592b515d75950a476f5026f9901578d5f1d1e834b619ffd",
+    "brain/core/integration.py": "3f5561a3a1592311654f5b3a45145f9bf25721150691d70e05e3ec3b1f8e0f58",
+    "brain/core/photo_install.py": "aa08ed9e09b061619f8c697fe02fc414593ae472ecfa8a84e541f5d335ce5c0d",
+    "brain/core/photo_image.py": "e6477dc469c85ad70f9d517ea10d83289bd82f327498bc5bf9bb6ea883d58afe",
+    "brain/state.py": "49325832ecf376c7b8db2064d30df08b644770d261bf8c8b316cc35b605be863",
+    "tests/test_photo_api.py": "a2b8551ead2a96d7a4d3eca12cd9ec4f3e2391e7d1f89af1743df1f5cf568bce",
+    "tests/test_photo_backend.py": "d66e20aaa99e66a9642754979839fa930f7ec5ba990e0d810f6e735e554b7317",
+    "tests/test_photo_image.py": "6af94477274ef90d7614dd71cf5cd40c81f8e552c316812569ec4144c9a9cbab",
+    "tests/test_photo_installer.py": "3b0468fc5eb01dad4794412580d286b8fa158f13b7105b66f5027a13fc12b54d",
+    "tests/test_photo_service.py": "019ba2de0fd916bc8acb4c92649cfedb850d6f6fbd681c84cf721e00de1b2463"
+  },
+  "shared_native_baseline_sha256": "d77d0ea9e50c3903f6d935a6d3672decbcf6cdac9b364e3005263c25258b5185",
+  "proposed_central_merge": "Single-line safe photos inventory exposure when service exists even if disabled; UNAPPLIED to shared native_devices.py.",
+  "validation_workspace": "/Users/jay/Documents/Codex/2026-10-17/tenant-next-features/work/photo-readiness-snapshot",
+  "validation_interpreter": "/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python",
+  "final_completed_checks": [
+    {
+      "command": "-m unittest discover -s tests -p test_photo_*.py -q",
+      "tests": 116,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 0.371
+    },
+    {
+      "command": "-m unittest discover -s tests -p photo_readiness_wiring_checks.py -v",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 0.01
+    },
+    {
+      "command": "git diff --check -- brain/core/photos.py brain/api/photos.py",
+      "exit_code": 0
+    }
+  ],
+  "initial_regression": {
+    "tests": 116,
+    "failures": 1,
+    "test": "test_photo_installer.PhotoInstallerTests.test_explicit_authority_override_is_used_even_without_native_helper",
+    "finding": "Inventory diagnostics called controller authority twice for denied requests. Fixed duplicate callback without changing test expectations; final 116 pass."
+  },
+  "review": {
+    "agent": "photo_security_review",
+    "result": "No material defects. Host GET requires host credential plus approved Origin; readiness retains current lease/scope/controller checks and grants no authority; viewer protocol unchanged.",
+    "kind": "independent read-only final source review",
+    "patch_hash_confirmation": "Reviewer confirmed exact full SHA-256 4ad19028deaeba42d7942e40e307c3f5475365ba15b2265b2408e59b404b9a01; earlier prefix was a transcription typo, no finding or source change.",
+    "all_reviewed_source_hashes_match": true
+  },
+  "pending": [
+    "Device Runtime phone consent/capture/upload patch, not applied to served phone source by this owner",
+    "Audio existing Mac-agent authenticated viewer integration and actual decode/render verification",
+    "Root coherent merge, final combined gate and explicit host configuration with actual enrolled IDs",
+    "Root deploy only after hold release; Tester finite capture/upload/render/projector acceptance"
+  ],
+  "physical_or_projector_acceptance": "NOT_PERFORMED",
+  "live_configuration_inspected_or_changed": false,
+  "host_config_in_memory_only": true,
+  "staged_or_committed_by_owner": false,
+  "secrets_or_image_bytes_in_evidence": false,
+  "active_cleanup": "none"
+}

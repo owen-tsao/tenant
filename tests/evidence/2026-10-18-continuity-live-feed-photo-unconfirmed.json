@@ -1,0 +1,127 @@
+{
+  "case": "Native Continuity photo after human locked paired phone sideways near Mac",
+  "result": {
+    "paired_iPhone_live_feed": "PASS",
+    "completed_new_still": "UNKNOWN / NOT CONFIRMED",
+    "shutter_attempt_count": 1,
+    "confirmed_new_image_count": 0,
+    "zero_files_claimed": false
+  },
+  "revision": "3433c25bf7f98193cf9155e8ae7a3b81e12c762e",
+  "guest_id": "43910098-1b00-49e6-8ccb-7c1a8064b10a",
+  "channel": "actualwebUI",
+  "human_setup": "Ready \u2014 locked sideways near the Mac; rearcameras towardroom/unobstructed",
+  "original_lease": {
+    "creation_audit": 1792311278.9949598,
+    "seconds": 600,
+    "deadline_estimate": 1792311878.9949598,
+    "ended_naturally": true,
+    "no_artificial300guard": true,
+    "renewal": false
+  },
+  "native_capture_turn": {
+    "source": "NamedpairediPhoneCamera observed and selected in PhotoBoothCamera menu",
+    "startup_wait_seconds": 10,
+    "normal_still_mode_selected": true,
+    "before_shutter": "ActualAX takephotoENABLED after phonecamera reselected",
+    "single_shutter_at": "2026-10-18T08:16:02.930Z",
+    "single_shutter_epoch": 1792311362.93,
+    "after_shutter": "Two4swaits/read; no newthumbnail/completedphoto confirmed; no secondshutter",
+    "reply_redacted": "The single shutter attempt did not produce a confirmed photo. I selected [paired iPhone Camera] and allowed startup time. Photo Booth still shows a live preview, with no completed photo visible. I did not retry, preserving your one-frame limit."
+  },
+  "independent_verification": {
+    "current_ui": "PhotoBoothrealroom/deskcameraimage, ClickPhotoBoothToResume overlay, shutterdisabled whileappnotactive",
+    "screenshot_route": "Supported getAXStateAndScreenshot returnedactualpixels; getScreenshot-only hadreportedunavailable earlier. No bypass/permissionchange.",
+    "private_frame": "Onlytesterwork/continuity-ready-current-ui.png0600, not published as capturedphoto",
+    "new_image_metadata_check": "Scopednew-files-only stat underPhotoBoothLibrary/Pictures blocked byOSOperationnotpermitted. No oldcontentsread or broadprivacygrant; doesNOTproveabsenceofnewfile."
+  },
+  "same_guest_resume_verification": {
+    "input": "Photo Booth currently says Click Photo Booth to resume. Resume existing app, verify priorresultonly; noadditionalphoto/olderphotos/musicchange.",
+    "native_actions": "Resume click, WindowRaise, normalforegroundmenus, cameraverification, photoViewoptions; no secondshutter",
+    "native_final_at": "2026-10-18T08:23:40.339Z",
+    "reply_redacted": "Photo Booth is resumed, but no new photo is confirmed. The iPhone preview and shutter are ready now. Evidence: no new thumbnail appears, and View\u2192Show Photo is disabled. I selected [paired iPhone Camera]; previewvisible and takephotoenabled. Noadditionalphoto/olderphotos/musicchange."
+  },
+  "corrected_capture_authority": {
+    "Root_later_allowed": true,
+    "one_attempt_cap_was_internal_experiment_not_humanrestriction": true,
+    "condition": "Resume and resolve prioroutcome; correctedcapture allowed ifpriorpausedactionnotexecuted/otherwise low-impactlocalcopy scope, preserveexactcount",
+    "not_exercised_reason": "At08:24:04 actualoriginalleaseonly34s; newagentturn/capture/proof wouldraceexpiry. No automaticrenewal/newguest."
+  },
+  "parent_actions": "GuestUI naturalgoals, localreadonlyevidence, oneWindowRaise forboundedphysicalcheck later supersededbyresume-agenttask; no parentcamera/source/shutter or photo-on-agent-behalf",
+  "cleanup": {
+    "guest_final_ui": "Naturallyexpired/accessended/composerdisabled",
+    "PhotoBooth": "NormalobservedQuit, processABSENT; ownedpreviewreleased",
+    "photos": "No files deleted or altered; anypossiblepriorcapture retainedunknown",
+    "spotify": "Untouched/defaultoutputandvolumeunchanged",
+    "browserphoto": "RemainedHOLD/noQR/source/viewer/hostrolechange"
+  },
+  "scope_preserved": [
+    "No newcode/scripts/install/integration",
+    "No Macwebcam/oldimagesubstitute",
+    "No protectedfolderbypass/broadprivacy/account/networkchanges",
+    "No sends/calls/uploads",
+    "Privatecameraimagesandfriendlynamesnotpublished"
+  ],
+  "events": [
+    {
+      "t": 1792311278.9949598,
+      "kind": "guest.join",
+      "audit": {}
+    },
+    {
+      "t": 1792311299.580821,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14e14-0df3-7392-80fb-bed42f7ec4cb",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 5
+      }
+    },
+    {
+      "t": 1792311413.673264,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14e14-0df3-7392-80fb-bed42f7ec4cb",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 5
+      }
+    },
+    {
+      "t": 1792311413.6741812,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14e14-0df3-7392-80fb-bed42f7ec4cb",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 5
+      }
+    },
+    {
+      "t": 1792311730.780577,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14e1a-a249-7fa2-911b-80f059a42ae5",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 5
+      }
+    },
+    {
+      "t": 1792311820.3972359,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14e1a-a249-7fa2-911b-80f059a42ae5",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 5
+      }
+    },
+    {
+      "t": 1792311820.3995662,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14e1a-a249-7fa2-911b-80f059a42ae5",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 5
+      }
+    }
+  ],
+  "remaining_goal": "Actualnewlocalstill remainsunfulfilled/unconfirmed; phonefeedworks andfocusedshutterready, nextseparatevalidsession cancompletewithoutrepeatingphysicalsetup ifauthorized."
+}

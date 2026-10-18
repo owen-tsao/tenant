@@ -1,62 +1,86 @@
 # Tenant scope and channel alignment
 
-Owner: demo planning. Current through reviewed runtime89a0b4c; consolidated October17, 18:31 PT.
-Decision/evidence card for Jay, Owen and Root; documentation only.
+## Current deployed status — Root report, supersedes older summaries
 
-## Settled product direction
+Current deployed/source revision: `e294e66`. Root reports generic native app/browser discovery with96 focused software checks and independent Audio review. Do not sum this with overlapping earlier suites. The earlier e4b8426/761-check deployment entry below is historical, not the latest revision or a current aggregate count. This owner did not rerun checks or inspect the live deployment.
 
-- Keep web guest chat.
-- Add Photon as a SECOND channel only into the SAME fixed native Tenant room conversation and exact core.agent. No second model/conversation.
-- Public QR scanners are intended to receive temporary broad computer authority through Jay's existing signed-in agent/tools. No new API key.
-- Use one visible native room chat. Each NEW guest gets fresh working context and no inherited pending commands. Reconnect does not replay; authenticated channel linking for the SAME enrollment preserves context/credential/original expiry.
-- Voice input reaches this genuine conversation, rather than a small command-word interpreter.
-- Owen owns ALL web files and adapts permission/TTL/Leave mechanics with lighter copy. Root coordinates interface requests/integration; owner chats do not edit UI.
-- Preserve selected Mac default output/current volume.
+Fresh ordinary-browser “Japanese Denim” playback was heard after delayed onset: bounded music PASS. The same guest used ordinary Stop/Leave; absence of the exact owned browser tab was verified. Stop response was about36s, so this is not a fast-stop/latency PASS. Reactive visual work remained failed/unperformed beyond the waiting capture; no successful reactive visual result is established.
 
-This is new explicit human direction superseding the earlier locked-capability plan. Product authorization does not establish implementation or acceptance.
+Photon: the sole LocalTester is preparing one real phone inbound. No Photon inbound/delivery PASS is claimed. Jay resumed E2E; LocalTester exclusively owns live cases, with no competing actions from planning/photo. Older paused/freeze/pending-integration status sections below are historical where superseded here. Product ideas are unchanged. Photo production/test files remain frozen unless Root assigns a concrete failure; no source/UI/tests/effects/research, staging or commits were performed for this notes-only update.
 
-## Current evidence
+## Latest product alignment — hypothesis only
 
-| Area | State and boundary |
-| --- | --- |
-| Historical bounded core | PASS evidence published6075a3a, runtime4c4b474/QR ba6248c: real room controls, explicit alternatives, access-ending/expiry/reset. Not acceptance of the changed native-conversation path. |
-| Genuine conversation | PASS atff6ab19 wire/read_thread plus human free-form phone confirmation, observed native local-read/web tools and one real replacement/stale-request denial. Old restricted planner is not used/fallback in conversation mode. |
-| Speech/cleanup implementation | PASS reported reviewed/deployed c3ef922,239 Python+12 Node. Automatic brief response speech now implemented; current human audible outcome pending. Explicit speech had a historical heard pass at80358f2; noun-only input required no planner fix. |
-| Photon implementation | PASS reported source-reviewed/deployed d8fef91, PR1 head98b87a4, final276 Python+12 Node. Same core.agent/native room chat, optional authenticated web linking, no web edits. |
-| Photon preflight | PASS read-only HTTP200. Response key assignments contains ONE external pre-existing active assignment. Earlier zero/items claims are superseded. No preflight messages/assignments changed. |
-| Actual Photon guest acceptance | BLOCKED: zero new actual Tenant Photon enrollments/native inbounds and no new delivery/human audio results so far. Dictated Photon greeting question is pending with Root. |
-| Broader acceptance | BLOCKED: same-enrollment fallback continuity, final-path access ending/second guest, native app visibility, intended interactive Mac/phone actions, voice and cold rehearsal. |
-| Enrolled-device native tool seam | BLOCKED: installed schema does not support dynamicTools registration on existing thread; private native-shell Bus helper reviewed/deployed at89a0b4c (296 Python+12 Node). Actual live helper use remains unaccepted. |
+Jay sees broad potential but wants a simple demo. Familiar app categories are an idea source; novel apps, ordinary computer use and record/upload transformations alone do not establish the product's value. A swordfight-to-animation flow is weak if uploading a recording replaces it.
 
-Native thread readback and navigate=true do not prove visible app rendering. Source tests, delivery acceptance and audibility are distinct. Detailed cards/evidence format: notes/demo-testing.md.
+Use this short screen: **live physical or shared-capability coordination that cannot be replaced by uploading a file or ordinary remote desktop.** The cheap-laptop room gateway is a moat candidate: supported local-network/connected capabilities can be exposed to remote agents through tools/MCP wrappers, with supported OS/API/protocol paths, permissions and verified target identity/behavior. Connection alone creates no protocol; MCP creates no universal device support. No established moat/current universal compatibility or model independence is claimed.
 
-## Photon scope and ownership
+The six-category idea map in demo-ideas.md is bounded ideation only. Root may publish these thoughts to Owen. No broad research, installs, integrations, new device/code/UI work, tests or physical actions were initiated; the photo source freeze and Root/Tester live-gate ownership remain unchanged.
 
-Jay's decision replaces the earlier unresolved “web-only or iMessage” choice: implement both, with Photon conditional on the shared conversation and actual acceptance.
+## Historical deployment status — e4b8426
 
-Root's photon_shared_channel worker owns the thin backend adapter/reuse of the repository spike, duplicate/restart/lease tests and integration. Owen owns the existing Text the room UI and same-enrollment Chat here fallback. Root sends UI requests; this planning workstream sends no duplicate messages.
+Jay explicitly resumed E2E. Root reports combined revision `e4b8426` published with761 Python+12 Node checks and independent exact-map review, then deployed Brain and audio while the room was quiet. Room8157, the current phone and Mac survived; song capabilities are live. These are Root-attributed results, not checks rerun by this owner. LocalTester exclusively owns finite actual-UI/live cases; planning/photo issues no competing actions or broad duplicate tests.
 
-Preserve external pre-existing assignments. Delete only assignments durably recorded as adapter-owned. Credential access and the earlier standalone spike do not establish integrated texting. HTTP202 is not delivered-message proof.
+Device backend state/API is live; optional dashboard presentation remains Owen's work. Root's current web inspection found photo consent, capture/upload and authenticated viewer UI absent. Photo physical E2E is therefore OWEN-BLOCKED, not passed or attempted by this owner; the exact handoff has been reposted by Root. The source/test freeze remains in force unless a concrete failure is assigned. No source edits, service changes or live effects were made for this status update. Earlier live-pause and central-integration-pending summaries below are historical and superseded by this update where applicable.
 
-Do not advertise a working live Photon demonstration until actual enrollment -> inbound -> SAME native conversation -> delivered reply passes, with the relevant lifecycle/continuity checks. Web remains available; it is not removed to make Photon appear mandatory.
+## Historical testing policy — earlier live pause
 
-## Immediate coordinated test order
+Jay permits implementation and software unit/component/isolated integration checks using fakes, temporary files and stubbed model/device transports. End-to-end/live trials, public UI/chat, actual models/camera/devices/outputs, deployed-service experiments, restarts and deployment remain PAUSED. Root holds the live gate. Earlier all-testing-paused sections below are historical and superseded by this policy. No staging/commits while sharing checkout.
 
-1. Root finishes the already-pending dictated Photon greeting: actual Messages reply and separately heard brief Mac response.
-2. SAME enrollment's existing Chat here fallback: natural context follow-up; no new credential/lease/TTL.
-3. End access and test stale requests; second guest receives clean working context. Verify adapter-owned cleanup without disturbing external assignments.
-4. Complete native visibility, intended interactive actions, new-path expiry/reset and voice checks, then unbriefed rehearsal.
+## Historical override — photo implementation authorized during testing pause
 
-No competing physical questions, model probes, hardware commands or service restarts from this workstream. No planner fix is being awaited.
+Jay authorized this specific photo backend/UI feature for parallel implementation, superseding older photo-planning gates below. Backend modules/routes are implemented separately; central device/native/lifecycle integration and Owen UI remain pending. Physical release is unaccepted. Exact source/evidence/progress: notes/photo-handoff.md.
 
-## Final demo and story alignment
+Jay has paused ALL automated/live/UI/device/audio testing, new test cases, retries, restarts and deployment until he resumes. Local photo agents notified; no active test/output/guest or cleanup from this owner. Most recent completed component checks passed before pause; final integration review/checks remain pending. No staging/commits or shared central-file edits by photo owner.
 
-Jay and Owen choose the final sequence after evidence review. Root reconciles accepted scope/contracts with PLAN/ARCHITECTURE; Owen aligns join/deck/Devpost/README claims. Old “text the room works” copy is not validated by credentials or source deployment.
+Initiative decision is accepted: context-appropriate concrete suggestion or capability notice, with demo leaning concrete. Suggested actions await yes; discovery authorizes neither effects nor speech. No fixed two-minute/two-per-guest rule approved. Central suggestion coordination stays with Root.
 
-Keep Jay's progressive beat -> synchronized phone flashlight -> matching computer/projector visual as a CANDIDATE. Prepared music/torch/speech passes do not prove rhythm generation or synchronization. Projector is optional and untested.
+Local planning update: October 17, 2026, 19:58 PT. Source inspected: `f228b39963958bc2911b13f8e933ae5aeb4d800d`. Evidence below is attributed to Root/notes; planning did not rerun source or live checks.
 
-Features5–7 IMPLEMENTATION GATE CLOSED. No scene, photo, perception, proactive rule or guest-supplied-agent unlock follows from backend tests. See notes/demo-ideas.md for preserved candidates and fallback shortlist.
+## Settled direction and ownership
 
-## Provenance
+- Public QR guests speak naturally with Jay's one fixed native Tenant room conversation and signed-in tools. Web and Photon target that same conversation. Same-enrollment channels preserve context and original expiry; new guests get clean working context and no inherited queued commands.
+- Natural requests may compose supported actions across Mac and phone without arbitrary action/blink ceilings. Preserve Mac output and volume; UNKNOWN is never automatically replayed or substituted. Host reset and ordinary Leave remain distinct.
+- New capabilities come from observed MCP/adapter tools/resources. Persist stable device identity, available capabilities, connection state and field-level provenance (`detected` versus `host_specified`). Host supplies missing role/location/permissions. Do not turn Mac tools into invented independent peripherals; a Bluetooth speaker may simply be the Mac's current output.
+- Audio owns music/voice/timing; device/core owns identity, authorization, execution and lifecycle; Owen owns ALL web files. Root owns decisions, integration, shared acceptance and routing. Local tester exclusively owns live gate `f228b39` and initiates authorized experiments; humans confirm physical outcomes only. No competing physical asks, repeated human checklist or forced unbriefed rehearsal.
+- Core owns the bounded public display conversation projection and truthful TTL denominator. Native history is not itself a public transcript; device-discovery planning adds no transcript work.
+- Planning owns demo-ideas.md, demo-alignment.md and planning-local.md only. No staging/commits until Root coordinates; no service/device/output changes. Root retains jay.md and shared acceptance; tester/runtime/audio files stay with their owners.
 
-Based on Owen's17:50 channel/scope/UI concerns, Root's notes/jay.md acknowledgments and PR1 comments6243878103/6243942245, plus Root's verified handoffs through18:22–18:25. This workstream did not independently rerun live milestones. Root publishes exact revision/IDs/timestamps and remains the single physical-test coordinator.
+## Evidence and current gates
+
+| Area | Recorded evidence | Current implication |
+| --- | --- | --- |
+| Historical bounded core | Three physical guest runs, alternatives, actual 600s expiry and two resets passed at6075a3a. | Historical bounded evidence; changed native/program paths do not inherit it. |
+| Native conversation | Natural phone request/reply, dictated input, heard speech and native tool use observed in one fixed history. | Retain scoped observations; native window visibility has no new acceptance. |
+| Multiple phone actions | Five visible blinks confirmed in a fresh-phone trial; SAME trial's Mac speech failed before playback. Earlier partial/no-flash trials remain. | Phone smoke only; preserve combined-trial failure. |
+| Mac speech | PCM fix af6f8be corrected a real render incompatibility; later tempo answer heard. First longer narration UNKNOWN, remaining-time fix4198998 deployed in00594fa. | Historical observations; do not infer long-answer or every-response audibility. |
+| Current voice policy | Handoff: deployed f228b39, independent484Python+12NodePASS. Latest Root report: actual native TEXT_DEFAULT with0sayPASS. | Text default. Current guest must explicitly opt in to exact available speaker for ongoing voice; opt-out cancels future policy; one-off say remains independent. Discovery never enables speech. |
+| Performance smoke | 90BPM beat plus spoken tempo answer heard. Later30BPM beat, phone pulses and explicit stop human-confirmed;60ACKed transport edges over59s. | One bounded30BPM smoke; slight misalignment reported, no physical synchronization claim. |
+| Phone timing | Original firstON UNKNOWN/166ms; later pulses/stop physically confirmed; configurable cadence source implemented. | Transport/source evidence does not establish optical/acoustic alignment or2s fullbeat states. Audio owns evaluation. |
+| Stop failure and repair | Later guestOFF conflicted with retained program claim; unrequested30→45BPM→stop also observed. HostOFF ACKed, physically confirmed. At0b4a1ec native phoneOFF with beatcontinuing, then separate beatstop physicallyPASS. | Preserve failure and repair separately; no repeated stop trial requested by planning. |
+| Program expiry | Earlier actual expiry run interrupted by reset after522.635s; follow-up was not started. Source checks pass. | Current physical expiry UNVERIFIED. Never call the interrupted run PASS. |
+| Reset recovery | Original0C4C aggregate cleanup unconfirmed; later audited retirement plus separate reset9162 confirmed current phoneOFF/Macpause/context/program cleanup. Later8157 recovery phone physicallyOFF. | Original failures remain; retirement itself is not cleanup. No new lifecycle pass from this planning update. |
+| Photon | Credentials, enrollment and source checks recorded; same-browser recovery fix included in8f1b7ee. | Actual native inbound/delivered reply/linked-context evidence not supplied here; API202 is not delivery. |
+| UI/experience | Owen pages integrated unchanged; later conversation copy requires core projection. | No forced cold rehearsal. E1 is an optional evaluation design, not an instruction to start effects. |
+| Device discovery | Existing registry uses enrolled id/caps/liveness; native helper exposes current inventory. New evidence-backed reconciliation/dashboard contract proposed in planning-local.md. | Proposal only, not discovery/implementation acceptance. No new integration spree. |
+| Photo finale | Team+judges group at whiteboard, manually framed enrolled room phone → actual new still on Mac. Full minimal consent/source/viewer/upload/result/reset proposal in planning-local.md. | Implementation and physical acceptance CLOSED. Retention settled: latest displayed photo remains after Leave/new guests until replacement or host reset; future setting deferred. |
+
+## Ready handoffs, not new live-test instructions
+
+1. Device/core: reconcile discovered provider/resource evidence into persistent identities and exact current bindings; ask the host only for missing facts; retain host provenance and authority boundaries. Use existing registry/state seams. Implement no speculative peripheral integrations.
+2. Root → Owen: the concise request in planning-local.md covers optional role/location/connection/capability/provenance additions in the existing room table. Keep current styling and plain visible language; backend supplies truth. No planning web edits or direct messages.
+3. Photos remain gated. Before opening: Root updates architecture sketches to the accepted retention policy; core/Owen agree the authenticated selected viewer, device-bound upload-ticket and matching viewer-receipt seams. Camera OS permission/torch readiness never equals photo opt-in. Proposed model separates captured, stored and displayed, blocks late work and versions reset/clear. Public display listeners do not receive private photo URLs/bytes.
+4. Shared acceptance amendments are proposed verbatim in planning-local.md for Root. demo-testing.md is unchanged; its older counts/forced E1 language are not current commands. The local tester owns actual experiments and physical questions.
+
+## Accepted retention and remaining gate
+
+**Photo retention — settled:** Root confirms Jay’s accepted 19:17 direction: keep the latest displayed photo after Leave until replacement or host reset. Expiry/revoke and a new guest do not automatically clear the physical displayed photo. New guests reset agent working context and pending commands; keep image bytes out of model history. Host-configurable retention is future work. No further Jay question or retention decision blocker remains. Root must supersede the old architecture ten-minute TTL during implementation. Pending captures/tickets still die with authority; they cannot replace the retained photo after access ends.
+
+**Gate opening:** photo/perception/proactive features remain closed. Music is authorized and belongs to Audio; physical synchronization and expiry limits stay explicit. No approval or question is being sent to Jay by planning.
+
+## Preserved idea stock
+
+Direct Jay update, October 17, 20:13 PT: prioritize a room that grows through discovered devices and AI coordination; add selective suggestions generated internally and surfaced only after useful criteria pass; extend the photo finale with an explicit request to show the same image through the Mac on its connected projector. Detailed bounded proposal is in planning-local.md. Suggestions do not perform effects; projector discovery/routing and physical output remain unverified. Photo/proactive implementation gates stay closed. No new human checklist or live test is initiated.
+
+All demo candidates remain in demo-ideas.md: impromptu vocal beat → ongoing computer sound → phone light joins → optional already-available projector visual; useful computer/room conversation; bounded room controls and access ending; explicit alternatives when a device disappears; light plus short speech; deferred join-welcome rules, camera/perception and guest-supplied agents; interactive demos, marketing and live talks; final team+judges whiteboard photo from room phone appearing on Mac. A rehearsal, clean test count or tool inventory cannot prove unfinished pieces.
+
+Source evidence references retained: tests/evidence/2026-10-17-native-multi-action.json, 2026-10-17-live-room-program.json, 2026-10-17-room-performance-30bpm.json, 2026-10-17-performance-stop-incident.json and 2026-10-17-stop-recovery-live.json. These records remain with Root; no new physical evidence was produced here.

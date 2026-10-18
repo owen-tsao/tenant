@@ -1,0 +1,23 @@
+{
+  "test": "ambient-external-track-headless",
+  "status": "PASS",
+  "production_MpvPlayer_used": true,
+  "selected_canonical_audio_and_exact_external_video": true,
+  "prepared_ms": 212,
+  "playing": {
+    "state": "playing",
+    "position_seconds": 1.102746,
+    "rate": 1.0
+  },
+  "avsync_seconds": 3e-06,
+  "decoded_size": [
+    1280,
+    720
+  ],
+  "audio_output": "null",
+  "video_output": "null",
+  "no_physical_playback_or_window": true,
+  "physical_sync_verified": false,
+  "probe_note": "An earlier diagnostic queried unsupported video-pts; the corrected check uses documented avsync and production snapshot.",
+  "owned_player_closed": true
+}

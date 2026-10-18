@@ -1,0 +1,66 @@
+{
+  "status": "DEPLOYED_SOURCE_PASS_REAL_HELPER_GATE_PENDING",
+  "source_revision": "89a0b4c",
+  "checks": {
+    "python_passed": 296,
+    "focused_helper_passed": 19,
+    "phone_protocol_passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "independent_review": "PASS_SCOPED_SOURCE_HASHES_AND_FAILURE_INJECTION"
+  },
+  "source_sha256": {
+    "brain/core/native_devices.py": "294b60efb2edf798e3a51ea24d871c8ca9e8edd8b43a4342973c9bf56126bf9e",
+    "agent/tenant_device.py": "f29d6c9daf175b44b616621fd648056cf0f7f4822165bc8f5aa030b82ec0b4da",
+    "brain/core/room_conversation.py": "f4233acc5e3daf8c8f740d5a6fa5b0f2c54c531e9ed9072abe71d26877f706d1",
+    "agent/room_session.py": "4495c70f39458606e9be637c083792dfe451452b0a0c542963e4494e753c0186",
+    "brain/core/integration.py": "60b1bad096d16cd92d586698fe0261a3fc2ac55a0adec15f0a14803df1f4ec5f",
+    "tests/test_native_devices.py": "052520f7da6b1a5e8c9a09799a2062a969f4ad9d9f34580cd9283bdd52aa6085"
+  },
+  "design": {
+    "transport": "Private local Unix socket; directory0700, socket and per-turn grant file0600",
+    "model_context": "Installed TurnStartParams.additionalContext application fragment; exact guest input remains unchanged; no host/device credentials in prompt or arguments",
+    "authority": "Inactive before native start; exact live lease/controller/generation/epoch/native turn rechecked before call and after device Bus queue",
+    "effects": "One attempted device action per native turn, duplicate result cache, UNKNOWN retained without resend/substitution",
+    "lifecycle": "Completion, guest change, expiry/revoke/reset deactivate and unlink grants; stale connected clients denied; bounded reads and teardown",
+    "voice": "Short plain first sentence guidance; final replies voiced automatically, without model say narration",
+    "redaction": "Known Photon key additionally literal-redacted with synthetic-only verification"
+  },
+  "rollout": {
+    "brain_only_restart": "DONE",
+    "public_health": "PASS",
+    "room_code": "E39D",
+    "online_say_bridges": 1,
+    "online_lights": 0,
+    "web_changed": false,
+    "output_or_volume_changed": false,
+    "native_model_or_physical_probe": "REAL_NATIVE_READ_ONLY_INVENTORY_PASS_PHYSICAL_EFFECT_PENDING"
+  },
+  "next_live_gates": [
+    "Pending Photon dictated greeting: same native thread text delivery and actual audible response.",
+    "Native inventory and invalid device call produce zero device sends.",
+    "Connect one real phone bridge, request a chosen light action through natural conversation, observe effect and actual Bus result.",
+    "New-path cancellation, access ending, expiry/reset and second-guest isolation."
+  ],
+  "limits": [
+    "These are existing device capabilities exposed via native shell helper commands, not dynamically registered MCP tools.",
+    "The broad native OS/shell itself remains outside device Bus guarantees; this is not OS isolation or undo of already-started effects.",
+    "Native app visual rendering remains unverified."
+  ],
+  "live_read_only_inventory": {
+    "status": "PASS_REAL_NATIVE_TO_HELPER",
+    "source_revision": "89a0b4c",
+    "native_turn_id": "01a14ca6-e1af-7b82-9b5d-a35aab3d0cf5",
+    "trigger": "Guest naturally requested three flashlight blinks, ending OFF.",
+    "observed_command": "Native agent invoked the provided private helper inventory command.",
+    "exit_code": 0,
+    "response_ok": true,
+    "observed_online_devices": [
+      "Room speaker",
+      "Phone lightJay phone"
+    ],
+    "physical_command_sent": false,
+    "actual_limit": "The original one-action-per-turn guard refused a three-blink sequence. This was a software restriction, not missing phone hardware.",
+    "next_change": "Jay explicitly rejected arbitrary action/blink-count ceilings; reviewed multi-call execution and positive-count blink sequences are being implemented. Actual lease/cancellation/uncertain-result rules remain."
+  }
+}

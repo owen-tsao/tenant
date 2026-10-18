@@ -1,0 +1,110 @@
+{
+  "status": "REAL_ENROLLMENT_OBSERVED_USER_FAILURE_RETRY_DEFECT_REPRODUCED",
+  "recorded_at": "2026-10-18T01:20:31.508160+00:00",
+  "base_commit": "2f8cdbc239f08418c5b0e7027160d91669d44c94",
+  "source_sha256": {
+    "brain/channels/photon.py": "5733196b2854712acedf79307c1b0a8f1428e4086ca55eb2d51f648521bc7218",
+    "brain/api/join.py": "8fa582a4c348bc5c3bf062880eecb19796ca492485aaf3f3219ea35928cf61d2",
+    "brain/core/integration.py": "fd8b64c0a06f76db8e09541e5ee10eaacb522e78d3edc13271fe3a2927e97060",
+    "brain/main.py": "e06dd880084ae1a43fa1a7c3e3de1227f49121944f113aafe5276c6a60172cf7",
+    "tests/test_photon.py": "b03af6b2170bbf2167f4ace07d384a6106305fbae9f851a55cf7a669e6d9e63f"
+  },
+  "provider_version": "Photon 2.0 beta, https://api.photon.codes/v1",
+  "primary_sources": [
+    "https://photon.codes/docs/llms.txt",
+    "https://photon.codes/docs/beta/api-reference",
+    "https://api.photon.codes/openapi.json",
+    "ARCHITECTURE.md section 5.3 and spikes/photon/test.py (existing round-trip evidence)"
+  ],
+  "measured_checks": {
+    "focused_photon_tests": 37,
+    "all_python_tests": 276,
+    "node_tests": 12,
+    "failures": 0,
+    "skipped": 0,
+    "git_diff_check": "PASS",
+    "new_file_whitespace_check": "PASS",
+    "uses_real_photon_api": false,
+    "uses_real_native_daemon": false,
+    "same_agent_test": "Real ConversationAgent with injected native session; web-to-Photon-to-web preserves exact same lease/history; new guest resets same configured thread.",
+    "preflight_authority_test": "Suspended assignment GET followed by host reset or linked-guest revoke creates no new lease, credential or allocation.",
+    "replay_test": "SQLite message-ID claim committed before native queue/model; duplicate, reconnect/restart, cancellation and UNKNOWN do not replay.",
+    "cleanup_test": "Known owned assignments released on revoke/expiry/reset/restart; pre-existing assignments preserved; unknown ownership remains unconfirmed.",
+    "audio_test": "Same internal CompletedReply receipt passed to speech hook only after Photon 202 acceptance and current authority check.",
+    "privacy_test": "No message bodies or raw guest phone handles in private SQLite; no handles, message bodies or API keys in public/private event log."
+  },
+  "review": {
+    "reviewer": "access_contract_review",
+    "verdict": "PASS",
+    "defects_found_and_fixed": [
+      "Unknown allocation ownership cannot be inferred from matching handle/time.",
+      "Invitation or exact linked lease may change while awaiting assignment preflight.",
+      "Failed worker or broken store must not prevent both tasks and HTTP/DB resources closing."
+    ]
+  },
+  "deployment": {
+    "opt_in": "TENANT_PHOTON_ENABLED=1 (default off, even when credentials exist)",
+    "requires": [
+      "TENANT_AGENT_MODE=conversation",
+      "TENANT_ROOM_THREAD_ID and TENANT_ROOM_ANCHOR_TURN_ID already configured",
+      "Existing PHOTON_PROJECT_ID and PHOTON_API_KEY in private local environment"
+    ],
+    "optional_state_override": "TENANT_PHOTON_STATE_PATH",
+    "default_state_path": ".venv/tenant-runtime/photon.sqlite3",
+    "no_new_native_chat": true,
+    "web_files_modified": false,
+    "new_guest_phone_join": "POST /join {room_code,phone}; reply preserves guest_id/guest_token/chat_url/imessage_number/sms_link.",
+    "existing_guest_phone_link": "POST /join {room_code,phone,guest_id} plus exact existing cookie or guest_token; expiry and credential unchanged.",
+    "first_text": "Actual verified human inbound from assigned handle to assigned line in exact direct space; the entire text reaches core.agent.turn.",
+    "cross_channel_physical_test": "Use the Chat here fallback attached to the SAME phone enrollment response; a fresh join intentionally creates a new lease/context.",
+    "root_rollout": {
+      "brain_restart": "done",
+      "public_health": "PASS",
+      "room_code": "E39D",
+      "unique_online_say_bridge": "Room speaker",
+      "web_files_modified": false,
+      "physical_question": "Pending fresh phone Text the room -> dictated Hello Tenant -> iMessage reply plus audible Mac response, superseding prior voice-only question."
+    }
+  },
+  "limits": [
+    "One project-wide 2-second poll loop; one worker; at most eight claimed queued requests; busy inputs are marked dropped and never replayed.",
+    "At most five pages per polling pass; continuation preserves exact query; empty pages with nextPageToken are followed.",
+    "Received text older than enrollment/process start or more than 60 seconds old is ignored.",
+    "202 means accepted for asynchronous delivery, not received by the phone.",
+    "Assignment release is best effort and cannot roll back effects or unsend an already submitted message.",
+    "Unknown allocation acceptance/ownership requires host/provider reconciliation; no allocation retry or guessed seat release.",
+    "The native app visually rendering the stored conversation remains a separate acceptance check."
+  ],
+  "remaining_physical_tests": [
+    "Fresh phone Text the room enrollment, real inbound natural message, source-correlated same native thread reply, actual iMessage receipt and audible room response.",
+    "Same enrollment fallback web chat remembers a fact provided over Photon, with no new guest/reset.",
+    "Permission expiry/revoke/reset: no subsequent native turn, reply or speech from stale phone; known owned assignment released or honestly unconfirmed.",
+    "Second phone/new guest clears working context in same thread and stale previous sender cannot regain control."
+  ],
+  "live_mutations_performed_by_this_worker": {
+    "allocations": 0,
+    "messages": 0,
+    "releases": 0,
+    "service_restarts": 0,
+    "environment_edits": 0
+  },
+  "source_revision": "d8fef91",
+  "root_live_preflight": {
+    "assignment_api_http_status": 200,
+    "active_existing_assignments": 1,
+    "schema_correction": "AssignmentPage uses assignments, not items. Initial count was corrected; existing assignment preserved.",
+    "recent_inbound_metadata_samples": 3,
+    "observed_shape": "received; imessage; human sender; agent receiver; direct two-participant space; projectId/createdAt present",
+    "keys_or_phone_handles_exposed": false
+  },
+  "human_attempt": {
+    "user_report": "Text message access is unavailable",
+    "route_enabled_probe": "400 INVALID_PHONE from invalid-number probe; no enrollment/seat/model effect",
+    "real_client_read_preflight": "PhotonClient.assignments() HTTP success, one assignment",
+    "private_state_observed": "One active real binding reusing an external assignment; no message claims and no pinned inbound space. No phone handles exposed.",
+    "offline_defect": "Same authenticated browser repeating identical room_code/phone request receives409 PHONE_IN_USE instead of recovering the original unexpired enrollment.",
+    "causal_limit": "Reproduced retry defect may explain the report; original live error code was not recorded, so exact cause is not established.",
+    "fix_owner": "photon_shared_channel",
+    "physical_text_delivery": "UNCONFIRMED"
+  }
+}
