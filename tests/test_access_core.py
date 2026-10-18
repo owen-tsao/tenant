@@ -438,6 +438,25 @@ class AccessEndpointsTests(unittest.TestCase):
     def guest_url(self, guest_id):
         return 'wss://testserver/ws/guest?guest_id=' + guest_id + '&token=' + self.tokens[guest_id]
 
+    def assert_lease_frame(self, frame, state=None):
+        self.assertEqual(frame.get('type'), 'lease')
+        self.assertIn(frame.get('state'), ('joining', 'active', 'released'))
+        expected = {'type', 'state', 'expires_in', 'access_expires_in', 'controls'}
+        if frame['state'] == 'released':
+            expected.add('reason')
+        self.assertEqual(set(frame), expected)
+        if state:
+            self.assertEqual(frame['state'], state)
+
+    def receive_conversation(self, ws):
+        # Metadata may update while a turn runs. Never discard action/assistant
+        # frames or any other unexpected conversation-frame type.
+        while True:
+            frame = ws.receive_json()
+            if frame.get('type') != 'lease':
+                return frame
+            self.assert_lease_frame(frame)
+
     def test_join_private_cookie_separate_from_public_id(self):
         response = self.join()
         body = response.json()
@@ -473,8 +492,9 @@ class AccessEndpointsTests(unittest.TestCase):
             self.assertEqual(caught.exception.code, 4401)
         with TestClient(self.app, base_url=ORIGIN) as no_cookies:
             with no_cookies.websocket_connect(self.guest_url(guest_id), headers=HEADERS) as ws:
+                self.assert_lease_frame(ws.receive_json(), 'joining')
                 ws.send_json({'type': 'user', 'text': 'what can you do'})
-                self.assertEqual(ws.receive_json()['type'], 'assistant')
+                self.assertEqual(self.receive_conversation(ws)['type'], 'assistant')
         self.assertEqual(len(self.planner.calls), 1)
 
     def test_other_guests_private_token_cannot_impersonate(self):
@@ -501,12 +521,13 @@ class AccessEndpointsTests(unittest.TestCase):
     def test_webchat_activation_then_expiry_denies_without_planner(self):
         guest_id = self.join().json()['guest_id']
         with self.client.websocket_connect(self.guest_url(guest_id), headers=HEADERS) as ws:
+            self.assert_lease_frame(ws.receive_json(), 'joining')
             ws.send_json({'type': 'user', 'text': 'hello'})
-            self.assertEqual(ws.receive_json()['type'], 'assistant')
+            self.assertEqual(self.receive_conversation(ws)['type'], 'assistant')
             self.assertEqual(self.core.leases.leases[guest_id].state, 'active')
             self.clock.now += 600
             ws.send_json({'type': 'user', 'text': 'turn on phone'})
-            self.assertIn('no longer', ws.receive_json()['text'])
+            self.assertIn('no longer', self.receive_conversation(ws)['text'])
             self.assertEqual(len(self.planner.calls), 1)
 
     def test_leave_needs_cookie_and_origin(self):
@@ -515,8 +536,9 @@ class AccessEndpointsTests(unittest.TestCase):
         self.assertEqual(self.client.post('/leave', json={'guest_id': guest_id}, headers={'Origin': 'https://evil.example'}).status_code, 403)
         self.assertEqual(self.client.post('/leave', json={'guest_id': guest_id}, headers=HEADERS).status_code, 200)
         with self.client.websocket_connect(self.guest_url(guest_id), headers=HEADERS) as ws:
+            self.assert_lease_frame(ws.receive_json(), 'released')
             ws.send_json({'type': 'user', 'text': 'light'})
-            self.assertIn('no longer', ws.receive_json()['text'])
+            self.assertIn('no longer', self.receive_conversation(ws)['text'])
         self.assertEqual(self.planner.calls, [])
 
     def test_origin_and_invitation_validation(self):
@@ -536,8 +558,9 @@ class AccessEndpointsTests(unittest.TestCase):
             self.assertEqual(self.client.post('/join', json={'room_code': code}, headers=HEADERS).status_code, 404)
         self.assertEqual(self.client.post('/join', json={'room_code': second['room_code']}, headers=HEADERS).status_code, 200)
         with self.client.websocket_connect(self.guest_url(guest_id), headers=HEADERS) as ws:
+            self.assert_lease_frame(ws.receive_json(), 'released')
             ws.send_json({'type': 'user', 'text': 'hello'})
-            self.assertIn('no longer', ws.receive_json()['text'])
+            self.assertIn('no longer', self.receive_conversation(ws)['text'])
         self.assertEqual(self.planner.calls, [])
 
     def test_host_actions_require_token_and_public_display_schema(self):
@@ -564,8 +587,9 @@ class AccessEndpointsTests(unittest.TestCase):
         response = self.client.post('/host/revoke', json={'guest_id': guest_id}, headers=HOST_HEADERS)
         self.assertTrue(response.json()['revoked'])
         with self.client.websocket_connect(self.guest_url(guest_id), headers=HEADERS) as ws:
+            self.assert_lease_frame(ws.receive_json(), 'released')
             ws.send_json({'type': 'user', 'text': 'light'})
-            self.assertIn('no longer', ws.receive_json()['text'])
+            self.assertIn('no longer', self.receive_conversation(ws)['text'])
         self.assertEqual(self.planner.calls, [])
 
     def test_log_persistence_redacts_secrets_and_chat(self):
@@ -576,8 +600,9 @@ class AccessEndpointsTests(unittest.TestCase):
                 guest_id = response.json()['guest_id']
                 secret = response.cookies.get(core.cookie_name(guest_id))
                 with client.websocket_connect('wss://testserver/ws/guest?guest_id=' + guest_id + '&token=' + response.json()['guest_token'], headers=HEADERS) as ws:
+                    self.assert_lease_frame(ws.receive_json(), 'joining')
                     ws.send_json({'type': 'user', 'text': 'my private sentence'})
-                    ws.receive_json()
+                    self.assertEqual(self.receive_conversation(ws)['type'], 'assistant')
             text = (Path(directory) / 'events.jsonl').read_text()
             for value in (secret, 'my private sentence', 'host-private', 'device-private'):
                 self.assertNotIn(value, text)

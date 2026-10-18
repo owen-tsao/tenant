@@ -1,0 +1,369 @@
+--- a/web/join.html
++++ b/web/join.html
+@@ -11,89 +11,23 @@
+ <main class="join" id="join">
+   <div class="eyebrow" id="room">Room</div>
+   <h1>Talk to this room from your phone.</h1>
+-  <p>Ask for a light, some music, a photo. Nothing to install, no account. Your access ends when you leave.</p>
+-
+-  <div id="step-choose" class="alt">
+-    <button class="btn btn-primary" id="chat">Chat here</button>
+-    <button class="btn" id="text">Text the room</button>
+-  </div>
+-
+-  <div id="step-phone" class="reveal">
+-    <input class="input" id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Your mobile number" aria-label="Your mobile number">
+-    <button class="btn btn-primary" id="go-text">Open Messages</button>
+-    <button class="btn" id="back">Back</button>
+-    <div class="note">We give the room your number so it can reply by iMessage. We don't keep it after you leave.</div>
+-  </div>
+-
+-  <div id="step-sms" class="reveal">
+-    <p>Text <strong>join <span id="code2"></span></strong> to the number below. Messages should open with it ready to send.</p>
+-    <div class="number mono" id="number"></div>
+-    <a class="btn btn-primary" id="sms" href="#">Open Messages</a>
+-    <button class="btn" id="chat2">Or chat here instead</button>
+-  </div>
+-
+-  <div id="err" class="err" hidden></div>
++  <p>Use the room’s available devices through Tenant. See what you can control after joining. Leave ends your access; it also expires automatically. Nothing to install, no account.</p>
++  <button class="btn btn-primary" id="chat">Enter room</button>
++  <div id="err" class="err" role="alert" hidden></div>
+ </main>
+-
+ <script src="shared.js"></script>
+ <script>
+ (function () {
+   const T = window.Tenant;
+   const $ = (id) => document.getElementById(id);
+-  // Room code from /j/{code}, or ?room= when opened from a static server.
+   const m = location.pathname.match(/\/j\/([A-Za-z0-9]+)/);
+   const code = (m ? m[1] : new URLSearchParams(location.search).get("room") || "7F3A").toUpperCase();
+   $("room").textContent = `Room ${code}`;
+-  $("code2").textContent = code;
+-
+-  function show(step) {
+-    for (const id of ["step-choose", "step-phone", "step-sms"]) {
+-      const el = $(id); el.classList.toggle("open", id === step);
+-      if (id === "step-choose") el.style.display = step === id ? "" : "none";
+-    }
+-    $("err").hidden = true;
+-  }
+-  function fail(msg) { $("err").textContent = msg; $("err").hidden = false; }
+-  function busy(btn, on) { btn.disabled = on; btn.dataset.label ??= btn.textContent; btn.textContent = on ? "One moment…" : btn.dataset.label; }
+-
+-  // E.164-ish: digits only, assume US if 10 digits.
+-  function normalize(raw) {
+-    const d = raw.replace(/[^\d+]/g, "");
+-    if (d.startsWith("+")) return d.length >= 11 ? d : null;
+-    if (d.length === 10) return "+1" + d;
+-    if (d.length === 11 && d.startsWith("1")) return "+" + d;
+-    return null;
+-  }
+-
+-  async function joinChat(btn) {
+-    busy(btn, true);
+-    try {
+-      const r = await T.postJoin(code);
+-      location.href = r.chat_url;
+-    } catch (e) { fail(e.message || "Couldn't join. Try again."); busy(btn, false); }
+-  }
+-
+-  $("chat").onclick = () => joinChat($("chat"));
+-  $("chat2").onclick = () => joinChat($("chat2"));
+-  $("text").onclick = () => { show("step-phone"); setTimeout(() => $("phone").focus(), 50); };
+-  $("back").onclick = () => show("step-choose");
+-  $("go-text").onclick = async () => {
+-    const phone = normalize($("phone").value);
+-    if (!phone) return fail("That doesn't look like a mobile number.");
+-    busy($("go-text"), true);
+-    try {
+-      const r = await T.postJoin(code, phone);
+-      if (!r.imessage_number) { location.href = r.chat_url; return; } // Photon unavailable → chat silently
+-      $("number").textContent = r.imessage_number;
+-      $("sms").href = r.sms_link;
+-      // keep the chat fallback pointed at this same guest
+-      $("chat2").onclick = () => { location.href = r.chat_url; };
+-      show("step-sms");
+-      // Try to open Messages right away; the button stays as the fallback.
+-      location.href = r.sms_link;
+-    } catch (e) { fail(e.message || "Couldn't set up texting. You can still chat here."); busy($("go-text"), false); }
++  $("chat").onclick = async () => {
++    $("chat").disabled = true; $("chat").textContent = "Joining…"; $("err").hidden = true;
++    try { const r = await T.postJoin(code); location.href = r.chat_url; }
++    catch (e) { $("err").textContent = e.message || "Could not join. Try again."; $("err").hidden = false; $("chat").disabled = false; $("chat").textContent = "Enter room"; }
+   };
+-  $("phone").addEventListener("keydown", (e) => { if (e.key === "Enter") $("go-text").click(); });
+ })();
+ </script>
+ </body>
+--- a/web/guest.html
++++ b/web/guest.html
+@@ -12,11 +12,22 @@
+   <header class="chat-head">
+     <span class="room" id="room">Room</span>
+     <span class="left" id="left" aria-live="off"></span>
++    <button class="btn leave" id="leave" type="button" disabled>Leave</button>
+   </header>
++  <section class="guest-access" aria-label="Your room access">
++    <p class="access-note" id="access-status" role="status">Connecting to the room…</p>
++    <p class="access-note access-limit" id="leave-note">Leaving ends control; lights and music stay as set.</p>
++    <p class="access-note access-limit" id="access-limit" aria-live="off" hidden></p>
++    <table class="grid" id="controls-table" aria-label="Devices you may use">
++      <thead><tr><th>Device</th><th>Can do</th></tr></thead>
++      <tbody id="controls"></tbody>
++    </table>
++    <div class="guest-prompts" id="suggestions" aria-label="Suggested requests"></div>
++  </section>
+   <div class="thread" id="thread" aria-live="polite"></div>
+   <form class="compose" id="compose">
+-    <input class="input" id="text" placeholder="Ask the room for something" autocomplete="off" enterkeyhint="send" aria-label="Message the room">
+-    <button class="btn btn-primary" type="submit" aria-label="Send">Send</button>
++    <input class="input" id="text" placeholder="Ask in your own words" autocomplete="off" enterkeyhint="send" aria-label="Message the room" disabled>
++    <button class="btn btn-primary" id="send" type="submit" aria-label="Send" disabled>Send</button>
+   </form>
+ </main>
+ 
+@@ -25,50 +36,120 @@
+ (function () {
+   const T = window.Tenant;
+   const $ = (id) => document.getElementById(id);
++  const qs = new URLSearchParams(location.search);
+   const m = location.pathname.match(/\/g\/([A-Za-z0-9_-]+)/);
+-  const guestId = m ? m[1] : (new URLSearchParams(location.search).get("guest") || "g_mock");
++  const guestId = m ? m[1] : (qs.get("guest") || "g_mock");
+   const token = (location.hash.match(/t=([^&]+)/) || [])[1] || "";
+-  const roomCode = new URLSearchParams(location.search).get("room") || "7F3A";
+-  $("room").textContent = `Room ${roomCode}`;
++  const roomCode = qs.get("room") || "";
++  $("room").textContent = roomCode ? `Room ${roomCode}` : "Room";
+ 
+   const thread = $("thread");
+-  let typing = null, expires = null, denied = false;
++  const words = { light: "flashlight", say: "speech", "music.play": "play music", "music.pause": "pause music", volume: "volume" };
++  const endedText = "Your access has ended. Scan the room’s current code to join again. Existing lights and music stay as set.";
++  let conn = null, typing = null, deadline = null, grantDeadline = null, state = null, connected = false, hasConnected = false;
++  let leaseReady = false, seenLease = false, denied = false, unavailable = false, pending = false, leaving = false, controlsKey = null, terminalText = endedText;
+ 
+   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+-  function scroll() { thread.scrollTop = thread.scrollHeight; }
+-  function add(html) { const el = document.createElement("div"); el.innerHTML = html; const node = el.firstElementChild; thread.appendChild(node); scroll(); return node; }
++  function add(html) { const el = document.createElement("div"); el.innerHTML = html; const node = el.firstElementChild; thread.appendChild(node); thread.scrollTop = thread.scrollHeight; return node; }
+   function showTyping() { if (!typing) typing = add(`<div class="msg room"><span class="typing"><i></i><i></i><i></i></span></div>`); }
+   function hideTyping() { if (typing) { typing.remove(); typing = null; } }
++  function remaining() { return deadline == null ? null : Math.max(0, Math.ceil((deadline - performance.now()) / 1000)); }
++  function canCompose() { return !!conn && connected && leaseReady && !denied && !leaving && remaining() > 0; }
++  function canSend() { return canCompose() && !pending; }
++
++  function update() {
++    const seconds = remaining();
++    $("left").textContent = !denied && leaseReady && seconds != null ? `${T.fmtClock(seconds)} ${state === "joining" ? "to start" : "left"}` : "";
++    $("text").disabled = !canCompose(); $("send").disabled = !canSend();
++    for (const button of $("suggestions").querySelectorAll("button")) button.disabled = !canSend();
++    $("controls-table").hidden = $("suggestions").hidden = denied || !leaseReady;
++    $("leave-note").hidden = denied;
++    $("access-limit").hidden = denied || !leaseReady || state !== "joining";
++    if (grantDeadline != null) $("access-limit").textContent = `Access expires in ${T.fmtClock(Math.max(0, Math.ceil((grantDeadline - performance.now()) / 1000)))} even if you start later.`;
++    $("leave").disabled = !conn || denied || leaving || !seenLease;
++    $("leave").textContent = leaving ? "Leaving…" : "Leave";
++    let message;
++    if (denied) message = terminalText;
++    else if (leaving) message = "Ending your access…";
++    else if (unavailable) message = terminalText;
++    else if (!connected) message = hasConnected ? "Connection lost. Reconnecting; requests are paused." : "Connecting to the room…";
++    else if (!leaseReady) message = "Checking your room access…";
++    else if (seconds === 0) message = "Checking whether your access has ended…";
++    else message = state === "joining" ? "Send a request before the start timer ends. Starting does not extend access." : "Ask in your own words or try a suggestion. Leave ends your access.";
++    if ($("access-status").textContent !== message) $("access-status").textContent = message;
++  }
++
++  function endAccess(reason) {
++    terminalText = reason === "unavailable" ? "Room control is unavailable. Ask the host for help. Existing lights and music may remain as set." : endedText;
++    unavailable = reason === "unavailable";
++    if (!unavailable) denied = true;
++    else seenLease = true;
++    leaseReady = false; deadline = null; leaving = false; pending = false; controlsKey = null;
++    hideTyping(); $("controls").replaceChildren(); $("suggestions").replaceChildren();
++    $("controls-table").hidden = true;
++    if (conn && denied) conn.stopReconnect();
++    update();
++  }
++
++  function renderControls(items) {
++    const controls = items.filter(d => d && typeof d.label === "string" && Array.isArray(d.caps))
++      .map(d => ({ label: d.label, caps: d.caps.filter(c => Object.hasOwn(words, c)) })).filter(d => d.caps.length);
++    const key = JSON.stringify(controls);
++    if (key === controlsKey) return;
++    controlsKey = key;
++    $("controls").innerHTML = controls.length ? controls.map(d => `<tr><td title="${esc(d.label)}">${esc(d.label)}</td><td title="${esc(d.caps.map(c => words[c]).join(", "))}">${esc(d.caps.map(c => words[c]).join(", "))}</td></tr>`).join("") : '<tr><td colspan="2">No permitted devices are connected right now.</td></tr>';
++    $("suggestions").replaceChildren();
++    const prompts = [{ label: "What can I control?", text: "What can I control?" }];
++    const speakers = controls.filter(d => d.caps.includes("say"));
++    const music = controls.filter(d => d.caps.includes("music.play"));
++    if (speakers.length === 1) prompts.push({ label: "Say hello", text: `Say \"Hello from Tenant\" on ${speakers[0].label}.` });
++    if (music.length === 1) prompts.push({ label: "Play music", text: `Play music on ${music[0].label}.` });
++    for (const prompt of prompts) {
++      const button = document.createElement("button"); button.type = "button"; button.className = "btn";
++      button.textContent = prompt.label; button.addEventListener("click", () => send(prompt.text));
++      $("suggestions").appendChild(button);
++    }
++  }
+ 
+   function onFrame(f) {
++    if (f.type === "connection") {
++      connected = f.state === "open"; hasConnected ||= connected; leaseReady = false;
++      if (!connected && pending) { pending = false; hideTyping(); add('<div class="sys">The connection dropped. Your last request’s outcome is unknown; it was not sent again.</div>'); }
++      if (f.code === 4401 || f.code === 1008) endAccess();
++      update(); return;
++    }
++    if (f.type === "lease") {
++      if (denied) return;
++      if (f.state === "released" || f.state === "expired") { endAccess(f.reason); return; }
++      if (denied || !["joining", "active"].includes(f.state) || !Number.isFinite(f.expires_in) || !Number.isFinite(f.access_expires_in) || !Array.isArray(f.controls)) return;
++      unavailable = false; state = f.state; deadline = performance.now() + Math.max(0, f.expires_in) * 1000;
++      grantDeadline = performance.now() + Math.max(0, f.access_expires_in) * 1000;
++      leaseReady = true; seenLease = true; renderControls(f.controls); update(); return;
++    }
++    if (f.type === "denied") { endAccess(); return; }
+     if (f.type === "user") { add(`<div class="msg me">${esc(f.text)}</div>`); showTyping(); return; }
+     if (f.type === "action") { add(`<div class="sys live">${esc(f.text)}</div>`); return; }
+-    if (f.type === "assistant") { hideTyping(); add(`<div class="msg room">${esc(f.text)}</div>`); return; }
+-    if (f.type === "denied" || (f.type === "lease" && f.state === "released")) {
+-      denied = true; expires = null; $("left").textContent = "";
+-      add(`<div class="sys denied">Your access to this room has ended. Scan the code to rejoin.</div>`);
+-      return;
++    if (f.type === "assistant" || f.type === "error") {
++      pending = false; hideTyping(); add(`<div class="msg room">${esc(f.text || "The room did not confirm that request.")}</div>`); update();
+     }
+-    if (f.type === "lease" && typeof f.expires_in === "number") { expires = f.expires_in; }
+-    if (f.type === "error") { hideTyping(); add(`<div class="sys">${esc(f.text || "The room didn't answer. Say that again?")}</div>`); }
+   }
+ 
+-  setInterval(() => {
+-    if (expires == null) return;
+-    expires = Math.max(0, expires - 1);
+-    $("left").textContent = expires > 0 ? `${T.fmtClock(expires)} left` : "";
+-  }, 1000);
++  function send(text) {
++    if (!text || !canSend()) return;
++    if (conn.send(text) === false) { connected = false; leaseReady = false; update(); return; }
++    pending = true; $("text").value = "";
++    if (!T.MOCK) { add(`<div class="msg me">${esc(text)}</div>`); showTyping(); }
++    update();
++  }
+ 
+-  let conn = null;
+-  T.connectGuest(guestId, token, onFrame).then(c => { conn = c; if (typeof c.expires_in === "number") expires = c.expires_in; });
+-
+-  $("compose").addEventListener("submit", (e) => {
+-    e.preventDefault();
+-    const text = $("text").value.trim();
+-    if (!text || !conn) return;
+-    $("text").value = "";
+-    if (!T.MOCK) { add(`<div class="msg me">${esc(text)}</div>`); showTyping(); }
+-    conn.send(text);
++  T.connectGuest(guestId, token, onFrame).then(c => { conn = c; if (denied) conn.stopReconnect(); update(); }).catch(() => { connected = false; update(); });
++  setInterval(update, 250);
++  $("compose").addEventListener("submit", e => { e.preventDefault(); send($("text").value.trim()); });
++  $("leave").addEventListener("click", async () => {
++    if (leaving || denied || !conn) return;
++    leaving = true; update();
++    try { await T.leaveGuest(guestId); endAccess(); }
++    catch (_) { if (denied) return; leaving = false; update(); add('<div class="sys denied">Leaving could not be confirmed. Try Leave again; closing this page does not end access.</div>'); }
+   });
+ })();
+ </script>
+--- a/web/shared.js
++++ b/web/shared.js
+@@ -31,22 +31,24 @@
+   }
+ 
+   function reconnecting(path, onFrame, onStatus) {
+-    let delay = 500, ws, closed = false;
++    let delay = 500, ws, closed = false, retryTimer = null;
+     function open() {
++      if (closed) return;
+       ws = new WebSocket(WS_BASE + path);
+       ws.onopen = () => { delay = 500; onStatus && onStatus("open"); };
+       ws.onmessage = (e) => { try { onFrame(JSON.parse(e.data)); } catch (_) {} };
+-      ws.onclose = () => {
+-        onStatus && onStatus("closed");
+-        if (closed) return;
+-        setTimeout(open, delay); delay = Math.min(delay * 2, 8000);
++      ws.onclose = (event) => {
++        onStatus && onStatus("closed", event.code);
++        if (closed || event.code === 4401 || event.code === 1008) return;
++        retryTimer = setTimeout(() => { retryTimer = null; open(); }, delay); delay = Math.min(delay * 2, 8000);
+       };
+       ws.onerror = () => ws.close();
+     }
+     open();
+     return {
+-      send: (obj) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); },
+-      close: () => { closed = true; ws && ws.close(); },
++      send: (obj) => { if (!ws || ws.readyState !== 1) return false; try { ws.send(JSON.stringify(obj)); return true; } catch (_) { return false; } },
++      close: () => { closed = true; clearTimeout(retryTimer); ws && ws.close(); },
++      stopReconnect: () => { closed = true; clearTimeout(retryTimer); },
+     };
+   }
+ 
+@@ -92,13 +94,28 @@
+   /* ---------- guest chat ---------- */
+   async function connectGuest(guestId, token, onFrame) {
+     if (!MOCK) {
+-      const conn = reconnecting(`/ws/guest?guest_id=${encodeURIComponent(guestId)}&token=${encodeURIComponent(token || "")}`, onFrame);
+-      return { send: (text) => conn.send({ type: "user", text }) };
++      const conn = reconnecting(`/ws/guest?guest_id=${encodeURIComponent(guestId)}&token=${encodeURIComponent(token || "")}`, onFrame,
++        (state, code) => onFrame({ type: "connection", state, code }));
++      return { send: (text) => conn.send({ type: "user", text }), close: () => conn.close(), stopReconnect: () => conn.stopReconnect() };
+     }
+-    const fx = await (await fetch(mockUrl("chat.json"))).json();
+-    let t = 0;
+-    for (const step of fx.script) { t += step.after; setTimeout(() => onFrame(step), t); }
+-    return { send: (text) => { onFrame({ type: "user", text }); setTimeout(() => onFrame({ type: "assistant", text: "(mock) I heard: " + text }), 700); }, expires_in: fx.expires_in };
++    const state = await (await fetch(mockUrl("state.json"))).json();
++    const supported = ["light", "say", "music.play", "music.pause", "volume"];
++    const controls = state.devices.filter(d => d.online).map(d => ({ label: d.label, caps: d.caps.filter(c => supported.includes(c)) }));
++    onFrame({ type: "connection", state: "open" });
++    onFrame({ type: "lease", state: "active", expires_in: 540, access_expires_in: 540, controls });
++    return { send: (text) => { onFrame({ type: "user", text }); setTimeout(() => onFrame({ type: "assistant", text: "This is a layout preview. No device action was taken." }), 700); return true; }, close: () => {}, stopReconnect: () => {} };
++  }
++
++  async function leaveGuest(guestId) {
++    if (MOCK) return;
++    const controller = new AbortController();
++    const timer = setTimeout(() => controller.abort(), 5000);
++    try {
++      const response = await fetch("/leave", { method: "POST", credentials: "same-origin", signal: controller.signal,
++        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guest_id: guestId }) });
++      const body = await response.json().catch(() => ({}));
++      if (!response.ok || body.ok !== true) throw new Error("Leaving was not confirmed.");
++    } finally { clearTimeout(timer); }
+   }
+ 
+   /* ---------- join ---------- */
+@@ -115,5 +132,5 @@
+     return out;
+   }
+ 
+-  window.Tenant = { MOCK, capWord, fmtClock, fmtTime, connectDisplay, connectGuest, postJoin };
++  window.Tenant = { MOCK, capWord, fmtClock, fmtTime, connectDisplay, connectGuest, postJoin, leaveGuest };
+ })();
+--- a/web/tenant.css
++++ b/web/tenant.css
+@@ -192,6 +192,15 @@
+ .chat-head .room { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+ .chat-head .room { font-weight: 500; }
+ .chat-head .left { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); min-width: 7ch; text-align: right; }
++.chat-head .leave { width: auto; min-height: 32px; padding: 0 var(--s3); flex: none; }
++.guest-access { flex: none; max-height: 50dvh; overflow-y: auto; border-bottom: 1px solid var(--border); }
++.access-note { margin: 0; padding: var(--s3) var(--s4); color: var(--muted); font-size: 13px; }
++.access-limit { padding-top: 0; }
++.guest-access table.grid th:first-child, .guest-access table.grid td:first-child { width: 38%; }
++.guest-access table.grid th:last-child, .guest-access table.grid td:last-child { width: 62%; }
++.guest-access table.grid td:last-child { white-space: normal; overflow-wrap: anywhere; }
++.guest-prompts { display: flex; flex-wrap: wrap; gap: var(--s2); padding: var(--s3) var(--s4); }
++.guest-prompts .btn { width: auto; min-height: 36px; padding: 0 var(--s3); }
+ .thread { flex: 1; overflow-y: auto; padding: var(--s4); display: flex; flex-direction: column; gap: var(--s2); }
+ .msg { max-width: 82%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
+ .msg.room { align-self: flex-start; background: var(--inset); border-bottom-left-radius: 6px; }

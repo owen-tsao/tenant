@@ -162,6 +162,8 @@ Public log text is a sentence with visible device labels. Request IDs, device ID
 
 ## 5. Guest channels
 
+Core acceptance at `6075a3a` includes the production display QR update from `ba6248c`: actual display pixels decode correctly before/after reset, and Jay scanned the rotated QR on a phone, joined and heard a new guest speech request. The earlier placeholder limitation describes the older UI revision only.
+
 ### 5.1 Join flow (`api/join.py`)
 
 `GET /j/{room_code}` → join page (static). Two buttons:
@@ -174,6 +176,16 @@ Both paths create a `Lease` (TTL 600 s) and a `Session`. The display shows the g
 The web response also sets an opaque per-guest HttpOnly, SameSite=Strict cookie (Secure under HTTPS) for same-origin `/leave`; only the credential digest is retained by the server. Guest WS requires the explicit fragment credential, even when the cookie exists, matching Owen’s pages at `7c8ed8b`. Join/leave and guest WebSockets check the same-origin browser context. Multiple tabs keep distinct per-guest cookies; revoked credentials permit only the deterministic denial, not renewed access. Uvicorn access logging is disabled because WS query strings contain private tokens.
 
 ### 5.2 Web chat (`channels/webchat.py`, `/ws/guest`)
+
+Guest-journey refinement (Jay, October17): the authenticated socket also publishes its own permission view before conversation frames and whenever it changes (checked once per second), independently of model execution:
+
+```json
+{"type":"lease","state":"joining","expires_in":119,"access_expires_in":599,"controls":[{"label":"Jay phone","caps":["light"]}]}
+```
+
+`expires_in` is the effective current deadline: `min(joining_until, expires_at)` while joining, original `expires_at` while active. The page labels these “Start within” and “Access remaining”; `access_expires_in` always counts down to the original issued grant. Opening/reconnecting the socket never activates or renews a lease. Ended or expired authority sends `state:"released"`, `reason:"ended"|"expired"|"unavailable"`, zero remaining time and empty controls. Health failure clears displayed authority with `reason:"unavailable"`; it pauses controls rather than ending the internal lease. A later authoritative joining/active frame may restore controls only while the same original grant remains valid. Genuinely ended/expired grants never reactivate. Controls include only online devices in this room, filtered by this guest's scopes and the shipped capability allowlist; ambiguous duplicate labels are omitted. No credentials, device IDs, schemas, histories, audit metadata or other guests belong in this frame. A socket send lock keeps each action/assistant result batch adjacent; permission updates do not cancel already-dispatched effects. Dispatch-time checks remain authoritative.
+
+The guest page offers free chat plus prompts derived from actual controls: “What can I control?”, “Say hello” and “Play music” when supported. It shows permitted controls, the deadline, an explicit Leave button using the existing authenticated `/leave`, and a clear ended state. Leaving ends control and preserves existing effects; host reset turns lights off and pauses music. Text-message, photo and room-scene suggestions remain hidden while those paths are gated. Owen retains the guest-facing files; coordinate this scoped refinement in `notes/jay.md` before applying it.
 
 Guest page opens WS at `/ws/guest?guest_id=…&token=…` (token from the URL fragment). Frames: `{"type":"user","text":"turn on a light"}` → Brain runs the agent → streams `{"type":"assistant","text":"…"}` plus `{"type":"action","text":"Owen’s phone turned its flashlight on."}` events so the guest sees what happened. When a requested device is unavailable, the agent offers alternatives **in ordinary `assistant` text** and waits for the guest’s choice — no new frame type. Hold‑to‑talk button uses the browser `SpeechRecognition` API where available (Chrome/Android; iOS Safari has partial support) and falls back to typing. Audio replies optional via Grok Voice TTS → `<audio>`.
 

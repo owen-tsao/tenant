@@ -1,0 +1,50 @@
+{
+  "status": "AUTOMATED_PASS_UI_UNAPPLIED_LIVE_ACCEPTANCE_BLOCKED",
+  "base_revision": "6075a3a",
+  "backend_source_sha256": {
+    "brain/core/guest_view.py": "c6840929366cf108de2dfa7994969ed8702e5467b5da646b3f2e3a4457f7089f",
+    "brain/channels/webchat.py": "98c2b3881b87a20595366eeebdce6224e16c02b6bcba472671bae748f16a02fb",
+    "tests/test_guest_view.py": "20bb617c748d588dd22db7131f6715a293fcc30f65e5bdffe3458ea57c4b78ea",
+    "tests/test_access_core.py": "b7b0b586dbf25d53208ec697bab31a7b853231bbc4f331ada14b73d8b2910c4b"
+  },
+  "automated": {
+    "python": 169,
+    "failures": 0,
+    "skips": 0,
+    "targeted_guest_view_tests_included": 22,
+    "existing_access_tests_included": 44,
+    "physical_actions": 0,
+    "provider_calls": 0
+  },
+  "review": "Independent guest-view review plus root transport-close review; demonstrated OSError/RuntimeError send-close teardown gap fixed with no dispatch replay.",
+  "frontend_proposal": {
+    "path": "notes/proposed-guest-journey.patch",
+    "sha256": "7f58c4a815464b28d1b5a498eb2eaca3780cdddfb4673b06f8d5cac4fc472eeb",
+    "files": [
+      "web/join.html",
+      "web/guest.html",
+      "web/shared.js",
+      "web/tenant.css"
+    ],
+    "owner": "Owen",
+    "user_decision": "Owen applies the prepared patch",
+    "live_files_changed": false,
+    "checks": [
+      "Patch applicability and JavaScript syntax",
+      "Isolated lifecycle/Leave/deadline/control filtering checks",
+      "Browser preview390x844: all starter buttons and permission text readable",
+      "Mock suggestion -> explicit no-action response -> Leave hides controls/disables Send"
+    ],
+    "limits": [
+      "Preview used mock data and caused zero physical effects.",
+      "Backend metadata has not yet been rolled out to the live room."
+    ]
+  },
+  "required_before_scene_unlock": [
+    "Owen applies/merges guest journey UI",
+    "Integrate UI and publish permission metadata in the live room",
+    "Real guest suggestion/free-chat/Leave plus offline-device and expiry/revocation visibility checks",
+    "Unbriefed participant: observed first-use behavior and comprehension, with raw feedback retained"
+  ],
+  "scene_gate": "CLOSED"
+}
