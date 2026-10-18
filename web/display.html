@@ -12,7 +12,7 @@
   <header class="topbar">
     <div class="room"><span class="mark" aria-hidden="true"></span><span class="eyebrow">Room</span><span class="code" id="code">····</span></div>
     <div class="sentence" id="statement">Connecting…</div>
-    <div class="clock" id="clock"></div>
+    <div class="topbar-right"><span class="clock" id="clock"></span><a class="btn btn-small" id="setup-link" href="setup.html">Setup</a></div>
   </header>
 
   <div class="regions">
@@ -20,6 +20,7 @@
       <div class="eyebrow">Guest</div>
       <div class="region-body">
         <div id="guests" class="stack" hidden></div>
+        <div id="left" class="guest-block gone" hidden><span class="who" id="left-text"></span></div>
         <div id="empty" class="empty" hidden>
           <div class="motif" id="motif" style="color: var(--accent)"></div>
           <div class="line">Nobody is here right now.</div>
@@ -32,18 +33,21 @@
         <div class="eyebrow">In this room</div>
         <span class="corner"><span id="dev-count"></span><span class="segs" id="segs" aria-hidden="true"></span></span>
         <div class="region-body">
-          <table class="grid">
-            <colgroup><col class="c-dev"><col class="c-can"><col class="c-state"><col class="c-last"></colgroup>
-            <thead><tr><th>Device</th><th>Can do</th><th>State</th><th>Last action</th></tr></thead>
-            <tbody id="devices"></tbody>
-          </table>
+          <div class="insts" id="devices"></div>
           <div class="quiet" id="dev-empty" hidden>Nothing has joined this room yet.</div>
         </div>
       </section>
 
       <section class="region ledger">
         <div class="eyebrow">What has happened</div>
-        <div class="region-body" id="ledger"></div>
+        <div class="region-body ledger-body">
+          <div class="hl" id="hl" hidden>
+            <canvas class="hl-photo" id="hl-photo" hidden></canvas>
+            <div class="hl-text" id="hl-text"></div>
+            <div class="hl-t" id="hl-t"></div>
+          </div>
+          <div class="evrail" id="ledger"></div>
+        </div>
       </section>
     </section>
   </div>
@@ -54,55 +58,138 @@
 (function () {
   const T = window.Tenant;
   const $ = (id) => document.getElementById(id);
-  let lastLogKey = null, host = null, lastState = null; const seenGuests = new Set();
+  const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let lastLogKey = null, host = null, lastState = null, lastActor = null, leftTimer = null, photoTimer = null;
+  const seenGuests = new Set(); const liveGuests = new Map(); // guest_id -> display_name, to notice who left
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+  const key = (r) => `${r.t}|${r.text}`;
 
   $("motif").innerHTML = T.motif();
+  // Setup link keeps ?mock=1 so the pair of pages stays in the same world.
+  $("setup-link").href = "setup.html" + (T.MOCK ? "?mock=1" : "");
+
+  // Headline split: Brain gives subject/rest; otherwise split on a device label or "Guest N".
+  function split(r, devices) {
+    if (r.subject) return [r.subject, r.rest || r.text.slice(r.subject.length)];
+    const names = devices.map(d => d.label).concat(["The room speaker", "The room", "The tablet"]);
+    for (const n of names) if (r.text.startsWith(n)) return [n, r.text.slice(n.length)];
+    const m = /^(Guest \d+|Someone who had left)/.exec(r.text);
+    if (m) return [m[1], r.text.slice(m[1].length)];
+    return ["", r.text];
+  }
+  // Which device a row is about, for the "acted last" dot.
+  function actorOf(r, devices) {
+    if (r.kind !== "ok") return null;
+    if (r.device) return r.device;
+    const d = devices.find(d => r.text.startsWith(d.label)); if (d) return d.id;
+    if (/^The room speaker/.test(r.text)) { const s = devices.find(d => T.glyphKind(d.label) === "speaker"); return s ? s.id : null; }
+    return null;
+  }
+
+  function renderDevices(s, log) {
+    const devices = s.devices;
+    const freshOk = log.find(r => r.kind === "ok" && actorOf(r, devices));
+    if (freshOk) lastActor = actorOf(freshOk, devices);
+    $("devices").innerHTML = devices.map(d => {
+      const kind = T.glyphKind(d.label);
+      const words = d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i);
+      const can = words.slice(0, 2).join(", ") + (words.length > 2 ? ` +${words.length - 2} more` : "");
+      const state = !d.online ? "offline" : d.busy ? "working" : "ready";
+      const act = d.busy && d.online ? "acting" : "";
+      return `<div class="inst ${act} ${d.online ? "" : "offline"}" data-kind="${kind}" data-id="${esc(d.id)}">
+        <div class="inst-glyph">${T.glyph(kind)}</div>
+        <div class="inst-name" title="${esc(d.label)}">${esc(d.label)}</div>
+        <div class="inst-can" title="${esc(words.join(", "))}">${esc(can)}</div>
+        <div class="inst-state">${state}${lastActor === d.id ? `<i class="dot ${act ? "" : "live"}" aria-label="acted last"></i>` : ""}</div>
+      </div>`;
+    }).join("");
+    $("dev-empty").hidden = devices.length > 0;
+    const online = devices.filter(d => d.online).length;
+    $("dev-count").textContent = devices.length ? `${online} of ${devices.length} ready` : "";
+    $("segs").innerHTML = devices.map(d => `<i class="${!d.online ? "" : d.busy ? "live" : "ready"}"></i>`).join("");
+    return online;
+  }
+
+  function renderGuests(s) {
+    const g = s.guests || [];
+    // Someone who was here is gone: invert the block for 6 s before the empty state returns.
+    for (const [id, name] of liveGuests) if (!g.some(x => x.guest_id === id)) {
+      liveGuests.delete(id);
+      const online = s.devices.filter(d => d.online).length;
+      $("left-text").textContent = `${name} left. ${online === 0 ? "0 devices." : online === 1 ? "1 device is still here." : `${online} devices are still here.`}`;
+      $("left").hidden = false; clearTimeout(leftTimer);
+      leftTimer = setTimeout(() => { $("left").hidden = true; renderGuests(lastState); }, 6000);
+    }
+    g.forEach(x => liveGuests.set(x.guest_id, x.display_name));
+
+    const body = $("guests").parentElement, rw = body.clientWidth - 2 * 24 - 32, rh = body.clientHeight - 16 - 24 - 16 - 20 - 20 - 12 - 24;
+    const n = Math.max(36, Math.min(96, Math.floor(Math.min(rw, rh) / 6)));
+    $("guests").innerHTML = g.map(x => {
+      const total = x.lease_total || 600, frac = Math.max(0, Math.min(1, x.expires_in / total));
+      return `
+      <div class="guest-block ${seenGuests.has(x.guest_id) ? "" : "paint"}" data-id="${esc(x.guest_id)}">
+        <span class="who">${esc(x.display_name)} is here</span>
+        <span class="how">${x.channel === "photon" ? "by text message" : "from the web"}${x.last_text ? ` · last asked “${esc(x.last_text)}”` : ""}</span>
+        <div class="lease"><div class="ring">${T.ring(frac, n)}</div><span class="left">${T.fmtClock(x.expires_in)}</span></div>
+      </div>`; }).join("");
+    g.forEach(x => seenGuests.add(x.guest_id));
+    $("guests").hidden = !g.length;
+    $("empty").hidden = !!g.length || !$("left").hidden;
+  }
+
+  // Headline + rail. The newest event is the headline; the one before it shrinks into the rail.
+  let hlKey = null, photoKey = null, photoBig = false, riseKey = null; // photoKey: the headline whose halftone photo is showing (big or thumb); riseKey: the one that rose in
+  function renderLedger(s, log) {
+    const devices = s.devices, hl = $("hl"), rail = $("ledger"), photo = $("hl-photo");
+    if (!log.length) { hl.hidden = true; rail.innerHTML = `<div class="quiet">Nothing has happened yet.</div>`; return; }
+    const top = log[0], k = key(top), fresh = hlKey !== null && k !== hlKey;
+    hlKey = k;
+    const [sub, rest] = split(top, devices);
+    hl.hidden = false;
+    hl.className = `hl k-${top.kind}` + (photoKey === k ? (photoBig ? " has-photo" : " thumbed") : "") + (fresh || riseKey === k ? " rise" : "");
+    if (fresh) riseKey = k;
+    $("hl-text").innerHTML = `<b>${esc(sub)}</b>${esc(rest)}`;
+    $("hl-t").textContent = T.fmtTime(top.t);
+
+    // photo: render pink-on-plum halftone in the headline slot for 8 s, then collapse it to a 48px thumb
+    const fit = () => { photo.style.width = Math.min($("hl").clientWidth - 32, Math.round(photo.clientHeight * photo._img.naturalWidth / photo._img.naturalHeight)) + "px"; T.halftone(photo, photo._img); };
+    if (top.image_url && fresh) {
+      const img = new Image(); img.src = top.image_url;
+      img.onload = () => {
+        if (hlKey !== k) return;                       // something newer landed while the image loaded
+        photoKey = k; photoBig = true; photo._img = img; photo.hidden = false; hl.classList.add("has-photo"); fit();
+        clearTimeout(photoTimer);
+        photoTimer = setTimeout(() => { photoBig = false; hl.classList.remove("has-photo"); hl.classList.add("thumbed"); photo.style.width = ""; T.halftone(photo, photo._img); }, 8000);
+      };
+    } else if (photoKey !== k) { photo.hidden = true; photo.style.width = ""; }
+
+    // rail: events after the headline, newest on top. Guest asks pair with their result.
+    const rows = log.slice(1);
+    rail.innerHTML = rows.map((r, i) => {
+      const [sb, rs] = split(r, devices);
+      // pairing: an ask ("do") whose result is the row above it (newer) draws a connector up
+      const paired = r.kind === "do" && (i === 0 ? ["ok", "err", "denied"].includes(top.kind) : ["ok", "err", "denied"].includes(rows[i - 1].kind));
+      const dotCls = r.kind === "denied" ? "sq" : r.kind === "do" || r.kind === "guest.join" || r.kind === "guest.leave" ? "ask" : "rest";
+      const thumb = r.image_url ? `<canvas class="thumb" data-src="${esc(r.image_url)}"></canvas>` : "";
+      return `<div class="ev k-${esc(r.kind)} ${paired ? "paired" : ""} ${i === 0 && fresh ? "settle" : ""}">
+        <span class="ev-dot ${dotCls}"></span>
+        <span class="ev-t">${T.fmtTime(r.t)}</span>
+        <span class="ev-text" title="${esc(r.text)}"><b>${esc(sb)}</b>${esc(rs)}</span>${thumb}
+      </div>`;
+    }).join("");
+    rail.querySelectorAll("canvas.thumb").forEach(c => { const im = new Image(); im.src = c.dataset.src; im.onload = () => T.halftone(c, im); });
+  }
 
   function render(s) {
     lastState = s;
     $("code").textContent = s.room.code;
-
-    // devices — hairline table: Device · Can do · State · Last action
     const log = (s.log || []).slice(0, 40);
-    const lastFor = (d) => {
-      if (d.last_action) return d.last_action;
-      const r = log.find(x => x.text.includes(d.label));
-      return r ? r.text : "Nothing yet";
-    };
-    const stateOf = (d) => !d.online ? ["off", "offline"] : d.busy ? ["live", "working"] : ["", "ready"];
-    $("devices").innerHTML = s.devices.map(d => {
-      const [cls, word] = stateOf(d);
-      const words = d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i);
-      const can = words.slice(0, 3).join(", ") + (words.length > 3 ? ` <span class="more">+${words.length - 3} more</span>` : "");
-      return `<tr class="${d.online ? "" : "offline"} ${d.busy ? "busy" : ""}">
-        <td class="c-dev">${esc(d.label)}</td>
-        <td class="c-can" title="${esc(words.join(", "))}">${can}</td>
-        <td class="c-state"><span class="state"><span class="dot ${cls}"></span>${word}</span></td>
-        <td class="c-last" title="${esc(lastFor(d))}">${esc(lastFor(d))}</td>
-      </tr>`;
-    }).join("");
-    $("dev-empty").hidden = s.devices.length > 0;
-    const online = s.devices.filter(d => d.online).length;
-    $("dev-count").textContent = s.devices.length ? `${online} of ${s.devices.length} ready` : "";
-    $("segs").innerHTML = s.devices.map(d => `<i class="${!d.online ? "" : d.busy ? "live" : "ready"}"></i>`).join("");
-
-    // guest — the one pink block, or the quiet motif when nobody is here.
-    // The block wipes in only the first time a guest appears; re-renders must not restart it.
+    const online = renderDevices(s, log);
+    renderGuests(s);
     const g = s.guests || [];
-    $("guests").innerHTML = g.map(x => `
-      <div class="guest-block ${seenGuests.has(x.guest_id) ? "" : "paint"}" data-id="${esc(x.guest_id)}">
-        <span class="who">${esc(x.display_name)} is here</span>
-        <span class="left">${T.fmtClock(x.expires_in)}</span>
-        <span class="how">${x.channel === "photon" ? "by text message" : "from the web"}${x.last_text ? ` · last asked “${esc(x.last_text)}”` : ""}</span>
-      </div>`).join("");
-    g.forEach(x => seenGuests.add(x.guest_id));
-    $("guests").hidden = !g.length;
-    $("empty").hidden = !!g.length;
 
     // the one state sentence: subject in 600, the rest in 400.
-    // The Brain may supply room.sentence_subject / sentence_rest; otherwise we build both halves here.
     let subject, rest;
     if (s.room.sentence_subject) { subject = s.room.sentence_subject; rest = s.room.sentence_rest || ""; }
     else if (!online) { subject = "Nothing"; rest = " is connected to this room yet."; }
@@ -111,14 +198,7 @@
     else { subject = `${g.length} guests`; rest = " are sharing this room."; }
     $("statement").innerHTML = `<b>${esc(subject)}</b>${esc(rest)}`;
 
-    // ledger — newest first; the newest row wipes in once; empty shows one quiet line
-    const key = log.length ? `${log[0].t}|${log[0].text}` : null;
-    const fresh = key && key !== lastLogKey && lastLogKey !== null;
-    lastLogKey = key;
-    $("ledger").innerHTML = log.length ? log.map((r, i) => `
-      <div class="row k-${esc(r.kind)} ${i === 0 && fresh ? "fresh" : ""}">
-        <span class="t">${T.fmtTime(r.t)}</span><span class="text" title="${esc(r.text)}">${esc(r.text)}</span>
-      </div>`).join("") : `<div class="quiet">Nothing has happened yet.</div>`;
+    renderLedger(s, log);
   }
 
   // clock
