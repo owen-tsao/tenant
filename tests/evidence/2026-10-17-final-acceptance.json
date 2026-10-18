@@ -1,0 +1,1180 @@
+{
+  "source_revision": "4c4b47486e0106e28868409b2e1eb57bf7475120",
+  "status": "PARTIAL_REQUIRED_PHYSICAL_CHECKS_PENDING",
+  "captured_at": 1792282665.819375,
+  "source_sha256": {
+    "agent/laptop.py": "6c88dc90fde01d9fa4f5481cce6f6021a25c321c3ba209327898e81882d2efcf",
+    "brain/api/host.py": "61d57c6fd05a35fd7027661c10fd2101259e730a24254b98324733a5cc696663",
+    "brain/api/join.py": "5c94d5d14944320474bd29bcf70f048e1cb28cd6c0030e9bd0e0a55a698a43d1",
+    "brain/channels/webchat.py": "9f4605346caad7b949e093244c11ed53135629bebb42d7c04e30668daba6d42b",
+    "brain/config.py": "c3ce8a85658ad9a30cfd7ae7ef7e5456a994553a28689755ecdfbc06c76d0d38",
+    "brain/core/agent.py": "907ccb7b0f1025fdc1a3fd73d03ec45d9576cb07b5e090082451d26df6a6aded",
+    "brain/core/bus.py": "bf4e2bbf57aa67839036cdc345900a38900c23babef0f0944c2f8b17eb7847c6",
+    "brain/core/copy.py": "fc49bcdb2eda6745ee38f9d294bbcbac3e0969a592c9e5afb420d408a6ab3898",
+    "brain/core/integration.py": "1708f57a6a1797330c296ba83d78b08928d2fe3b867411084ac026b1efb83ce8",
+    "brain/core/leases.py": "f608f2916b583f8c8554458957a09efba97415e6d09bae8e2c84ebd801948a8e",
+    "brain/core/log.py": "362d952539ff9a9800af6b0b96c9dfe80c2ff1a027d48d2743bd2a70ce45ff59",
+    "brain/core/persistence.py": "47e65cccff7ab013a19d4f6bf7345dbb8d63d1556c1e9f4ccd2ccb4231dc5414",
+    "brain/core/planner.py": "a7bb9bd83ea5255723de03983fdd8e69547af3282fee1b4f0b8cf4349ee0fb33",
+    "brain/core/registry.py": "984cb3c2d63627e8e1399486fde2a2b2f997d7e903ef43eafaf065b54ea3b4ad",
+    "brain/core/tools.py": "e77f9fcf45dae8b77ce019067ba8bfbbbf0c03e5112a8621f806e9b03d9c1e40",
+    "brain/main.py": "00c6942d310f115d0885fe8a96e3b2557c7f0069dbbe18d90772e544e40b67f5",
+    "brain/state.py": "68f1e121246fe60c8a00062fb6bf91e97cd9b0924ea72ea61f1712f94fa18bbb",
+    "brain/ws/devices.py": "434195e9f774ea77474b7460af4f3624dc57fed2a81e2ce252ec395c0dfd439a",
+    "brain/ws/display.py": "05bfc22db834b7ac597a3140224d0707f22b0dd9888525e42d5b85a889c65c8b",
+    "requirements.txt": "e065a44eb3c25f2c9f28e5b997bacaacf30434ead22fc7098ea519c3974194ac",
+    "scripts/prepare_demo_audio.py": "93002fa0ed5472212b07bbba50a2cb67b1bd1cd2930b8e8b154865721853d907",
+    "scripts/runtime.py": "5494e2f2b8af8c0b67a184647a627222e145610b43a90461bb5f7be043fb86f3",
+    "web/device.html": "0d51881aeaa511eb5cb63c0ddb22db9ae810d8d4eb6432a0fba37519ca035862",
+    "web/join.html": "d92aaf0bcfe06d831c177d1d4552312ebaec2aab55884cf93a308fef9c734ca6",
+    "web/guest.html": "1ee8422542bc9458e6067960eedd11bd3d738d9bc2d166df9d3d94d93968d115",
+    "web/shared.js": "5ced01c4e304c3d6a95e639eb396e4ef998509e10ff7a4941cc63db16581509c",
+    "web/tenant.css": "70cf8dcec4d18da9a2759aee3c4b5d1885dc3ca5ba9f47a825c8f3d5c82742a5",
+    "web/display.html": "af5716a90920c9cc0c8a94df193789abadcf08883238345e7d4c54f73d3bbe1c"
+  },
+  "automated": {
+    "python": {
+      "command": ".venv/bin/python -m unittest discover -s tests",
+      "passed": 147,
+      "failures": 0,
+      "skipped": 0
+    },
+    "browser_protocol": {
+      "command": "node --test tests/device-runtime.test.cjs",
+      "passed": 10,
+      "failures": 0,
+      "skipped": 0
+    },
+    "limitations": [
+      "Simulated devices and OS subprocesses; these counts do not prove physical effects."
+    ]
+  },
+  "real_guest_qr_speech": {
+    "status": "PASS_HUMAN_ATTESTED",
+    "path": "Owen iPhone public guest QR -> Chat here -> human typed Say hello -> signed-in host Codex -> real default Mac output",
+    "user_attestation": "Yes \u2014 I typed it and heard hello",
+    "public_log": [
+      {
+        "t": 1792282494.474765,
+        "kind": "guest.join",
+        "text": "Guest 1 joined the room."
+      },
+      {
+        "t": 1792282504.857246,
+        "kind": "cmd",
+        "text": "Guest 1 asked Room speaker to speak."
+      },
+      {
+        "t": 1792282506.5925162,
+        "kind": "ok",
+        "text": "Room speaker reported that speech playback finished."
+      }
+    ],
+    "correlation": [
+      {
+        "t": 1792282494.474765,
+        "kind": "guest.join",
+        "text": "Guest 1 joined the room.",
+        "audit": {
+          "guest_id": "9352f8a9-66f7-471f-98db-c7c3428da8d7"
+        }
+      },
+      {
+        "t": 1792282504.857246,
+        "kind": "cmd",
+        "text": "Guest 1 asked Room speaker to speak.",
+        "audit": {
+          "guest_id": "9352f8a9-66f7-471f-98db-c7c3428da8d7",
+          "device_id": "laptop",
+          "cap": "say"
+        }
+      },
+      {
+        "t": 1792282506.5925162,
+        "kind": "ok",
+        "text": "Room speaker reported that speech playback finished.",
+        "audit": {
+          "guest_id": "9352f8a9-66f7-471f-98db-c7c3428da8d7",
+          "device_id": "laptop",
+          "cap": "say",
+          "req": "r_679d9b6a91eb4e588ab68110ae8683da",
+          "ok": true,
+          "code": null
+        }
+      }
+    ],
+    "volume_commands_sent": 0,
+    "limits": [
+      "No acoustic onset timestamp. One participant and one fixed request; no reliability inference."
+    ]
+  },
+  "remaining_required": [
+    "Observe two real host resets clearing light/audio defaults, devices remaining usable, and old guest/invitation denial",
+    "Complete real600-second expiry check",
+    "Complete approved single volume check and exact restoration",
+    "Owen applies/tests real host-display QR hookup or explicitly resolves this demo blocker"
+  ],
+  "gates": {
+    "photo": "CLOSED",
+    "coordinated_outputs": "CLOSED",
+    "proactive_rules": "CLOSED",
+    "guest_supplied_coding_agent": "CLOSED"
+  },
+  "limitations": [
+    "Signed-in Codex guest latency exceeds original 1.5-second target.",
+    "Already-dispatched effects may complete after access ends; no physical cancellation is claimed."
+  ],
+  "final_preflight": {
+    "source_revision": "4c4b47486e0106e28868409b2e1eb57bf7475120",
+    "name": "final-preflight",
+    "cases": [
+      {
+        "request": "Turn on the flashlight on Phone lightJay phone.",
+        "started_at": 1792282757.0447109,
+        "elapsed_ms": 3684,
+        "frames": [
+          {
+            "type": "action",
+            "text": "Phone lightJay phone turned its flashlight on."
+          },
+          {
+            "type": "assistant",
+            "text": "Phone lightJay phone turned its flashlight on."
+          }
+        ],
+        "audit": [
+          {
+            "t": 1792282760.620501,
+            "kind": "cmd",
+            "text": "Guest 3 asked Phone lightJay phone to turn its flashlight on.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "phone-a",
+              "cap": "light"
+            }
+          },
+          {
+            "t": 1792282760.722008,
+            "kind": "ok",
+            "text": "Phone lightJay phone turned its flashlight on.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "phone-a",
+              "cap": "light",
+              "req": "r_8e65aa5ecdac4831b61cab7981f8eb74",
+              "ok": true,
+              "code": null
+            }
+          }
+        ]
+      },
+      {
+        "request": "Turn off the flashlight on Phone lightJay phone.",
+        "started_at": 1792282762.730185,
+        "elapsed_ms": 3617,
+        "frames": [
+          {
+            "type": "action",
+            "text": "Phone lightJay phone turned its flashlight off."
+          },
+          {
+            "type": "assistant",
+            "text": "Phone lightJay phone turned its flashlight off."
+          }
+        ],
+        "audit": [
+          {
+            "t": 1792282766.122091,
+            "kind": "cmd",
+            "text": "Guest 3 asked Phone lightJay phone to turn its flashlight off.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "phone-a",
+              "cap": "light"
+            }
+          },
+          {
+            "t": 1792282766.341761,
+            "kind": "ok",
+            "text": "Phone lightJay phone turned its flashlight off.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "phone-a",
+              "cap": "light",
+              "req": "r_d7565457a9384d8ba98add5e4ce7270d",
+              "ok": true,
+              "code": null
+            }
+          }
+        ]
+      },
+      {
+        "request": "Say \"Light check\" on Room speaker.",
+        "started_at": 1792282766.347769,
+        "elapsed_ms": 5440,
+        "frames": [
+          {
+            "type": "action",
+            "text": "Room speaker reported that speech playback finished."
+          },
+          {
+            "type": "assistant",
+            "text": "Room speaker reported that speech playback finished."
+          }
+        ],
+        "audit": [
+          {
+            "t": 1792282769.310316,
+            "kind": "cmd",
+            "text": "Guest 3 asked Room speaker to speak.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "laptop",
+              "cap": "say"
+            }
+          },
+          {
+            "t": 1792282771.781227,
+            "kind": "ok",
+            "text": "Room speaker reported that speech playback finished.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "laptop",
+              "cap": "say",
+              "req": "r_8525978830b14288a03a867fb946c546",
+              "ok": true,
+              "code": null
+            }
+          }
+        ]
+      },
+      {
+        "request": "Play the prepared music on Room speaker.",
+        "started_at": 1792282771.788178,
+        "elapsed_ms": 4876,
+        "frames": [
+          {
+            "type": "action",
+            "text": "Room speaker started playing music."
+          },
+          {
+            "type": "assistant",
+            "text": "Room speaker started playing music."
+          }
+        ],
+        "audit": [
+          {
+            "t": 1792282776.3134038,
+            "kind": "cmd",
+            "text": "Guest 3 asked Room speaker to play music.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "laptop",
+              "cap": "music.play"
+            }
+          },
+          {
+            "t": 1792282776.6248891,
+            "kind": "ok",
+            "text": "Room speaker started playing music.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "laptop",
+              "cap": "music.play",
+              "req": "r_9247a3dbd31d40cab1ac15a7510f7e85",
+              "ok": true,
+              "code": null
+            }
+          }
+        ]
+      },
+      {
+        "request": "Pause the music on Room speaker.",
+        "started_at": 1792282778.666094,
+        "elapsed_ms": 6200,
+        "frames": [
+          {
+            "type": "action",
+            "text": "Room speaker paused the music."
+          },
+          {
+            "type": "assistant",
+            "text": "Room speaker paused the music."
+          }
+        ],
+        "audit": [
+          {
+            "t": 1792282784.561265,
+            "kind": "cmd",
+            "text": "Guest 3 asked Room speaker to pause music.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "laptop",
+              "cap": "music.pause"
+            }
+          },
+          {
+            "t": 1792282784.8588932,
+            "kind": "ok",
+            "text": "Room speaker paused the music.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557",
+              "device_id": "laptop",
+              "cap": "music.pause",
+              "req": "r_3087c60b5b0b4220855af55b82dc6229",
+              "ok": true,
+              "code": null
+            }
+          }
+        ]
+      },
+      {
+        "request": "leave",
+        "started_at": 1792282784.867222,
+        "elapsed_ms": 15,
+        "frames": [
+          {
+            "type": "assistant",
+            "text": "Your room access has ended. Existing effects stay as set."
+          }
+        ],
+        "audit": [
+          {
+            "t": 1792282784.873594,
+            "kind": "guest.leave",
+            "text": "Guest 3 ended access. Existing effects stay as set.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557"
+            }
+          }
+        ]
+      },
+      {
+        "request": "Turn on the flashlight on Phone lightJay phone.",
+        "started_at": 1792282784.882498,
+        "elapsed_ms": 13,
+        "frames": [
+          {
+            "type": "assistant",
+            "text": "You're no longer in Room EF61. Scan the room code to join again."
+          }
+        ],
+        "audit": [
+          {
+            "t": 1792282784.88808,
+            "kind": "denied",
+            "text": "Guest access has ended. Further control was denied.",
+            "audit": {
+              "guest_id": "1ba35130-0df8-4fee-85d7-c4da5e326557"
+            }
+          }
+        ]
+      }
+    ],
+    "status": "PASS_HUMAN_ATTESTED",
+    "volume_commands_sent": 0,
+    "initial_devices": [
+      {
+        "id": "laptop",
+        "label": "Room speaker",
+        "caps": [
+          "volume",
+          "say",
+          "music.play",
+          "music.pause"
+        ],
+        "online": true,
+        "busy": false
+      },
+      {
+        "id": "phone-a",
+        "label": "Phone lightJay phone",
+        "caps": [
+          "light"
+        ],
+        "online": true,
+        "busy": false
+      },
+      {
+        "id": "phone-b",
+        "label": "Phone light",
+        "caps": [
+          "light"
+        ],
+        "online": true,
+        "busy": false
+      }
+    ],
+    "user_attestation": "Yes \u2014 light, speech, and music/pause all worked"
+  },
+  "alternative_first_attempt": {
+    "source_revision": "4c4b47486e0106e28868409b2e1eb57bf7475120",
+    "name": "final-run-1",
+    "cases": [
+      {
+        "request": "Turn on the flashlight on Phone lightJay phone.",
+        "started_at": 1792282823.8173702,
+        "elapsed_ms": 3549,
+        "frames": [
+          {
+            "type": "assistant",
+            "text": "Phone lightJay phone is unavailable. Available alternatives: Phone light. Which should I use?"
+          }
+        ],
+        "audit": []
+      },
+      {
+        "request": "Use Phone light",
+        "started_at": 1792282829.367789,
+        "elapsed_ms": 36,
+        "frames": [
+          {
+            "type": "assistant",
+            "text": "The outcome for Phone light is unknown. I did not retry or use another device."
+          }
+        ],
+        "audit": [
+          {
+            "t": 1792282829.384025,
+            "kind": "cmd",
+            "text": "Guest 4 asked Phone light to turn its flashlight on.",
+            "audit": {
+              "guest_id": "20644dcb-f72f-436c-a31b-7891ba2b7b12",
+              "device_id": "phone-b",
+              "cap": "light"
+            }
+          },
+          {
+            "t": 1792282829.39589,
+            "kind": "err",
+            "text": "The outcome for Phone light is unknown. I did not retry or use another device.",
+            "audit": {
+              "guest_id": "20644dcb-f72f-436c-a31b-7891ba2b7b12",
+              "device_id": "phone-b",
+              "cap": "light",
+              "req": "r_5c1bdc3712ae4a1eaa0e035c17d72a9c",
+              "ok": false,
+              "code": "UNKNOWN"
+            }
+          }
+        ]
+      }
+    ],
+    "status": "FAILED_NO_RETRY",
+    "volume_commands_sent": 0,
+    "initial_devices": [
+      {
+        "id": "laptop",
+        "label": "Room speaker",
+        "caps": [
+          "volume",
+          "say",
+          "music.play",
+          "music.pause"
+        ],
+        "online": true,
+        "busy": false
+      },
+      {
+        "id": "phone-a",
+        "label": "Phone lightJay phone",
+        "caps": [
+          "light"
+        ],
+        "online": false,
+        "busy": false
+      },
+      {
+        "id": "phone-b",
+        "label": "Phone light",
+        "caps": [
+          "light"
+        ],
+        "online": true,
+        "busy": false
+      }
+    ],
+    "failure": "Expected exactly one confirmed physical action; no retry.",
+    "failed_test_access_cleanup": {
+      "ok": true,
+      "revoked": true
+    },
+    "user_status": "device enrollment rejected",
+    "decision": "Do not retry the action or count a consecutive pass. Diagnose enrollment, then use fresh guest sessions."
+  },
+  "three_fresh_guest_runs": {
+    "source_revision": "4c4b47486e0106e28868409b2e1eb57bf7475120",
+    "runs": [
+      {
+        "source_revision": "4c4b47486e0106e28868409b2e1eb57bf7475120",
+        "name": "final-run-1",
+        "cases": [
+          {
+            "request": "Turn on the flashlight on Phone lightJay phone.",
+            "started_at": 1792282907.613708,
+            "elapsed_ms": 3212,
+            "frames": [
+              {
+                "type": "assistant",
+                "text": "Phone lightJay phone is unavailable. Available alternatives: Phone light. Which should I use?"
+              }
+            ],
+            "audit": []
+          },
+          {
+            "request": "Use Phone light",
+            "started_at": 1792282912.826907,
+            "elapsed_ms": 343,
+            "frames": [
+              {
+                "type": "action",
+                "text": "Phone light turned its flashlight on."
+              },
+              {
+                "type": "assistant",
+                "text": "Phone light turned its flashlight on."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282912.833927,
+                "kind": "cmd",
+                "text": "Guest 5 asked Phone light to turn its flashlight on.",
+                "audit": {
+                  "guest_id": "35e2f1e2-fc1d-4d85-bcca-3ae9ccca26cd",
+                  "device_id": "phone-b",
+                  "cap": "light"
+                }
+              },
+              {
+                "t": 1792282913.1573482,
+                "kind": "ok",
+                "text": "Phone light turned its flashlight on.",
+                "audit": {
+                  "guest_id": "35e2f1e2-fc1d-4d85-bcca-3ae9ccca26cd",
+                  "device_id": "phone-b",
+                  "cap": "light",
+                  "req": "r_6c1e40577a6a4eb2bb91c2822d432154",
+                  "ok": true,
+                  "code": null
+                }
+              }
+            ]
+          },
+          {
+            "request": "Say \"Tenant one\" on Room speaker.",
+            "started_at": 1792282913.170719,
+            "elapsed_ms": 5864,
+            "frames": [
+              {
+                "type": "action",
+                "text": "Room speaker reported that speech playback finished."
+              },
+              {
+                "type": "assistant",
+                "text": "Room speaker reported that speech playback finished."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282916.6010501,
+                "kind": "cmd",
+                "text": "Guest 5 asked Room speaker to speak.",
+                "audit": {
+                  "guest_id": "35e2f1e2-fc1d-4d85-bcca-3ae9ccca26cd",
+                  "device_id": "laptop",
+                  "cap": "say"
+                }
+              },
+              {
+                "t": 1792282919.02747,
+                "kind": "ok",
+                "text": "Room speaker reported that speech playback finished.",
+                "audit": {
+                  "guest_id": "35e2f1e2-fc1d-4d85-bcca-3ae9ccca26cd",
+                  "device_id": "laptop",
+                  "cap": "say",
+                  "req": "r_7a4a379d560846cca4a9c7c2cc547163",
+                  "ok": true,
+                  "code": null
+                }
+              }
+            ]
+          },
+          {
+            "request": "leave",
+            "started_at": 1792282919.0356648,
+            "elapsed_ms": 16,
+            "frames": [
+              {
+                "type": "assistant",
+                "text": "Your room access has ended. Existing effects stay as set."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282919.044309,
+                "kind": "guest.leave",
+                "text": "Guest 5 ended access. Existing effects stay as set.",
+                "audit": {
+                  "guest_id": "35e2f1e2-fc1d-4d85-bcca-3ae9ccca26cd"
+                }
+              }
+            ]
+          },
+          {
+            "request": "Turn off the flashlight on Phone light.",
+            "started_at": 1792282919.0525281,
+            "elapsed_ms": 15,
+            "frames": [
+              {
+                "type": "assistant",
+                "text": "You're no longer in Room EF61. Scan the room code to join again."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282919.0585868,
+                "kind": "denied",
+                "text": "Guest access has ended. Further control was denied.",
+                "audit": {
+                  "guest_id": "35e2f1e2-fc1d-4d85-bcca-3ae9ccca26cd"
+                }
+              }
+            ]
+          }
+        ],
+        "status": "PROTOCOL_PASS_PHYSICAL_OBSERVATION_PENDING",
+        "volume_commands_sent": 0,
+        "initial_devices": [
+          {
+            "id": "laptop",
+            "label": "Room speaker",
+            "caps": [
+              "volume",
+              "say",
+              "music.play",
+              "music.pause"
+            ],
+            "online": true,
+            "busy": false
+          },
+          {
+            "id": "phone-a",
+            "label": "Phone lightJay phone",
+            "caps": [
+              "light"
+            ],
+            "online": false,
+            "busy": false
+          },
+          {
+            "id": "phone-b",
+            "label": "Phone light",
+            "caps": [
+              "light"
+            ],
+            "online": true,
+            "busy": false
+          }
+        ],
+        "host_cleanup": {
+          "at": 1792282921.0719512,
+          "elapsed_ms": 194,
+          "response": {
+            "ok": true,
+            "result": {
+              "on": false
+            }
+          },
+          "audit": [
+            {
+              "t": 1792282921.25246,
+              "kind": "ok",
+              "text": "Phone light turned its flashlight off.",
+              "audit": {
+                "actor": "host",
+                "device_id": "phone-b",
+                "cap": "light",
+                "req": "r_6c5990525d35482796891b8606d1d9ae",
+                "ok": true,
+                "code": null
+              }
+            }
+          ]
+        },
+        "ending": "guest_leave"
+      },
+      {
+        "source_revision": "4c4b47486e0106e28868409b2e1eb57bf7475120",
+        "name": "final-run-2",
+        "cases": [
+          {
+            "request": "Turn on the flashlight on Phone lightJay phone.",
+            "started_at": 1792282923.537885,
+            "elapsed_ms": 3062,
+            "frames": [
+              {
+                "type": "assistant",
+                "text": "Phone lightJay phone is unavailable. Available alternatives: Phone light. Which should I use?"
+              }
+            ],
+            "audit": []
+          },
+          {
+            "request": "Use Phone light",
+            "started_at": 1792282928.601158,
+            "elapsed_ms": 39,
+            "frames": [
+              {
+                "type": "action",
+                "text": "Phone light turned its flashlight on."
+              },
+              {
+                "type": "assistant",
+                "text": "Phone light turned its flashlight on."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282928.6087492,
+                "kind": "cmd",
+                "text": "Guest 6 asked Phone light to turn its flashlight on.",
+                "audit": {
+                  "guest_id": "86493645-7150-4956-9efd-178c98583560",
+                  "device_id": "phone-b",
+                  "cap": "light"
+                }
+              },
+              {
+                "t": 1792282928.6327229,
+                "kind": "ok",
+                "text": "Phone light turned its flashlight on.",
+                "audit": {
+                  "guest_id": "86493645-7150-4956-9efd-178c98583560",
+                  "device_id": "phone-b",
+                  "cap": "light",
+                  "req": "r_bbf6d2977fe940729f8cdf903bea8382",
+                  "ok": true,
+                  "code": null
+                }
+              }
+            ]
+          },
+          {
+            "request": "Say \"Tenant two\" on Room speaker.",
+            "started_at": 1792282928.640749,
+            "elapsed_ms": 5485,
+            "frames": [
+              {
+                "type": "action",
+                "text": "Room speaker reported that speech playback finished."
+              },
+              {
+                "type": "assistant",
+                "text": "Room speaker reported that speech playback finished."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282931.626365,
+                "kind": "cmd",
+                "text": "Guest 6 asked Room speaker to speak.",
+                "audit": {
+                  "guest_id": "86493645-7150-4956-9efd-178c98583560",
+                  "device_id": "laptop",
+                  "cap": "say"
+                }
+              },
+              {
+                "t": 1792282934.0959702,
+                "kind": "ok",
+                "text": "Room speaker reported that speech playback finished.",
+                "audit": {
+                  "guest_id": "86493645-7150-4956-9efd-178c98583560",
+                  "device_id": "laptop",
+                  "cap": "say",
+                  "req": "r_928fa38ec4164542a42ab5913a5629f6",
+                  "ok": true,
+                  "code": null
+                }
+              }
+            ]
+          },
+          {
+            "request": "Turn off the flashlight on Phone light.",
+            "started_at": 1792282934.221639,
+            "elapsed_ms": 11,
+            "frames": [
+              {
+                "type": "assistant",
+                "text": "You're no longer in Room EF61. Scan the room code to join again."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282934.226351,
+                "kind": "denied",
+                "text": "Guest access has ended. Further control was denied.",
+                "audit": {
+                  "guest_id": "86493645-7150-4956-9efd-178c98583560"
+                }
+              }
+            ]
+          }
+        ],
+        "status": "PROTOCOL_PASS_PHYSICAL_OBSERVATION_PENDING",
+        "volume_commands_sent": 0,
+        "initial_devices": [
+          {
+            "id": "laptop",
+            "label": "Room speaker",
+            "caps": [
+              "volume",
+              "say",
+              "music.play",
+              "music.pause"
+            ],
+            "online": true,
+            "busy": false
+          },
+          {
+            "id": "phone-a",
+            "label": "Phone lightJay phone",
+            "caps": [
+              "light"
+            ],
+            "online": false,
+            "busy": false
+          },
+          {
+            "id": "phone-b",
+            "label": "Phone light",
+            "caps": [
+              "light"
+            ],
+            "online": true,
+            "busy": false
+          }
+        ],
+        "host_revoke": {
+          "ok": true,
+          "revoked": true
+        },
+        "host_cleanup": {
+          "at": 1792282936.2334101,
+          "elapsed_ms": 87,
+          "response": {
+            "ok": true,
+            "result": {
+              "on": false
+            }
+          },
+          "audit": [
+            {
+              "t": 1792282936.311648,
+              "kind": "ok",
+              "text": "Phone light turned its flashlight off.",
+              "audit": {
+                "actor": "host",
+                "device_id": "phone-b",
+                "cap": "light",
+                "req": "r_92f36259339743eca8ffa93150ab97cf",
+                "ok": true,
+                "code": null
+              }
+            }
+          ]
+        },
+        "ending": "host_revoke"
+      },
+      {
+        "source_revision": "4c4b47486e0106e28868409b2e1eb57bf7475120",
+        "name": "final-run-3",
+        "cases": [
+          {
+            "request": "Turn on the flashlight on Phone lightJay phone.",
+            "started_at": 1792282938.614816,
+            "elapsed_ms": 3475,
+            "frames": [
+              {
+                "type": "assistant",
+                "text": "Phone lightJay phone is unavailable. Available alternatives: Phone light. Which should I use?"
+              }
+            ],
+            "audit": []
+          },
+          {
+            "request": "Use Phone light",
+            "started_at": 1792282944.091305,
+            "elapsed_ms": 79,
+            "frames": [
+              {
+                "type": "action",
+                "text": "Phone light turned its flashlight on."
+              },
+              {
+                "type": "assistant",
+                "text": "Phone light turned its flashlight on."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282944.0984461,
+                "kind": "cmd",
+                "text": "Guest 7 asked Phone light to turn its flashlight on.",
+                "audit": {
+                  "guest_id": "068cd115-d13d-4b5b-ae80-5931973e9be4",
+                  "device_id": "phone-b",
+                  "cap": "light"
+                }
+              },
+              {
+                "t": 1792282944.162262,
+                "kind": "ok",
+                "text": "Phone light turned its flashlight on.",
+                "audit": {
+                  "guest_id": "068cd115-d13d-4b5b-ae80-5931973e9be4",
+                  "device_id": "phone-b",
+                  "cap": "light",
+                  "req": "r_4b7bb64b607a4cbfbc365d431525f714",
+                  "ok": true,
+                  "code": null
+                }
+              }
+            ]
+          },
+          {
+            "request": "Say \"Tenant three\" on Room speaker.",
+            "started_at": 1792282944.1706398,
+            "elapsed_ms": 5150,
+            "frames": [
+              {
+                "type": "action",
+                "text": "Room speaker reported that speech playback finished."
+              },
+              {
+                "type": "assistant",
+                "text": "Room speaker reported that speech playback finished."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282947.279267,
+                "kind": "cmd",
+                "text": "Guest 7 asked Room speaker to speak.",
+                "audit": {
+                  "guest_id": "068cd115-d13d-4b5b-ae80-5931973e9be4",
+                  "device_id": "laptop",
+                  "cap": "say"
+                }
+              },
+              {
+                "t": 1792282949.233377,
+                "kind": "ok",
+                "text": "Room speaker reported that speech playback finished.",
+                "audit": {
+                  "guest_id": "068cd115-d13d-4b5b-ae80-5931973e9be4",
+                  "device_id": "laptop",
+                  "cap": "say",
+                  "req": "r_314f9107bb724f02be4c37a8d968b740",
+                  "ok": true,
+                  "code": null
+                }
+              }
+            ]
+          },
+          {
+            "request": "leave",
+            "started_at": 1792282949.320728,
+            "elapsed_ms": 14,
+            "frames": [
+              {
+                "type": "assistant",
+                "text": "Your room access has ended. Existing effects stay as set."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282949.32784,
+                "kind": "guest.leave",
+                "text": "Guest 7 ended access. Existing effects stay as set.",
+                "audit": {
+                  "guest_id": "068cd115-d13d-4b5b-ae80-5931973e9be4"
+                }
+              }
+            ]
+          },
+          {
+            "request": "Turn off the flashlight on Phone light.",
+            "started_at": 1792282949.335316,
+            "elapsed_ms": 12,
+            "frames": [
+              {
+                "type": "assistant",
+                "text": "You're no longer in Room EF61. Scan the room code to join again."
+              }
+            ],
+            "audit": [
+              {
+                "t": 1792282949.340471,
+                "kind": "denied",
+                "text": "Guest access has ended. Further control was denied.",
+                "audit": {
+                  "guest_id": "068cd115-d13d-4b5b-ae80-5931973e9be4"
+                }
+              }
+            ]
+          }
+        ],
+        "status": "PROTOCOL_PASS_PHYSICAL_OBSERVATION_PENDING",
+        "volume_commands_sent": 0,
+        "initial_devices": [
+          {
+            "id": "laptop",
+            "label": "Room speaker",
+            "caps": [
+              "volume",
+              "say",
+              "music.play",
+              "music.pause"
+            ],
+            "online": true,
+            "busy": false
+          },
+          {
+            "id": "phone-a",
+            "label": "Phone lightJay phone",
+            "caps": [
+              "light"
+            ],
+            "online": false,
+            "busy": false
+          },
+          {
+            "id": "phone-b",
+            "label": "Phone light",
+            "caps": [
+              "light"
+            ],
+            "online": true,
+            "busy": false
+          }
+        ],
+        "host_cleanup": {
+          "at": 1792282951.3494349,
+          "elapsed_ms": 158,
+          "response": {
+            "ok": true,
+            "result": {
+              "on": false
+            }
+          },
+          "audit": [
+            {
+              "t": 1792282951.498865,
+              "kind": "ok",
+              "text": "Phone light turned its flashlight off.",
+              "audit": {
+                "actor": "host",
+                "device_id": "phone-b",
+                "cap": "light",
+                "req": "r_e2008b52f6674b04a80901ad82c8df33",
+                "ok": true,
+                "code": null
+              }
+            }
+          ]
+        },
+        "ending": "guest_leave"
+      }
+    ],
+    "status": "PASS_HUMAN_ATTESTED",
+    "user_attestation": "Yes \u2014 all three, only Owen\u2019s phone, ending OFF",
+    "sample_count": 3,
+    "uncertainty": "Three successful smoke checks after one recorded failed attempt. At n=3, zero failures alone permits a one-sided95% upper failure bound of approximately63%; no reliability claim is made.",
+    "latency_summary": {
+      "alternative_offer": {
+        "n": 3,
+        "median_ms": 3212,
+        "range_ms": [
+          3062,
+          3475
+        ]
+      },
+      "explicit_choice_to_ack": {
+        "n": 3,
+        "median_ms": 79,
+        "range_ms": [
+          39,
+          343
+        ]
+      },
+      "speech_request_to_ack": {
+        "n": 3,
+        "median_ms": 5485,
+        "range_ms": [
+          5150,
+          5864
+        ]
+      },
+      "post_access_denial": {
+        "n": 3,
+        "median_ms": 12,
+        "range_ms": [
+          11,
+          15
+        ]
+      }
+    },
+    "latency_limit": "Client request to response/ack, not optical or acoustic onset. Choice turns resolve deterministically after the model supplies a supported pending action."
+  },
+  "rejoin": {
+    "status": "REGISTRATION_AND_HUMAN_READY_PASS",
+    "user_attestation": "Connected \u2014 both phones\u2019 pages visible",
+    "method": "Jay tapped Join room on the existing disconnected page, without another QR or code change. Both phone IDs were subsequently observed online.",
+    "limit": "No independent optical recording of replay absence."
+  },
+  "physical_failure_followup": "Re-enrollment succeeded after the original connection was offline. Root cause of the earlier rejected enrollment is not established; a source review is requested, and no automatic replay occurred.",
+  "volume_check": {
+    "source_revision": "4c4b47486e0106e28868409b2e1eb57bf7475120",
+    "before": "63, false",
+    "start_level": 63,
+    "raised_level": 68,
+    "authorized_volume_commands": 2,
+    "default_output_switches": 0,
+    "restore": {
+      "ok": true,
+      "result": {
+        "level": 63,
+        "audible_verified": false
+      }
+    },
+    "restore_audit": [
+      {
+        "t": 1792283061.46033,
+        "kind": "ok",
+        "text": "Room speaker set its volume to 63 percent.",
+        "audit": {
+          "actor": "host",
+          "device_id": "laptop",
+          "cap": "volume",
+          "req": "r_31519b49061e467c9c1af3aa6e38bb20",
+          "ok": true,
+          "code": null
+        }
+      }
+    ],
+    "pause": {
+      "ok": true,
+      "result": {
+        "state": "paused",
+        "audible_verified": false
+      }
+    },
+    "after": "63, false",
+    "status": "PASS_HUMAN_AND_EXACT_OS_STATE",
+    "user_authorization": "Do the +5-and-restore check once",
+    "user_attestation": "Yes \u2014 louder, restored, then stopped"
+  }
+}

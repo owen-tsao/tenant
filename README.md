@@ -34,6 +34,21 @@ uv run --env-file .env .venv/bin/python agent/laptop.py --check
 uv run --env-file .env .venv/bin/python agent/laptop.py
 ```
 
+For a demo that stays running after a chat command ends, use the explicit local launcher
+instead of the foreground commands above:
+
+```sh
+.venv/bin/python scripts/runtime.py start brain
+.venv/bin/python scripts/runtime.py start audio
+.venv/bin/python scripts/runtime.py start tunnel
+```
+
+Use `status` or `stop` in place of `start` for each service. Private service logs stay in
+`.venv/tenant-runtime/`. The tunnel's public address lasts only while that tunnel runs;
+set `PUBLIC_URL` to its actual address and restart the Brain after an address change.
+Restarting the Brain ends guest sessions, so guests must join again. Keep enrolled light
+pages visible and awake; switching away can release their cameras or connections.
+
 The current planner requires the validated signed-in Codex CLI version recorded in
 `brain/core/planner.py`; guests use the host’s Codex through Tenant’s permission checks.
 Guest sessions are temporary. `TENANT_STATE_PATH` preserves only room identity, epoch,
