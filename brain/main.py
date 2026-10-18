@@ -53,14 +53,14 @@ async def reset_cleanup(core):
     return not missing and all(outcomes)
 
 
-def create_app(config=None, *, planner=None, log_path=None, state_path=None, conversation=None):
+def create_app(config=None, *, planner=None, log_path=None, state_path=None, conversation=None, photon_factory=None):
     config = config or Config.from_env()
     app = FastAPI()
     registry = (RoomStateStore(state_path).load_registry(config.room_code)
                 if state_path else Registry(Room(config.room_code, "Room " + config.room_code)))
     bus = Bus(registry)
     app.state.registry, app.state.bus, app.state.config = registry, bus, config
-    core = install_core(app, planner, log_path=log_path, cleanup_hook=reset_cleanup, conversation=conversation)
+    core = install_core(app, planner, log_path=log_path, cleanup_hook=reset_cleanup, conversation=conversation, photon_factory=photon_factory)
 
     @app.websocket("/ws/device")
     async def devices(ws: WebSocket):
@@ -143,6 +143,19 @@ def runtime_conversation_settings():
         socket_path=os.getenv('TENANT_APP_SERVER_SOCKET') or None)
 
 
+def runtime_photon_factory(conversation):
+    # Keys alone never enable a second channel or network work during imports.
+    if os.getenv('TENANT_PHOTON_ENABLED') != '1':
+        return None
+    if conversation is None:
+        raise ValueError('Photon requires TENANT_AGENT_MODE=conversation')
+    from brain.channels.photon import PhotonChannel, PhotonClient
+    project_id, api_key = os.getenv('PHOTON_PROJECT_ID', ''), os.getenv('PHOTON_API_KEY', '')
+    store_path = os.getenv('TENANT_PHOTON_STATE_PATH', '.venv/tenant-runtime/photon.sqlite3')
+    return lambda core: PhotonChannel(core, PhotonClient(project_id, api_key), store_path)
+
+
 _runtime_conversation = runtime_conversation_settings()
 app = create_app(planner=None if _runtime_conversation else CodexPlanner(), log_path='log/events.jsonl',
-                 state_path=os.getenv('TENANT_STATE_PATH'), conversation=_runtime_conversation)
+                 state_path=os.getenv('TENANT_STATE_PATH'), conversation=_runtime_conversation,
+                 photon_factory=runtime_photon_factory(_runtime_conversation))

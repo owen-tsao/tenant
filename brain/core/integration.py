@@ -13,7 +13,7 @@ from brain.core.copy import confirmed_sentence, failure_sentence
 
 
 class Core:
-    def __init__(self, app, planner, *, clock=time.time, log_path=None, cleanup_hook=None, conversation=None):
+    def __init__(self, app, planner, *, clock=time.time, log_path=None, cleanup_hook=None, conversation=None, photon_factory=None):
         self.registry = app.state.registry
         self.bus = app.state.bus
         self.config = app.state.config
@@ -32,6 +32,11 @@ class Core:
                                              self.agent.allows_reply)
         self.credentials = {}
         self.cleanup_hook = cleanup_hook
+        self.photon = None
+        if photon_factory is not None:
+            if conversation is None:
+                raise ValueError('Photon requires the shared native room conversation')
+            self.photon = photon_factory(self)
 
     @staticmethod
     def cookie_name(guest_id):
@@ -162,7 +167,7 @@ class Core:
                 **({} if self.registry.persistence_healthy else {'error': 'Room state could not be saved; guest control is disabled'})}
 
 
-def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=None, conversation=None):
+def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=None, conversation=None, photon_factory=None):
     """Call after registry/bus/config state setup, before mounting static files.
 
     The caller owns an existing /host/do route; delegate its authenticated body
@@ -172,7 +177,7 @@ def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=N
     from brain.api.host import router as host_router
     from brain.channels.webchat import router as guest_router
     from brain.ws.display import router as display_router
-    core = Core(app, planner, clock=clock, log_path=log_path, cleanup_hook=cleanup_hook, conversation=conversation)
+    core = Core(app, planner, clock=clock, log_path=log_path, cleanup_hook=cleanup_hook, conversation=conversation, photon_factory=photon_factory)
     app.state.core = core
     previous_lifespan = app.router.lifespan_context
 
@@ -183,13 +188,20 @@ def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=N
                 while True:
                     await asyncio.sleep(5)
                     core.sweep()
-            task = asyncio.create_task(reap())
+            task = None
             try:
+                if core.photon is not None:
+                    await core.photon.start()
+                task = asyncio.create_task(reap())
                 yield state
             finally:
-                task.cancel()
-                with suppress(asyncio.CancelledError):
-                    await task
+                if task is not None:
+                    task.cancel()
+                    with suppress(asyncio.CancelledError):
+                        await task
+                if core.photon is not None:
+                    with suppress(Exception):
+                        await core.photon.close()
                 if hasattr(core.agent, 'close'):
                     with suppress(Exception):
                         await core.agent.close()
