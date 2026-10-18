@@ -144,7 +144,7 @@ class AccessCoreTests(unittest.IsolatedAsyncioTestCase):
         self.core.revoke(self.lease.guest_id)
         self.core.bus.receive(self.phone.dev, {'type': 'ok', 'req': self.phone.frames[0]['req'], 'result': {'on': True}})
         result = await task
-        self.assertIn('completed', result[-1]['text'])
+        self.assertEqual(result[-1]['text'], 'phone turned its flashlight on.')
         self.assertEqual(len(self.phone.frames), 1)
         before = len(self.planner.calls)
         self.assertIn('no longer', (await self.turn())[-1]['text'])
@@ -158,7 +158,7 @@ class AccessCoreTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(other.frames, [])
         self.assertEqual(len(self.planner.calls), 1)
         result = await self.turn('use Backup phone')
-        self.assertIn('completed', result[-1]['text'])
+        self.assertEqual(result[-1]['text'], 'Backup phone turned its flashlight on.')
         self.assertEqual(len(other.frames), 1)
         self.assertEqual(len(self.planner.calls), 1)
 
@@ -259,11 +259,17 @@ class AccessCoreTests(unittest.IsolatedAsyncioTestCase):
         self.core.bus.disconnect(self.phone.dev)
         b = register(self.core, 'b', label='Backup phone')
         c = register(self.core, 'c', label='Backup phone')
-        await self.turn()
-        result = await self.turn('use Backup phone')
-        self.assertIn('choose', result[-1]['text'])
+        result = await self.turn()
+        self.assertIn('different names', result[-1]['text'])
+        self.assertNotIn(self.lease.guest_id, self.core.agent.pending)
         self.assertEqual(b.frames + c.frames, [])
+        # Knowing an internal identifier must not bypass ambiguous visible names.
         await self.turn('b')
+        self.assertEqual(b.frames + c.frames, [])
+        b.dev.label = 'Jay phone'
+        c.dev.label = 'Owen phone'
+        await self.turn()
+        await self.turn('Jay phone')
         self.assertEqual(len(b.frames), 1)
         self.assertEqual(c.frames, [])
 
@@ -272,7 +278,7 @@ class AccessCoreTests(unittest.IsolatedAsyncioTestCase):
         c = register(self.core, 'c', label='Backup phone')
         self.planner.output = {'kind': 'action', 'device_id': 'c', 'cap': 'light', 'args': {'on': True}}
         result = await self.turn('turn on Backup phone')
-        self.assertIn('one device', result[-1]['text'])
+        self.assertIn('different names', result[-1]['text'])
         self.assertEqual(b.frames + c.frames, [])
 
     async def test_unhashable_device_identifier_is_refused(self):

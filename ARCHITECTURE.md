@@ -146,7 +146,7 @@ Brain → Display on every change (debounced 50 ms):
  "room":{"code":"7F3A","label":"Room 7F3A","join_url":"https://room.example/j/7F3A"},
  "devices":[{"id":"owen-phone","label":"Owen's phone","caps":["light","flash",...],"online":true,"busy":false}],
  "guests":[{"guest_id":"g_1","display_name":"Guest 1","channel":"photon","expires_in":412,"scopes":["*"]}],
- "log":[{"t":1760740000.1,"kind":"guest.join|guest.leave|cmd|do|ok|err|denied","text":"Guest 1: turn on a light → owen-phone.light(on=true) ✓"}]}
+ "log":[{"t":1760740000.1,"kind":"guest.join|guest.leave|cmd|do|ok|err|denied","text":"Owen’s phone turned its flashlight on."}]}
 ```
 Display → Brain (host actions, require `HOST_TOKEN` from env, entered once):
 ```json
@@ -156,6 +156,8 @@ Display → Brain (host actions, require `HOST_TOKEN` from env, entered once):
 ```
 Keyboard: `R` = reset (with a 1‑s hold to avoid accidents), `X` = revoke selected guest.
 
+Public log text is a sentence with visible device labels. Request IDs, device IDs, capability names and result codes live in the private JSONL audit metadata and are omitted from public log rows, which stay `{t,kind,text}`. `GET /qr.svg` returns a real QR for the current public guest join URL with no caching; the display must refresh it when the invitation changes. At UI revision `8c8ba15`, Owen’s display still renders a placeholder and needs his renderer update before its QR can be called scannable.
+
 ---
 
 ## 5. Guest channels
@@ -164,7 +166,7 @@ Keyboard: `R` = reset (with a 1‑s hold to avoid accidents), `X` = revoke selec
 
 `GET /j/{room_code}` → join page (static). Two buttons:
 
-- **Chat here** → `POST /join {room_code}` → `{guest_id, guest_token, chat_url:"/g/{guest_id}#t={guest_token}"}` → redirect. No PII. `guest_id` is public (shown on the display, in logs); `guest_token` is the private credential, carried in the URL fragment so it never reaches server logs, and sent as `?token=` on `/ws/guest`. A WS without a matching token is closed with code 4401.
+- **Chat here** → `POST /join {room_code}` → `{guest_id, guest_token, chat_url:"/g/{guest_id}?room={room_code}#t={guest_token}"}` → redirect. No PII. `guest_id` is public (shown on the display, in logs); `guest_token` is the private credential, carried in the URL fragment so it never reaches server logs, and sent as `?token=` on `/ws/guest`. A WS without a matching token is closed with code 4401.
 - **Text the room** → form with phone number (E.164 normalized client‑side) → `POST /join {room_code, phone}` → Brain calls Photon `POST /v1/projects/{id}/platforms/imessage/assignments {handle: phone}` (first `GET` existing assignments to reuse one for the same handle) → `{guest_id, imessage_number, sms_link}` → page shows a big button "Open Messages" and the fallback "or chat here". `sms_link` uses the cross‑platform form `sms:+1206…?&body=join%207F3A` — iOS wants `&body`, Android wants `?body`; `?&body` is accepted by both. Test on each.
 
 Both paths create a `Lease` (TTL 600 s) and a `Session`. The display shows the guest immediately as "joining…" until their first message.
@@ -173,7 +175,9 @@ The web response also sets an opaque per-guest HttpOnly, SameSite=Strict cookie 
 
 ### 5.2 Web chat (`channels/webchat.py`, `/ws/guest`)
 
-Guest page opens WS at `/ws/guest?guest_id=…&token=…` (token from the URL fragment). Frames: `{"type":"user","text":"turn on a light"}` → Brain runs the agent → streams `{"type":"assistant","text":"…"}` plus `{"type":"action","text":"owen-phone.light(on) ✓"}` events so the guest sees what happened. When a requested device is unavailable, the agent offers alternatives **in ordinary `assistant` text** and waits for the guest’s choice — no new frame type. Hold‑to‑talk button uses the browser `SpeechRecognition` API where available (Chrome/Android; iOS Safari has partial support) and falls back to typing. Audio replies optional via Grok Voice TTS → `<audio>`.
+Guest page opens WS at `/ws/guest?guest_id=…&token=…` (token from the URL fragment). Frames: `{"type":"user","text":"turn on a light"}` → Brain runs the agent → streams `{"type":"assistant","text":"…"}` plus `{"type":"action","text":"Owen’s phone turned its flashlight on."}` events so the guest sees what happened. When a requested device is unavailable, the agent offers alternatives **in ordinary `assistant` text** and waits for the guest’s choice — no new frame type. Hold‑to‑talk button uses the browser `SpeechRecognition` API where available (Chrome/Android; iOS Safari has partial support) and falls back to typing. Audio replies optional via Grok Voice TTS → `<audio>`.
+
+The optional guest `lease` frames in Owen’s UI are not emitted by the current backend; the countdown stays absent and access ending is shown by the deterministic assistant response. The guest URL carries the current room code for its header. Relative CSS/JS URLs in Owen’s static pages are supported at both `/j/` and `/g/` by exact asset aliases.
 
 ### 5.3 Photon iMessage (`channels/photon.py`)
 
@@ -232,6 +236,8 @@ Lease checked before every tool call and again by the bus after queue waits, imm
 Model: whichever fast function‑calling model we have a key for (Anthropic Haiku‑class, OpenAI mini‑class, or Grok fast). Budget: p50 turn < 1.5 s including one device action. Transcript trimmed to last 20 messages.
 
 Current model access: the already-authenticated local Codex CLI supplies the structured plan for each guest session; Tenant remains the authority/executor, with personal tools disabled and all plans validated. The constrained adapter passed 16 small cases (15 real model interpretations, one local refusal), with no tool execution. The real public guest-to-cellular-light path took 3.6–3.7 seconds, missing the original 1.5-second target; do not claim that target passed. This is guardrail evidence, not OS isolation or a reliability study. Guests connecting their own coding agents is gated for later.
+
+Current implementation chooses one validated plan per turn (action, question/refusal, leave, or an unavailable-device suggestion). It uses the last 20 session messages with a bounded subset passed to Codex. Deterministic code supplies the physical-result response; the four-round API loop above remains a design reference, not implemented behavior.
 
 ### 6.4 Guest without a lease
 
@@ -330,6 +336,8 @@ Background task every 5 s: expire leases, release Photon seats, push display sta
 | Brain restart | devices reconnect in <8 s and re‑hello; leases lost → room effectively reset | state rebuilds |
 
 ---
+
+The demo services can run independently of a chat command session using `python scripts/runtime.py start|status|stop brain|audio|tunnel`. Ownership records and private logs stay under `.venv/tenant-runtime/`; this does not install login items or recurring automation. The optional `TENANT_STATE_PATH` preserves only room identity, invitation, epoch and enrolled aliases across restarts, never guest credentials or sessions.
 
 ## 13. Repo layout
 

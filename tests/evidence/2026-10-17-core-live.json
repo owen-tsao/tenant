@@ -500,9 +500,9 @@
   "human_evidence": {
     "host_light": "Jay confirmed three ON\u2192OFF cycles ending OFF; see 2026-10-17-lighting-host.json",
     "cellular_enrollment": "Jay reported Connected on cellular after refreshed QR",
-    "audio_audibility": "FAIL: Jay heard a creepy test sound but did not hear Hello from Tenant; isolated speech test required.",
-    "guest_light_physical": "PASS: Jay confirmed one ON\u2192OFF cycle and stayed OFF after access ended.",
-    "second_phone": "NOT_STARTED: setup instruction was unclear; deferred until speech works."
+    "audio_audibility": "FOLLOW-UP: Jay heard file-rendered Hello from Tenant (long test timed out UNKNOWN); he also heard the guest-Codex Tenant is ready, which completed cleanly. Original direct-say failures remain recorded.",
+    "guest_light_physical": "PASS: Jay confirmed one guest ON\u2192OFF cycle and that it stayed OFF after access ended.",
+    "second_phone": "PENDING: setup was unclear; the product guest QR and separate light-enrollment QR have now been distinguished."
   },
   "limits": [
     "Guest requests were sent by a protocol test client; Owen guest/display UI was not exercised.",
@@ -510,5 +510,58 @@
     "Model guest turns about3.5\u20133.7s miss the original1.5s target.",
     "Small fixed cases do not establish reliability with unseen participants.",
     "No photo, coordinated-output or proactive-rule acceptance is claimed."
-  ]
+  ],
+  "speech_followup_152cf0a": {
+    "long_phrase": {
+      "source_revision": "152cf0a",
+      "started_at": "2026-10-18T00:00:10.949649+00:00",
+      "elapsed_ms": 4041,
+      "response": {
+        "ok": false,
+        "code": "UNKNOWN",
+        "message": "OS command timed out; outcome unknown. Do not retry automatically."
+      },
+      "output_settings_before": "88, false",
+      "output_settings_after": "44, false",
+      "volume_commands_sent": 0,
+      "physical_observation": "PENDING"
+    },
+    "short_guest_phrase": {
+      "source_revision": "152cf0a",
+      "volume_commands_sent": 0,
+      "cases": [
+        {
+          "request": "Say \"Tenant is ready\" on Room speaker.",
+          "started_at": "2026-10-18T00:00:59.219269+00:00",
+          "elapsed_ms": 7315,
+          "frames": [
+            {
+              "type": "action",
+              "text": "laptop.say \u2713"
+            },
+            {
+              "type": "assistant",
+              "text": "laptop: say completed."
+            }
+          ]
+        },
+        {
+          "request": "leave",
+          "started_at": "2026-10-18T00:01:06.533930+00:00",
+          "elapsed_ms": 42,
+          "frames": [
+            {
+              "type": "assistant",
+              "text": "Your room access has ended. Existing effects stay as set."
+            }
+          ]
+        }
+      ],
+      "physical_observation": "PENDING",
+      "ui_tested": false
+    },
+    "attestation_long": "ok i heard hello from tenant! lets go",
+    "attestation_short": "i head that asw tenant is ready",
+    "limit": "Long phrase timed out UNKNOWN; only the short phrase has clean completion. No automatic retry or volume command was issued for these two checks."
+  }
 }

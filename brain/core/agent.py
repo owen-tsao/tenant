@@ -4,6 +4,8 @@ import copy
 import re
 from collections import defaultdict
 from brain.core.tools import inventory_for, valid_action, alternatives_for
+from brain.core.copy import (confirmed_sentence, device_label, failure_sentence,
+                             requested_sentence, supported_sentence)
 
 
 class Agent:
@@ -24,7 +26,7 @@ class Agent:
 
     def denied(self, guest_id):
         self.pending.pop(guest_id, None)
-        self.log.append('denied', 'Guest access ended; further control denied')
+        self.log.append('denied', 'Guest access has ended. Further control was denied.', guest_id=guest_id)
         return self.reply(self.leases.denial(guest_id))
 
     async def turn(self, guest_id, text):
@@ -51,7 +53,7 @@ class Agent:
                     plan = await self.planner.plan(text, inventory_for(self.registry, self.leases, lease),
                                                    copy.deepcopy(session.messages))
             except (Exception, TimeoutError):
-                self.log.append('err', 'Planner unavailable; no command dispatched')
+                self.log.append('err', 'Room planning is unavailable. No command was sent.', guest_id=guest_id)
                 return self.reply("The room's thinking is unavailable. Please try again.")
             if not self.leases.current(guest_id):
                 return self.denied(guest_id)
@@ -85,11 +87,21 @@ class Agent:
         descriptions = []
         for dev in devices:
             caps = [cap for cap in dev.caps if '*' in lease.scopes or cap in lease.scopes]
-            if caps:
-                descriptions.append(f'{dev.label}: {", ".join(caps)}')
+            sentence = supported_sentence(dev, caps)
+            if sentence:
+                descriptions.append(sentence)
         if not descriptions:
             return 'No permitted devices are connected. No device action was taken.'
-        return 'Available: ' + '; '.join(descriptions) + '. No device action was taken.'
+        return ' '.join(descriptions) + ' No device action was taken.'
+
+    def label_is_ambiguous(self, dev):
+        label = self.normalize(dev.label)
+        return sum(self.normalize(other.label) == label for other in self.registry.devices.values()
+                   if other.room_id == self.registry.room.id) > 1
+
+    @staticmethod
+    def rename_reply():
+        return 'Some devices share the same name. Ask the host to give them different names, then choose again. No command was sent.'
 
     async def execute_plan(self, lease, plan, *, user_text=''):
         if not isinstance(plan, dict):
@@ -98,7 +110,8 @@ class Agent:
         if kind == 'leave' and set(plan) <= {'kind', 'text'}:
             self.leases.revoke(lease.guest_id)
             self.pending.pop(lease.guest_id, None)
-            self.log.append('guest.leave', f'{lease.display_name} ended access')
+            self.log.append('guest.leave', f'{lease.display_name} ended access. Existing effects stay as set.',
+                            guest_id=lease.guest_id)
             return self.reply('Your room access has ended. Existing effects stay as set.')
         if kind == 'message' and set(plan) <= {'kind', 'text'}:
             text = plan.get('text')
@@ -112,20 +125,24 @@ class Agent:
                 return self.reply('That action is malformed. No command was sent.')
             named = self.named_devices(user_text)
             if len(named) > 1:
+                if any(self.label_is_ambiguous(self.registry.devices[device_id]) for device_id in named):
+                    return self.reply(self.rename_reply())
                 return self.reply('Please name one device for this request. No command was sent.')
             if named and plan.get('device_id') not in named:
                 requested = self.registry.devices[next(iter(named))]
                 if requested.online:
-                    return self.reply(f'You named {requested.label}. Please confirm that device; no command was sent.')
+                    return self.reply(f'You named {device_label(requested)}. Please confirm that device. No command was sent.')
                 plan = dict(plan, device_id=requested.id)
             dev = valid_action(self.registry, lease, plan)
             if dev:
+                if self.label_is_ambiguous(dev):
+                    return self.reply(self.rename_reply())
                 if not dev.online:
                     return self.suggest(lease, plan)
                 if kind == 'suggest':
-                    return self.reply(f'{dev.label} is connected. Please name the device you want; no command was sent.')
+                    return self.reply(f'{device_label(dev)} is connected. Please name the device you want. No command was sent.')
                 return await self.dispatch(lease, plan)
-        self.log.append('denied', 'Invalid or unsupported plan; no command dispatched')
+        self.log.append('denied', 'The request was unsupported or not permitted. No command was sent.', guest_id=lease.guest_id)
         return self.reply('That action is unsupported or not permitted. No command was sent.')
 
     def suggest(self, lease, plan):
@@ -135,15 +152,18 @@ class Agent:
         options = alternatives_for(self.registry, lease, source.id, plan['cap'], plan['args'])
         # Ignore untrusted alternative IDs; derive suitability from current schemas and permissions.
         if not options:
-            return self.reply(f'{source.label} is unavailable; no suitable alternative is connected.')
+            return self.reply(f'{device_label(source)} is unavailable. No suitable alternative is connected.')
+        if any(self.label_is_ambiguous(dev) for dev in options):
+            self.pending.pop(lease.guest_id, None)
+            return self.reply(self.rename_reply())
         self.pending[lease.guest_id] = {'device_id': source.id, 'cap': plan['cap'],
                                         'args': copy.deepcopy(plan['args']), 'options': [d.id for d in options]}
-        labels = ', '.join(f'{dev.label} ({dev.id})' for dev in options)
-        return self.reply(f'{source.label} is unavailable. Available alternatives: {labels}. Which should I use?')
+        labels = ', '.join(device_label(dev) for dev in options)
+        return self.reply(f'{device_label(source)} is unavailable. Available alternatives: {labels}. Which should I use?')
 
     @staticmethod
     def normalize(text):
-        return re.sub(r'[^\w ]', '', text.casefold()).strip()
+        return ' '.join(re.sub(r'[^\w\s]', '', text.casefold()).split())
 
     async def choose(self, lease, text):
         pending = self.pending[lease.guest_id]
@@ -158,7 +178,7 @@ class Agent:
             dev = self.registry.devices.get(device_id)
             if not dev:
                 continue
-            names = {self.normalize(dev.id), self.normalize(dev.label)}
+            names = {self.normalize(dev.label)}
             if normalized in names or normalized in {'use ' + n for n in names}:
                 choices.append(dev)
         if normalized in ('yes', 'use it', 'okay', 'ok') and len(pending['options']) == 1:
@@ -167,6 +187,9 @@ class Agent:
         if len(choices) != 1:
             return self.reply('Please choose a listed device by name, or say cancel. No command was sent.')
         choice = choices[0]
+        if self.label_is_ambiguous(choice):
+            self.pending.pop(lease.guest_id, None)
+            return self.reply(self.rename_reply())
         plan = {'kind': 'action', 'device_id': choice.id, 'cap': pending['cap'], 'args': pending['args']}
         self.pending.pop(lease.guest_id, None)
         if not valid_action(self.registry, lease, plan):
@@ -177,23 +200,23 @@ class Agent:
 
     async def dispatch(self, lease, plan):
         device_id, cap = plan['device_id'], plan['cap']
-        self.log.append('cmd', f'{lease.display_name}: requested {device_id}.{cap}')
+        dev = self.registry.devices.get(device_id)
+        self.log.append('cmd', requested_sentence(lease.display_name, dev, cap, plan['args']),
+                        guest_id=lease.guest_id, device_id=device_id, cap=cap)
         result = await self.bus.call(device_id, cap, plan['args'], timeout=self.action_timeout,
                                      authorize=lambda dev, capability, args: self.leases.allows(lease, dev, capability))
         req = getattr(result, 'req', None)
-        suffix = f' [{req}]' if req else ''
-        self.log.append('ok' if result.ok else 'err', f'{device_id}.{cap}: {"confirmed" if result.ok else result.code}{suffix}')
+        sentence = (confirmed_sentence(dev, cap, plan['args'], result.result) if result.ok
+                    else failure_sentence(dev, cap, plan['args'], result))
+        self.log.append('ok' if result.ok else 'err', sentence, guest_id=lease.guest_id,
+                        device_id=device_id, cap=cap, req=req, ok=result.ok, code=result.code)
         if result.ok:
             # Do not claim an in-flight action was cancelled by later revocation.
-            return self.reply(f'{device_id}: {cap} completed.', f'{device_id}.{cap} ✓')
+            return self.reply(sentence, sentence)
         if result.code == 'PERMISSION':
             if not self.leases.current(lease.guest_id):
                 return self.denied(lease.guest_id)
-            return self.reply('Permission denied. The action was not confirmed.')
+            return self.reply(sentence)
         if result.code == 'OFFLINE':
             return self.suggest(lease, plan)
-        if result.code == 'UNKNOWN':
-            return self.reply('The outcome is unknown. I did not retry or use another device.')
-        if result.code == 'TIMEOUT':
-            return self.reply('The command expired in the queue; nothing was sent. I did not retry.')
-        return self.reply(f'{device_id}: {result.code or "FAILED"}. The action was not confirmed.')
+        return self.reply(sentence)

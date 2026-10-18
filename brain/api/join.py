@@ -28,11 +28,11 @@ async def join(request: Request):
     lease = core.leases.create()
     secret = core.issue_credential(lease.guest_id)
     response = JSONResponse({'guest_id': lease.guest_id, 'guest_token': secret,
-                             'chat_url': '/g/' + lease.guest_id + '#t=' + secret})
+                             'chat_url': '/g/' + lease.guest_id + '?room=' + core.registry.room.code + '#t=' + secret})
     response.set_cookie(core.cookie_name(lease.guest_id), secret, httponly=True, samesite='strict',
                         secure=core.config.public_url.startswith('https://'), max_age=720, path='/')
     response.headers['Cache-Control'] = 'no-store'
-    core.log.append('guest.join', lease.display_name + ' joined')
+    core.log.append('guest.join', lease.display_name + ' joined the room.', guest_id=lease.guest_id)
     return response
 
 
@@ -46,5 +46,5 @@ async def leave(request: Request):
         return JSONResponse({'error': 'Guest authorization required'}, status_code=403)
     core.leases.revoke(guest_id)
     core.agent.pending.pop(guest_id, None)
-    core.log.append('guest.leave', 'Guest ended access; existing effects preserved')
+    core.log.append('guest.leave', 'The guest ended access. Existing effects stay as set.', guest_id=guest_id)
     return {'ok': True}

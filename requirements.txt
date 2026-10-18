@@ -3,3 +3,4 @@ uvicorn[standard]==0.34.2
 httpx==0.28.1
 websockets==15.0.1
 pydantic==2.11.4
+qrcode==8.2

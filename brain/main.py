@@ -1,14 +1,18 @@
 from pathlib import Path
 import asyncio
+from io import BytesIO
 import os
 import secrets
 from fastapi import FastAPI, Request, HTTPException, WebSocket
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+import qrcode
+from qrcode.image.svg import SvgPathImage
 from brain.config import Config
 from brain.state import Room
 from brain.core.registry import Registry
 from brain.core.bus import Bus
+from brain.core.copy import confirmed_sentence, failure_sentence
 from brain.core.integration import install_core
 from brain.core.persistence import RoomStateStore
 from brain.core.planner import CodexPlanner
@@ -24,10 +28,18 @@ async def reset_cleanup(core):
     async def stop(dev, cap, args):
         result = await core.bus.call(dev.id, cap, args, timeout=4,
                                      authorize=lambda current, *_: current.room_id == core.registry.room.id)
-        core.log.append('ok' if result.ok else 'err',
-                        f'Reset: {dev.label}.{cap}: ' + ('confirmed' if result.ok else result.code)
-                        + (f' [{result.req}]' if result.req else ''))
-        return result.ok
+        payload = result.result if isinstance(result.result, dict) else {}
+        confirmed = result.ok and (
+            (cap == 'light' and payload.get('on') is False)
+            or (cap == 'music.pause' and payload.get('state') in ('paused', 'stopped')))
+        sentence = (confirmed_sentence(dev, cap, args, payload) if confirmed
+                    else f'{dev.label} did not confirm the requested reset state.' if result.ok
+                    else failure_sentence(dev, cap, args, result))
+        core.log.append('ok' if confirmed else 'err', sentence,
+                        actor='host.reset', device_id=dev.id, cap=cap,
+                        req=result.req, ok=confirmed, ack_ok=result.ok,
+                        code='UNCONFIRMED_STATE' if result.ok and not confirmed else result.code)
+        return confirmed
     tasks = []
     for dev in core.registry.devices.values():
         if dev.room_id != core.registry.room.id:
@@ -72,6 +84,29 @@ def create_app(config=None, *, planner=None, log_path=None, state_path=None):
         if not path.is_file():
             raise HTTPException(503, 'Guest interface is being connected. Please try again shortly.')
         return FileResponse(path, headers={"Cache-Control":"no-store", "Referrer-Policy":"no-referrer"})
+
+    # Owen's pages also work as root-level static files. Their relative asset
+    # URLs need these exact aliases when served at the agreed /j and /g routes.
+    @app.get('/j/shared.js')
+    @app.get('/g/shared.js')
+    async def shared_script():
+        return page('shared.js')
+
+    @app.get('/j/tenant.css')
+    @app.get('/g/tenant.css')
+    async def shared_style():
+        return page('tenant.css')
+
+    @app.get('/qr.svg')
+    async def guest_qr():
+        url = config.public_url.rstrip('/') + '/j/' + registry.room.code
+        rendered = qrcode.make(url, image_factory=SvgPathImage,
+                               error_correction=qrcode.constants.ERROR_CORRECT_M,
+                               box_size=8, border=4)
+        stream = BytesIO()
+        rendered.save(stream)
+        return Response(stream.getvalue(), media_type='image/svg+xml',
+                        headers={'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'})
 
     @app.get('/j/{code}')
     async def join_page(code: str):

@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from brain.core.agent import Agent
 from brain.core.leases import Leases
 from brain.core.log import EventLog
+from brain.core.copy import confirmed_sentence, failure_sentence
 
 
 class Core:
@@ -101,17 +102,23 @@ class Core:
     async def host_do(self, body):
         if not isinstance(body, dict) or not isinstance(body.get('device_id'), str) or not isinstance(body.get('cap'), str):
             raise HTTPException(400, 'Expected device_id, cap, args')
+        # Keep the acknowledged connection's label even if its ID reconnects
+        # while the bus is awaiting the reply.
+        dev = self.registry.devices.get(body['device_id'])
         result = await self.bus.call(body['device_id'], body['cap'], body.get('args'),
                                      authorize=lambda dev, cap, args: dev.room_id == self.registry.room.id)
         req = getattr(result, 'req', None)
-        self.log.append('ok' if result.ok else 'err', f'Host: {body["device_id"]}.{body["cap"]}: {"confirmed" if result.ok else result.code}' + (f' [{req}]' if req else ''))
+        sentence = (confirmed_sentence(dev, body['cap'], body.get('args'), result.result) if result.ok
+                    else failure_sentence(dev, body['cap'], body.get('args'), result))
+        self.log.append('ok' if result.ok else 'err', sentence, actor='host', device_id=body['device_id'],
+                        cap=body['cap'], req=req, ok=result.ok, code=result.code)
         return result.as_dict()
 
     def revoke(self, guest_id):
         revoked = self.leases.revoke(guest_id)
         self.agent.pending.pop(guest_id, None)
         if revoked:
-            self.log.append('guest.leave', 'Host revoked guest access; existing effects preserved')
+            self.log.append('guest.leave', 'The host ended guest access. Existing effects stay as set.', guest_id=guest_id)
         return revoked
 
     async def reset(self):
@@ -119,7 +126,7 @@ class Core:
         revoked = self.leases.reset()
         self.agent.pending.clear()
         self.log.clear()
-        self.log.append('guest.leave', 'Host reset revoked access and rotated the invitation')
+        self.log.append('guest.leave', 'The host ended all guest access and refreshed the room invitation.')
         cleanup = 'not_configured'
         if self.cleanup_hook:
             try:
@@ -129,7 +136,9 @@ class Core:
                 cleanup = 'confirmed' if outcome is True else 'unconfirmed'
             except (Exception, TimeoutError):
                 cleanup = 'unconfirmed'
-            self.log.append('ok' if cleanup == 'confirmed' else 'err', 'Reset cleanup: ' + cleanup)
+            sentence = ('Room reset cleanup was confirmed.' if cleanup == 'confirmed'
+                        else 'Room access has ended, but cleanup could not be confirmed.')
+            self.log.append('ok' if cleanup == 'confirmed' else 'err', sentence, cleanup=cleanup)
         return {'ok': self.registry.persistence_healthy, 'room_code': self.registry.room.code,
                 'revoked': revoked, 'cleanup': cleanup,
                 **({} if self.registry.persistence_healthy else {'error': 'Room state could not be saved; guest control is disabled'})}
