@@ -1,0 +1,44 @@
+{
+  "test": "recording-infrastructure-one-speech-preflight",
+  "revision": "dbeb227",
+  "route": "real public browser UI, standard Chrome",
+  "status": "SOFTWARE_PATH_PASS_PHYSICAL_FAIL",
+  "guest_id": "4dca5d0d-79c7-4e47-9778-1dd3788871e8",
+  "fresh_guest_count": 1,
+  "natural_requests": [
+    "Say hello from Tenant"
+  ],
+  "ui_reply": "Said \u201cHello from Tenant\u201d through the room speaker.",
+  "native_turn_id": "01a14e8e-6a5b-7a82-89f6-eeb2a8eca023",
+  "say_receipt": {
+    "ok": true,
+    "result": {
+      "spoken": true,
+      "audible_verified": false,
+      "rendered_duration_ms": 1013
+    },
+    "message": "Room speaker reported that speech playback finished.",
+    "status": "confirmed"
+  },
+  "command_duration_ms": 8243,
+  "ordinary_leave": true,
+  "zero_guests_independently_verified": true,
+  "join_page_retained": true,
+  "host_token_present_and_match_verified_privately": true,
+  "tv_mode": "SAMSUNG1920x1080@60 extended",
+  "audio_output": "SAMSUNG HDMI",
+  "os_volume_fixed": 100,
+  "muted": false,
+  "volume_or_mute_changed": false,
+  "native_guest_window_size_and_screen_location": "unverified after native controller timeout; browser DOM worked",
+  "recording_started": false,
+  "reset_performed": false,
+  "music_light_photo_effects": false,
+  "film_crew_remains_paused": true,
+  "physical_audibility_and_tv_visibility": {
+    "audible": false,
+    "tenant_picture_visible": false,
+    "human_observation": "TV showed empty desktop background; extended monitor is to the right."
+  },
+  "original_say_receipt_preserved": true
+}
