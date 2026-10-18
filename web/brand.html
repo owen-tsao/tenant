@@ -2,41 +2,43 @@
 <meta charset="utf-8">
 <title>Tenant — brand renders</title>
 <!-- Renders the logo / thumbnail variants for Devpost and the video.
-     ?v=square  1024×1024  Devpost thumbnail (cropped square in the gallery)
-     ?v=wide    1920×1080  video title/end card, Devpost gallery image
-     ?v=mark    512×512    the mark alone, transparent-safe on plum
-     Screenshot with headless Chrome at the matching window size; see notes/brand.md. -->
+     ?v=devpost 1536×1024  Devpost thumbnail (3:2, what Devpost asks for)
+     ?v=square  1024×1024  square crop for galleries / avatars
+     ?v=wide    1920×1080  video title/end card
+     &motif=spiral|burst   spiral = the halftone pinwheel (default); burst = the display's radial field
+     &arms=5 &twist=1.1 &alpha=.42   spiral tuning (arms, how tightly they wind, pink opacity)
+     Screenshot with headless Chrome at the matching window size. -->
 <link rel="stylesheet" href="tenant.css">
 <style>
   @font-face { font-family: "Inter Tight"; src: url("fonts/InterTight-latin.woff2") format("woff2"); font-weight: 100 900; font-display: block; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); }
   body { font-family: "Inter Tight", Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
   .frame { position: relative; width: 100vw; height: 100vh; display: grid; place-items: center; overflow: hidden; }
-  .motif { position: absolute; inset: 0; display: grid; place-items: center; color: var(--accent); opacity: .28; }
-  .motif svg { width: 118vmin; height: 118vmin; }
-  .copy { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0; transform: translateY(-2vmin); }
-  .mark { width: 9vmin; height: 9vmin; margin: 0 0 4vmin; }
-  .mark::before, .mark::after { width: 60%; height: 60%; }
-  .mark::after { left: 40%; top: 40%; }
+  .motif { position: absolute; inset: 0; color: var(--accent); }
+  .motif svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* burst variant: the display's centred field */
+  body.burst .motif { display: grid; place-items: center; opacity: .28; }
+  body.burst .motif svg { position: static; width: 118vmin; height: 118vmin; }
+  /* a soft plum pool behind the words so the wordmark reads over the pink */
+  .pool { position: absolute; left: 50%; top: 50%; width: 92vmin; height: 52vmin; transform: translate(-50%, -52%);
+          background: radial-gradient(ellipse at center, var(--bg) 0 38%, rgba(26,21,35,.85) 60%, rgba(26,21,35,0) 100%); }
+  .copy { position: relative; display: flex; flex-direction: column; align-items: center; transform: translateY(-1vmin); }
   .word { font-size: 26vmin; line-height: .84; letter-spacing: -.055em; font-weight: 800; margin-left: -.03em; }
   .sub  { margin-top: 3.2vmin; font-size: 4.2vmin; letter-spacing: -.03em; font-weight: 700; color: var(--muted); }
   .eyebrow { position: absolute; left: 5vmin; bottom: 4.6vmin; font: 500 2.1vmin/1 var(--mono); letter-spacing: .08em; color: var(--faint); text-transform: uppercase; }
 
   body.wide .word { font-size: 24vmin; }
   body.wide .sub { font-size: 4.4vmin; }
-  body.wide .motif svg { width: 150vmin; height: 150vmin; }
-  body.wide .motif { opacity: .22; }
-
-  body.mark-only .word, body.mark-only .sub, body.mark-only .eyebrow { display: none; }
-  body.mark-only .mark { width: 42vmin; height: 42vmin; margin: 0; }
-  body.mark-only .motif { display: none; }
-  body.mark-only .copy { transform: none; }
+  body.wide .pool { width: 120vmin; height: 56vmin; }
+  body.devpost .word { font-size: 30vmin; }
+  body.devpost .sub { font-size: 4.8vmin; }
+  body.devpost .pool { width: 118vmin; height: 60vmin; }
 </style>
 <body>
   <div class="frame">
     <div class="motif" id="motif"></div>
+    <div class="pool" id="pool"></div>
     <div class="copy">
-      <div class="mark" aria-hidden="true"></div>
       <div class="word">Tenant</div>
       <div class="sub" id="sub">Borrow the room.</div>
     </div>
@@ -44,10 +46,39 @@
   </div>
   <script src="shared.js"></script>
   <script>
-    const v = new URLSearchParams(location.search).get("v") || "square";
-    document.body.classList.add(v === "wide" ? "wide" : v === "mark" ? "mark-only" : "square");
+    const qs = new URLSearchParams(location.search);
+    const v = qs.get("v") || "devpost";
+    const kind = qs.get("motif") || "spiral";
+    document.body.classList.add(v, kind);
     if (v === "wide") document.getElementById("sub").textContent = "Borrow the room. Leave, and it forgets you.";
-    document.getElementById("motif").innerHTML = Tenant.motif(56, 8, .03);
+
+    /* The halftone pinwheel: a logarithmic spiral (arms wind tighter toward the centre, like the
+     * reference card), ordered-dithered with the same 4×4 Bayer matrix as everything else in web/.
+     * Fills the whole frame on a 6 px grid; the centre thins out so the wordmark has a place to sit. */
+    function spiral(cols, rows, arms, twist, alpha, hole) {
+      const bayer = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+      const cx = (cols - 1) / 2, cy = (rows - 1) / 2, R = Math.hypot(cx, cy), cells = [];
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+        const dx = x - cx, dy = y - cy, r = Math.hypot(dx, dy) / R, th = Math.atan2(dy, dx);
+        const phase = arms * (th + twist * Math.log(r + .02));
+        let v = .5 + .5 * Math.cos(phase);
+        v = Math.pow(v, 2.2);                                 // crisp arms, wide plum gaps
+        v *= Math.min(1, Math.max(0, (r - hole) / .16));      // hollow centre: the wordmark sits in it
+        v *= 1 - .3 * Math.max(0, (r - .75) / .25);           // edges thin a little
+        if (v > (bayer[y % 4][x % 4] + .5) / 16) cells.push(`<rect x="${x * 6}" y="${y * 6}" width="5" height="5"/>`);
+      }
+      return `<svg viewBox="0 0 ${cols * 6 - 1} ${rows * 6 - 1}" preserveAspectRatio="xMidYMid slice" fill="currentColor" fill-opacity="${alpha}" shape-rendering="crispEdges" aria-hidden="true">${cells.join("")}</svg>`;
+    }
+
+    const motif = document.getElementById("motif");
+    if (kind === "burst") { motif.innerHTML = Tenant.motif(56, 8, .03); }
+    else {
+      const cell = +(qs.get("cell") || 5);                    // px per dither cell at the render size
+      const cols = Math.round(innerWidth / cell), rows = Math.round(innerHeight / cell);
+      motif.innerHTML = spiral(cols, rows, +(qs.get("arms") || 6), +(qs.get("twist") || 1.2), +(qs.get("alpha") || .5), +(qs.get("hole") || .3));
+    }
+    if (qs.get("pool") !== "1") document.getElementById("pool").style.display = "none";
+    if (qs.get("eyebrow") !== "1") document.getElementById("eyebrow").style.display = "none";
     document.fonts.ready.then(() => document.documentElement.dataset.ready = "1");
   </script>
 </body>
