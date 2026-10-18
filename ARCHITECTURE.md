@@ -326,6 +326,18 @@ Background task every 5 s: expire leases, release Photon seats, push display sta
 
 ---
 
+### Current host setup and stop contract — deployed 0b4a1ec
+
+`GET /` and `/setup` serve Owen's unchanged setup page. Authenticated `POST /host/room {"label":"..."}` persists and broadcasts the room label without rotating the room, invitation or access. The normal Bearer credential works; a nonempty matching `X-Host-Token` is accepted only for this endpoint with an approved Origin. Explicit invalid Bearer cannot fall through. Save failure returns503 without claiming success. Owen owns the host-credential and response-error UI.
+
+Room programs support `light_beats_per_state` on `program-update` with the exact `light_device_id`. Default0.5 preserves the earlier cadence;1 gives one full beat ON and one full beat OFF (2s per state at30BPM). Positive finite, representable cadence is required. First ON+OFF acknowledgments establish only the transport cycle; they do not establish optical/acoustic synchronization.
+
+A current guest's freshly requested absolute light OFF is a separate compensating action, using existing `call`/`light`/`{on:false}`. It invalidates future program ON, waits boundedly for already-sent work and actual Bus uncertainty to resolve, then sends one newly authorized OFF on the exact connection. Only its matching acknowledgment releases the matching phone claim. It neither replays an old ON nor automatically retries UNKNOWN; an uncertain OFF prevents another new-ID OFF in the same native turn. Local Disconnect/release camera remains the recovery path when confirmation is unavailable. Phone OFF does not wait on unrelated Mac cleanup.
+
+Program stop lets already-sent bounded phone commands and actual audio-status reads settle before owned cleanup. Host reset still has sequential context/program/host cleanup phases; its pause budget accounts for already accepted narration. It can wait for audio in an unknown-phone case, so this is not an all-case instant-reset promise. Physical stop and model-intent acceptance remain separate from the452 Python +12 Node source checks; the earlier600s live expiry attempt was interrupted and is not a pass.
+
+---
+
 ## 11. Security & safety (also what VEYZL will look at)
 
 - Secrets only in env (`PHOTON_API_KEY`, `LLM_API_KEY`, `HOST_TOKEN`, `DEVICE_TOKEN`); `.env` gitignored; keys scoped to one Photon project.
