@@ -2,11 +2,11 @@
 
 ## Current staging
 
-Room **F28D** is staged after the single final reset. There are zero guests and two online devices: Phone light and Room speaker. Reset cleanup, native context cleanup and room-program cleanup all returned confirmed. Both active devices acknowledged the reset defaults. The honest device count is2, not3: use the Mac guest chat, one phone as the light and another to film.
+The initial final reset staged room **F28D**. The currently observed room after Jay’s take is **F679**; visual checks did not reset it. There are zero guests and two online devices: Phone light and Room speaker. Reset cleanup, native context cleanup and room-program cleanup all returned confirmed. Both active devices acknowledged the reset defaults. The honest device count is2, not3: Jay now uses one phone sequentially for guest chat and light sharing, with the other filming. iPhone keyboard dictation and the guest on TV are physically confirmed. Mac Dictation was declined and remains off.
 
 - Public base: https://writers-detector-strengthen-catalyst.trycloudflare.com
-- Guest entry: https://writers-detector-strengthen-catalyst.trycloudflare.com/j/F28D
-- Real current QR: /qr.svg on that base. Local printable SVG: outputs/tenant-room-F28D-qr.svg. Physical paper printing has not been verified.
+- Guest entry: https://writers-detector-strengthen-catalyst.trycloudflare.com/j/F679
+- Real current QR: /qr.svg on that base. Local printable SVG: outputs/tenant-room-F679-qr.png. Physical paper printing has not been verified.
 - /health, /setup, /slides, /display, /qr.svg and the join route are served through the same Brain. Detached Brain/audio/tunnel launchers remain up. No refresh or restart occurred during final staging.
 - Chrome has the correct host token privately installed; DevTools is closed. HOLD R for one second resets; X revokes. D is not bound. Do not expose the host token, private device QR or diagnostics in the video.
 - **Do not use fullscreen on the TV.** Jay diagnosed the fullscreen transition and then physically confirmed Tenant visible in a normal window on the extended monitor to the RIGHT. Freeze that arrangement. No mirroring, resolution or Spaces change is needed.
@@ -35,3 +35,15 @@ Use Jay's latest two-part handoff: real table take first, then one continuous sl
 No tests, hidden commands, extra guests, resets, deployments, service restarts, window/fullscreen/Spaces changes or output/volume changes while recording. If the Brain needs intervention, stop and redo the take. Keep the light page visible and the phone awake; the user handles power, DND, framing and physical recording.
 
 Owen handoff: https://github.com/owen-tsao/tenant/pull/1#issuecomment-6248661144
+
+
+## Optional prepared TV ambience
+
+Jay clarified “turn on the TV” means opening a normal background window, not controlling hardware power. Audio bridge e6ae35b advertises the cached CYANIDE visual preset. No Brain/web/dashboard change was needed. One actual guest started the prepared song/visuals; Jay physically confirmed the moving TV visual and music from the Mac. Same-guest stop confirmed cleanup, owned mpv exited, ordinary Leave returned zero guests. The initial request-to-final was about51s, and stop turn11.4s; cached player preparation is fast but this does not make conversational latency instant.
+
+Jay then supplied iridescent energy-orb references. The loaded style is now a silent1280×720/60fps fluid cyan-purple membrane animation, driven by the same audio spectrum and analyzed beats. The player/protocol did not change. New asset checksums/duration and real null-output decode passed; one12s owned host preview played and closed, and the audio bridge alone was refreshed to load the new manifest. No new full guest E2E suite was repeated for this style-only change. Physical taste feedback is pending; keep it optional until Jay likes it.
+
+Ask: “Play the prepared Cyanide track with its circular visuals on the TV.”
+Stop: “Stop the music and visuals.”
+
+Keep the normal TV window and Mac speakers20%. This preset is specific to the prepared CYANIDE recording, not arbitrary live Spotify/browser audio. Calibrated physical audio/visual beat offset remains unmeasured.

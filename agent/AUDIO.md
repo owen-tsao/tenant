@@ -195,10 +195,10 @@ runtime; none of the simulated tests establishes that end-to-end physical path.
 ## Prepared ambient TV window
 
 `python -m agent.prepare_visual --manifest .venv/song-assets/cyanide/song.json`
-prepares a silent1280×720/30fps MP4 using the existing recording and beat map.
-FFmpeg supplies the moving background; numpy/Pillow draw the circular spectrum
-from the actual PCM samples and ring pulses from the analyzed beat markers.
-It creates a proposed `song-with-visual.json`, leaving the live manifest unchanged.
+prepares a silent1280×720/60fps MP4 using the existing recording and beat map.
+FFmpeg supplies the moving background; numpy/Pillow render translucent iridescent membranes, deformed by the actual PCM spectrum
+and smoothly pulsed from the analyzed beat markers.
+It creates a proposed `song-with-fluid-visual.json`, leaving the live manifest unchanged.
 It needs the already-installed FFmpeg, numpy and Pillow; no microphone,
 loopback audio driver, browser capture, account or media download is involved.
 

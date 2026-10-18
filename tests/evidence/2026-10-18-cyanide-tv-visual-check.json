@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-18",
+  "revision": "e6ae35b",
+  "room": "F679",
+  "guest_id": "4c8335ad-61ae-4d26-bca2-2d53649b3301",
+  "result": "PHYSICAL_PICTURE_AUDIO_PASS_STOP_CONFIRMED",
+  "physical_confirmation": {
+    "reported_by": "Root, relaying Jay",
+    "tv_circular_visual_moving": true,
+    "song_heard_from_mac": true,
+    "calibrated_beat_offset_measured": false
+  },
+  "turns": [
+    {
+      "id": "01a14eba-d14a-7be1-8c0b-ee4a7982989d",
+      "status": "completed",
+      "startedAt": 1792322228,
+      "completedAt": null,
+      "helper_duration_ms": 1246,
+      "request": "Play the prepared Cyanide track with its circular visuals on the TV. Use the existing prepared music and visuals; do not build or install anything. Keep it playing until I ask you to stop.",
+      "captured_receipt_fields": {
+        "operation": "program-start",
+        "ok": true,
+        "complete": true,
+        "program_id": "p_2cce2a13e9604cc9bc41a3523b6b5066",
+        "state": "running",
+        "source": "selected_recording",
+        "song_id": "daniel-caesar-cyanide-42b58460277a",
+        "title": "CYANIDE",
+        "artist": "Daniel Caesar",
+        "bpm": 79.5072115384615,
+        "song_clock": {
+          "state": "ready",
+          "playhead_advancing": true,
+          "sample_age_ms": 0.681,
+          "sample_uncertainty_ms": 5.398,
+          "discontinuities": 0,
+          "physical_alignment_verified": false
+        },
+        "light_device_ids": [],
+        "exit_code": 0
+      },
+      "completion_note": "Completed status and final reply observed; exact completion timestamp not retained. Display final reply timestamp 04:17:59 PDT."
+    },
+    {
+      "id": "01a14ebb-aecc-7410-b564-e44dec5e7642",
+      "status": "completed",
+      "startedAt": 1792322285,
+      "completedAt": 1792322296,
+      "durationMs": 11401,
+      "request": "Stop the music and visuals",
+      "captured_receipt_fields": {
+        "operation": "program-stop",
+        "ok": true,
+        "program_id": "p_2cce2a13e9604cc9bc41a3523b6b5066",
+        "state": "stopped",
+        "source": "selected_recording",
+        "song_id": "daniel-caesar-cyanide-42b58460277a",
+        "reason": "SONG_PAUSED",
+        "cleanup": {
+          "audio": "confirmed"
+        },
+        "song_clock": {
+          "state": "pending",
+          "playhead_advancing": false,
+          "sample_age_ms": 2760.723,
+          "sample_uncertainty_ms": 0.924,
+          "discontinuities": 1,
+          "physical_alignment_verified": false
+        },
+        "exit_code": 0
+      },
+      "reply": "Stopped the CYANIDE music and visuals. Audio stop was confirmed."
+    }
+  ],
+  "ui_inspection": {
+    "mpv_pid": 55773,
+    "native_cua_app_inventory_exposed_mpv": false,
+    "get_app_mpv": "Invalid app",
+    "two_frame_or_window_geometry_proof": false,
+    "limitation": "CLI mpv was not available to documented native CUA inspection. No alternate capture or replay performed."
+  },
+  "cleanup": {
+    "owned_mpv_pid_exited": true,
+    "remaining_mpv_pids": [],
+    "ordinary_leave": true,
+    "guest_tab_closed": true,
+    "display_room": "F679",
+    "display_guest_count": 0,
+    "devices_ready": "2 of 2",
+    "volume_changed": false,
+    "fullscreen_used": false,
+    "phone_effects": false
+  },
+  "screenshots": [
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/cyanide-tv-guest-stop.png",
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/cyanide-tv-restored-room.png"
+  ]
+}

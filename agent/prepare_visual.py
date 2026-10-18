@@ -15,11 +15,17 @@ import subprocess
 import wave
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 from agent.song_audio import load_recording
 
-FPS, WIDTH, HEIGHT, TILE, BANDS = 30, 1280, 720, 600, 64
+FPS, WIDTH, HEIGHT, TILE, BANDS = 60, 1280, 720, 600, 64
+_Y, _X = np.mgrid[-1:1:320j, -1:1:320j].astype(np.float32)
+_R = np.sqrt(_X * _X + _Y * _Y)
+_ANGLE = np.arctan2(_Y, _X)
+_PHASE = (_ANGLE + np.pi) * (BANDS / (2 * np.pi))
+_INDEX = np.floor(_PHASE).astype(int) % BANDS
+_FRACTION = _PHASE - np.floor(_PHASE)
 
 
 def spectrum(recording):
@@ -43,50 +49,57 @@ def spectrum(recording):
     ceiling = np.maximum(np.percentile(values, 95, axis=0), .01)
     values = np.clip(values / ceiling, 0, 1) ** .65
     for frame in range(1, count):
-        values[frame] = np.maximum(values[frame], values[frame - 1] * .84)
+        values[frame] = values[frame - 1] * .68 + values[frame] * .32
     return values
 
 
-def fonts():
-    path = '/System/Library/Fonts/Supplemental/Arial.ttf'
-    if Path(path).is_file():
-        return ImageFont.truetype(path, 30), ImageFont.truetype(path, 17)
-    return ImageFont.load_default(size=30), ImageFont.load_default(size=17)
-
-
-def draw_frame(t, levels, beats, font):
-    image = Image.new('RGBA', (TILE, TILE))
-    draw = ImageDraw.Draw(image)
-    previous = np.searchsorted(beats, t, side='right') - 1
-    elapsed = t - beats[previous] if previous >= 0 else 100
-    pulse = math.exp(-elapsed / .13) if elapsed >= 0 else 0
-    radius, center = 174 + pulse * 9, TILE / 2
-    for extra, alpha, width in ((14, 12, 23), (7, 22, 12), (0, 235, 3)):
-        r = radius + extra
-        draw.ellipse((center - r, center - r, center + r, center + r),
-                     outline=(159, 237, 232, alpha), width=width)
-    for i, value in enumerate(levels):
-        angle = i * 2 * math.pi / BANDS - math.pi / 2
-        length = 4 + value * 48 + pulse * 6
-        inner, outer = radius + 11, radius + 11 + length
-        color = (int(159 + 58 * i / BANDS), int(232 - 60 * i / BANDS), 230, 210)
-        draw.line((center + inner * math.cos(angle), center + inner * math.sin(angle),
-                   center + outer * math.cos(angle), center + outer * math.sin(angle)), fill=color, width=3)
-    draw.text((center, center - 12), 'CYANIDE', font=font[0], fill=(245, 238, 247, 240), anchor='mm')
-    draw.text((center, center + 29), 'DANIEL CAESAR', font=font[1], fill=(198, 197, 218, 220), anchor='mm')
-    return image
+def draw_frame(t, levels, beats):
+    """Iridescent translucent membranes, deformed by the actual audio bands."""
+    nearest = np.searchsorted(beats, t)
+    pulse = max((math.exp(-((t - beats[i]) / .09) ** 2)
+                 for i in (nearest - 1, nearest) if 0 <= i < len(beats)), default=0)
+    levels = (levels * .4 + np.roll(levels, 1) * .2 + np.roll(levels, -1) * .2
+              + np.roll(levels, 2) * .1 + np.roll(levels, -2) * .1)
+    energy = levels[_INDEX] * (1 - _FRACTION) + levels[(_INDEX + 1) % BANDS] * _FRACTION
+    rgb = np.zeros((*_R.shape, 3), np.float32)
+    cyan = np.array([.035, .62, 1.], dtype=np.float32)
+    pink = np.array([.88, .055, .68], dtype=np.float32)
+    for sheet in range(3):
+        phase = sheet * 2.07
+        radius = (.665 + .027 * pulse + .025 * (energy - .5)
+                  + .046 * np.sin((sheet + 2) * _ANGLE + t * (.29 - sheet * .24) + phase)
+                  + .019 * np.cos(2 * _ANGLE - t * .37 + phase))
+        width = .031 + .019 * (.5 + .5 * np.sin(2 * _ANGLE + phase - t * .41)) + .009 * energy
+        distance = _R - radius
+        body = np.exp(-(distance / width) ** 2)
+        fold = .5 + .5 * np.sin(distance / width * 3.3 + _ANGLE * 2 - t * .31 + phase)
+        filament = np.exp(-((distance - width * .38) / .0065) ** 2)
+        inner = np.exp(-((distance + width * .55) / .011) ** 2)
+        spot = np.maximum(0, np.cos(_ANGLE * 2 - t * .26 + phase)) ** 8
+        brightness = body * (.065 + .14 * fold) + filament * (.12 + .42 * spot) + inner * .075
+        hue = (.5 + .5 * np.sin(_ANGLE + phase + t * .16))[..., None]
+        color = cyan * (1 - hue) + pink * hue
+        rgb += color * brightness[..., None]
+        rgb += (filament * spot * .28)[..., None]
+        rgb += color * (.028 * np.exp(-(distance / (width * 2.3)) ** 2))[..., None]
+    rgb = (1 - np.exp(-rgb * 2.7)).astype(np.float32)
+    alpha = np.max(rgb, axis=2)
+    rgba = np.empty((*_R.shape, 4), np.uint8)
+    rgba[..., :3] = np.clip(rgb / np.maximum(alpha[..., None], 1e-7) * 255, 0, 255).astype(np.uint8)
+    rgba[..., 3] = (alpha * 255).astype(np.uint8)
+    return Image.fromarray(rgba).resize((TILE, TILE), Image.Resampling.BICUBIC)
 
 
 def prepare(manifest):
     recording = load_recording(manifest)
-    target = manifest.parent / 'ambient-beat-ring.mp4'
-    temporary = manifest.parent / 'ambient-beat-ring.pending.mp4'
-    values, beats, font = spectrum(recording), np.asarray(recording['beat_seconds']), fonts()
-    preview = draw_frame(float(beats[0]), values[round(beats[0] * FPS)], beats, font)
-    preview.save(manifest.parent / 'ambient-ring-preview.png')
+    target = manifest.parent / 'ambient-fluid-orb.mp4'
+    temporary = manifest.parent / 'ambient-fluid-orb.pending.mp4'
+    values, beats = spectrum(recording), np.asarray(recording['beat_seconds'])
+    preview = draw_frame(float(beats[0]), values[round(beats[0] * FPS)], beats)
+    preview.save(manifest.parent / 'ambient-fluid-preview.png')
     command = [shutil.which('ffmpeg') or 'ffmpeg', '-hide_banner', '-nostdin', '-v', 'error', '-y',
         '-f', 'lavfi', '-i',
-        f'gradients=s={WIDTH}x{HEIGHT}:r={FPS}:c0=0x100d1c:c1=0x254448:c2=0x48304e:n=3:seed=73:speed=0.006:type=spiral',
+        f'gradients=s={WIDTH}x{HEIGHT}:r={FPS}:c0=0x02030b:c1=0x0d061b:c2=0x03121b:n=3:seed=73:speed=0.009:type=spiral',
         '-f', 'rawvideo', '-pixel_format', 'rgba', '-video_size', f'{TILE}x{TILE}',
         '-framerate', str(FPS), '-i', 'pipe:0', '-filter_complex',
         '[0:v][1:v]overlay=(W-w)/2:(H-h)/2:shortest=1,format=yuv420p[v]',
@@ -98,7 +111,7 @@ def prepare(manifest):
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=errors)
         try:
             for i, levels in enumerate(values):
-                process.stdin.write(draw_frame(i / FPS, levels, beats, font).tobytes())
+                process.stdin.write(draw_frame(i / FPS, levels, beats).tobytes())
             process.stdin.close()
             if process.wait(timeout=45):
                 raise RuntimeError('FFmpeg rendering failed; inspect the local render log.')
@@ -121,8 +134,8 @@ def prepare(manifest):
     proposed['visual'] = dict(path=str(target.resolve()), sha256=hashlib.sha256(target.read_bytes()).hexdigest(),
         source_sha256=recording['sha256'], width=WIDTH, height=HEIGHT, fps=FPS,
         duration_seconds=duration,
-        description='Mellow ambient video with circular audio spectrum and analyzed CYANIDE beat pulses. Same player clock; external TV window, no fullscreen.')
-    output = manifest.parent / 'song-with-visual.json'
+        description='Fluid iridescent energy orb, deformed by CYANIDE audio and analyzed beats, at60fps. Same player clock; external TV window, no fullscreen.')
+    output = manifest.parent / 'song-with-fluid-visual.json'
     output.write_text(json.dumps(proposed, indent=2) + '\n')
     output.chmod(0o600)
     print(json.dumps({'prepared': True, 'frames': len(values), 'duration_seconds': duration,
