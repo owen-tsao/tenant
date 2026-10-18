@@ -1,0 +1,92 @@
+{
+  "status": "PARTIAL_REAL_GUEST_WIRE_PASS",
+  "source_revision": "ff6ab19",
+  "live_mode": "conversation",
+  "room_code": "E39D",
+  "fixed_native_thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+  "setup_anchor_turn_id": "01a14c77-662a-7f81-b7fc-b0aa4ced3b79",
+  "checks": {
+    "python": {
+      "passed": 207,
+      "failed": 0,
+      "skipped": 0
+    },
+    "phone_protocol": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "independent_source_review": "PASS_SCOPED"
+  },
+  "public_guest_transport_probe": {
+    "transport": "Real public HTTPS join and authenticated guest WebSocket, existing unchanged guest protocol",
+    "initial_agent_mode": "conversation",
+    "initial_computer_control": "broad",
+    "request": "You're the room agent for a spontaneous demo. Ask me one short question to understand what I want to create on this Mac. Do not use tools yet.",
+    "reply": "What would you like to create on this Mac?",
+    "elapsed_ms": 3555,
+    "native_turn_id": "01a14c8a-9cb6-7ac2-915e-03bbfe6d69ea",
+    "same_native_history_verified_by": "Supported app read_thread returned the exact user request and exact final assistant reply from this fixed native thread.",
+    "old_planner_used": false,
+    "tools_or_physical_actions_requested": false,
+    "human_phone_test": {
+      "status": "PASS_TEXT_CONVERSATION",
+      "human_report": "it worked! (there is still no tts) it says Hi what can i help you with",
+      "native_request": "Hey what’s up",
+      "native_reply": "Hey! What can I help you with?",
+      "native_turn_id": "01a14c8c-fbb2-7ef3-802a-49e32cc97630",
+      "additional_same_guest_turns": [
+        "01a14c8d-7a3d-78c2-b887-6f8d37a617dc",
+        "01a14c8d-b533-73a1-a555-64f5022d6c0c"
+      ],
+      "audio_status": "MISSING_AUTOMATIC_RESPONSE_TTS"
+    }
+  },
+  "native_app_visibility": {
+    "status": "UNVERIFIED",
+    "navigation_tool_result": "navigated true",
+    "human_observation": "I don't see it",
+    "writer_observation": "Opening the native chat while the managed connection was disconnected reacquired the app writer; a subsequent managed resume was rejected with -32600. A supported idle archive/unarchive cycle released it before the deployed Brain acquired its persistent connection.",
+    "limitation": "Stored native history is verified. Simultaneous native app rendering and managed conversation control are not established."
+  },
+  "remaining_acceptance": [
+    "Automatic spoken response to an ordinary phone conversation is heard physically.",
+    "Native app visibility and live rendering are confirmed.",
+    "An intended interactive Mac action and enrolled phone action work through this genuine conversation.",
+    "New native control path expiry, cancellation, and reset outcomes are verified beyond source tests.",
+    "Dictated input is confirmed separately from typed input."
+  ],
+  "limits": [
+    "A few text turns and one guest replacement are debugging evidence, not a reliability estimate.",
+    "A local read command and web tools executed; arbitrary application coverage and native enrolled-device tool access remain unproven.",
+    "History reset and interruption do not undo effects already started.",
+    "Native tools do not inherit atomic dispatch authorization from the old device Bus.",
+    "No web files, output device, or volume settings were changed for this rollout."
+  ],
+  "real_guest_isolation": {
+    "status": "PASS_ONE_REAL_REPLACEMENT",
+    "history_check": "Supported app read_thread returned the setup anchor and real phone guest turns, without the earlier synthetic guest turn. Same-thread history was retained for subsequent messages by the real guest.",
+    "prior_guest_initial_state": "released",
+    "prior_guest_request_result": "You're no longer in Room E39D. Scan the room code to join again.",
+    "denied_request_started_native_turn": false,
+    "verification": "A subsequent complete read_thread history contained only the anchor and real phone guest messages, including one interrupted phone turn; the denied old-guest probe was absent."
+  },
+  "native_tool_execution": {
+    "status": "PASS_READ_ONLY_TOOLS",
+    "trigger": "Mm what are the current capabilities",
+    "native_turn_id": "01a14c8d-b533-73a1-a555-64f5022d6c0c",
+    "observed_tools": [
+      {
+        "type": "commandExecution",
+        "operation": "Read the OpenAI Docs skill from this Mac",
+        "status": "completed",
+        "exit_code": 0
+      },
+      {
+        "type": "webSearch",
+        "operation": "Search and open official capabilities documentation"
+      }
+    ],
+    "limit": "This establishes actual tool execution in the shared conversation. It does not establish interactive control of arbitrary apps or enrolled phone/audio tools."
+  }
+}
