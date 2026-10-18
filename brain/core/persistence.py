@@ -1,4 +1,4 @@
-"""Optional atomic persistence of room identity, epoch and enrolled aliases only.
+"""Atomic persistence of room/enrollment identity and bounded host device facts.
 
 Guests, credentials, messages, capabilities and live device state are never saved.
 An invalid existing file is an error, never an invitation to reset authority.
@@ -10,6 +10,7 @@ import re
 import tempfile
 from brain.state import Room
 from brain.core.registry import Registry
+from brain.core.device_metadata import validate_records
 
 
 class RoomStateError(RuntimeError):
@@ -21,7 +22,9 @@ def valid_code(value):
 
 
 def validate(data):
-    if not isinstance(data, dict) or set(data) != {'version', 'room', 'enrollments'} or type(data['version']) is not int or data['version'] != 1:
+    if (not isinstance(data, dict) or type(data.get('version')) is not int or data['version'] not in (1, 2)
+            or set(data) != ({'version', 'room', 'enrollments'} if data['version'] == 1
+                             else {'version', 'room', 'enrollments', 'device_metadata'})):
         raise RoomStateError('Unsupported room state')
     room, enrollments = data['room'], data['enrollments']
     if not isinstance(room, dict) or set(room) != {'id', 'code', 'label', 'epoch'}:
@@ -39,6 +42,11 @@ def validate(data):
             raise RoomStateError('Invalid enrolled device ID')
         if not isinstance(aliases, list) or not 1 <= len(aliases) <= 512 or not all(valid_code(a) for a in aliases):
             raise RoomStateError('Invalid enrollment aliases')
+    if data['version'] == 2:
+        try:
+            validate_records(data['device_metadata'], enrollments)
+        except ValueError as error:
+            raise RoomStateError('Invalid device metadata') from error
     return data
 
 
@@ -59,6 +67,7 @@ class RoomStateStore:
             room = Room(room_data['code'], room_data['label'], epoch=room_data['epoch'], id=room_data['id'])
             registry = Registry(room)
             registry.enrollments = {device_id: set(aliases) for device_id, aliases in data['enrollments'].items()}
+            registry.metadata.records = data.get('device_metadata', {})
         else:
             if not valid_code(default_code):
                 raise RoomStateError('Invalid initial room code')
@@ -70,8 +79,9 @@ class RoomStateStore:
 
     def save_registry(self, registry):
         room = registry.room
-        data = validate({'version': 1, 'room': {'id': room.id, 'code': room.code, 'label': room.label, 'epoch': room.epoch},
-                         'enrollments': {device_id: sorted(aliases) for device_id, aliases in registry.enrollments.items()}})
+        data = validate({'version': 2, 'room': {'id': room.id, 'code': room.code, 'label': room.label, 'epoch': room.epoch},
+                         'enrollments': {device_id: sorted(aliases) for device_id, aliases in registry.enrollments.items()},
+                         'device_metadata': registry.metadata.export()})
         self.path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         temporary = None
         try:

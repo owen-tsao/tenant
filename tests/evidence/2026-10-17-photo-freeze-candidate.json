@@ -1,0 +1,32 @@
+{
+  "owned_sha256": {
+    "brain/core/photos.py": "83bd615a15f490d4c30c7a35d78b0e8f0b7eee773c93628ccb620e29169a494e",
+    "brain/core/photo_image.py": "e6477dc469c85ad70f9d517ea10d83289bd82f327498bc5bf9bb6ea883d58afe",
+    "brain/core/photo_install.py": "aa08ed9e09b061619f8c697fe02fc414593ae472ecfa8a84e541f5d335ce5c0d",
+    "brain/api/photos.py": "5e4b62ba8c75dc11fe46505bbfd9f91f5fe0bea12beb4d484e093989ec41a6e6",
+    "requirements-photo.txt": "053f79eae479c140adf5f2430e8c711253c522b5dd583977c5d7ea58b8ad5d4f",
+    "tests/test_photo_api.py": "a2b8551ead2a96d7a4d3eca12cd9ec4f3e2391e7d1f89af1743df1f5cf568bce",
+    "tests/test_photo_backend.py": "d66e20aaa99e66a9642754979839fa930f7ec5ba990e0d810f6e735e554b7317",
+    "tests/test_photo_image.py": "6af94477274ef90d7614dd71cf5cd40c81f8e552c316812569ec4144c9a9cbab",
+    "tests/test_photo_installer.py": "3b0468fc5eb01dad4794412580d286b8fa158f13b7105b66f5027a13fc12b54d",
+    "tests/test_photo_service.py": "019ba2de0fd916bc8acb4c92649cfedb850d6f6fbd681c84cf721e00de1b2463",
+    "tests/photo_wiring_checks.py": "3945750f2631651c0044ed4634e02335fd3bfac77f936fd196382ffa52f29fd0",
+    "notes/proposed-photo-integration.patch": "6fbe7d2717fcee9abdfb9cedd028b168cac1e5e8db3ec4b7fa6d041fe4975327"
+  },
+  "composed_snapshot_sha256": {
+    "brain/core/integration.py": "83c944ecf358f173ed77d0605c575e764b766106ba3b1ec93f72e1cc5d2260a3",
+    "brain/core/native_devices.py": "5f45b3d1736bedaefb927ee1eec73587e594e5fd0b2137fb3af2b40916f5a91b",
+    "brain/core/bus.py": "601c2c2587a38940f14e3118c34272cc59414703af1999d62d9b0840e71791d0",
+    "brain/core/device_metadata.py": "7b6a4ec48bdffa9a1592b515d75950a476f5026f9901578d5f1d1e834b619ffd",
+    "brain/core/registry.py": "c0a7f260bbad1e3de732d98b2b9d94009428b4d2ac8f5070abffb44ec73b57bf",
+    "brain/core/persistence.py": "bb1f2af07c5aa65c14f85c83054b12e188cd61478f4071edc050945fe0fb3199",
+    "brain/core/room_conversation.py": "92ecdf69ce938d41159e49950be4fdb9bc7c92e3b7d9c7d5f0d3569df7c60687",
+    "brain/main.py": "9e0a32168090bc6ab45ac8197b07bfdbf2f5857be500ea483355792a2e256b18",
+    "brain/ws/devices.py": "8aa6b7d4f7acf0a9d7fad8b94be22e79dc9ce87a46cf23dfeeade904e8e67069",
+    "agent/tenant_device.py": "c242f4df5e9e4da0c0eaf403aea38a427a16b44718146db40bd74970f42ace1d",
+    "tests/test_native_terminal_events.py": "6839097657620cb177a9be42805b8189646300ddf660ec8ecd5a2efa8d0e621a"
+  },
+  "shared_patch_inputs": {
+    "device_awareness_patch": "5bd7798d4915cb266ab7b779c81023a439ade856b3b649c78126e9f5d177c5cf"
+  }
+}

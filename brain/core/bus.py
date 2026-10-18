@@ -46,6 +46,7 @@ class Bus:
         args = copy.deepcopy(args)
         dev = self.registry.devices.get(device_id)
         if not dev or not dev.online: return Result(False, code="OFFLINE", message="Device offline; nothing sent")
+        metadata_revision = self.registry.metadata.revision(device_id)
         sent = False
         expires = asyncio.get_running_loop().time() + timeout
         req = None
@@ -59,6 +60,9 @@ class Bus:
                     spec = dev.caps.get(cap)
                     if not spec: return Result(False, code="UNSUPPORTED", message="Capability absent")
                     if not self.valid_args(spec, args): return Result(False, code="INVALID", message="Invalid arguments")
+                    if (self.registry.metadata.revision(device_id) != metadata_revision
+                            or not self.registry.metadata.available(dev, cap)):
+                        return Result(False, code="PERMISSION", message="Device availability or host policy changed; nothing sent")
                     # Required synchronous dispatch-time policy; no await between check and send initiation.
                     # Guest owner must capture lease identity/scopes/room in this callback.
                     if authorize is None or not authorize(dev, cap, args):

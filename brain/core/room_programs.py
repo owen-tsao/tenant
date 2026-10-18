@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 import math
 import uuid
 from collections import defaultdict
+from brain.core.song_timing import SongTimeline
 
 
 def failure(code, message):
@@ -82,6 +83,10 @@ class Program:
     monitor_task: object = None
     status_dispatch: str | None = None
     cleanup_workers: dict = field(default_factory=dict)
+    song_id: str | None = None
+    song_timeline: object = None
+    audio_metadata_guard: object = None
+    light_metadata_guards: dict = field(default_factory=dict)
 
 
 class RoomPrograms:
@@ -115,11 +120,18 @@ class RoomPrograms:
                 and device.online and device.room_id == self.registry.room.id)
 
     def _status(self, program):
+        song = program.song_timeline
         return {'program_id': program.id, 'state': program.state, 'bpm': program.bpm,
-                'clock': 'backend monotonic; generated audio process launch is the phase reference',
+                'source': 'selected_recording' if program.song_id else 'generated_beat',
+                **({'song_id': program.song_id, 'title': song.recording['title'] if song else None,
+                    'artist': song.recording['artist'] if song else None,
+                    'song_clock': song.status(self.clock()) if song else {'state': 'pending'}} if program.song_id else {}),
+                'clock': ('recording-derived beats mapped from bracketed live audio playhead' if program.song_id else
+                          'backend monotonic; generated audio process launch is the phase reference'),
                 'phase_wall_ms': program.phase_wall_ms, 'audio_device_id': program.audio.id,
                 'light_device_ids': sorted(device_id for device_id, participant in program.participants.items()
                                           if program.active and participant['participant_state'] == 'following'
+                                          and (not song or song.ready(self.clock()))
                                           and device_id not in program.detached),
                 'participants': {device_id: {**participant, 'first_cycle': dict(participant['first_cycle'])}
                                  for device_id, participant in program.participants.items()},
@@ -129,7 +141,9 @@ class RoomPrograms:
                 'missed_ticks': program.missed_ticks,
                 'reason': program.reason, 'cleanup': dict(program.cleanup), 'recovery': dict(program.recovery),
                 'recent_dispatch_timings': list(program.timings[-12:]),
-                'physical_sync_measured': False, 'audio_light_clock_alignment': 'assumed same host clock; optical/acoustic offset unmeasured'}
+                'physical_sync_measured': False, 'audio_light_clock_alignment': (
+                    'live playhead bracket uncertainty reported; optical/acoustic offset unmeasured' if program.song_id else
+                    'assumed same host clock; optical/acoustic offset unmeasured')}
 
     def device_busy(self, device_id):
         program = self._light_owners.get(device_id)
@@ -155,9 +169,12 @@ class RoomPrograms:
         if not self._allowed(owner):
             return {'audio_devices': [], 'programs': []}
         return {'audio_devices': [{'device_id': dev.id, 'label': dev.label, 'online': dev.online,
-                                  'generated_beat': all(cap in dev.caps for cap in ('beat.prepare', 'beat.start', 'beat.stop', 'beat.status'))}
+                                  'generated_beat': all(self.registry.metadata.available(dev, cap) for cap in ('beat.prepare', 'beat.start', 'beat.stop', 'beat.status')),
+                                  'songs': ([{'song_id': identifier, 'label': dev.caps['song.prepare'].description} for identifier in
+                                             dev.caps['song.prepare'].args.get('song_id', {}).get('enum', [])]
+                                            if all(self.registry.metadata.available(dev, 'song.' + name) for name in ('prepare', 'start', 'stop', 'status')) else [])}
                                  for dev in self.registry.devices.values() if dev.room_id == owner.room_id
-                                 and 'beat.start' in dev.caps],
+                                 and (self.registry.metadata.available(dev, 'beat.start') or self.registry.metadata.available(dev, 'song.start'))],
                 'programs': [self._status(p) for p in self.programs.values() if self._same_owner(p.owner, owner)]}
 
     async def dispatch(self, grant, operation, payload, *, authorized=lambda: True):
@@ -185,7 +202,8 @@ class RoomPrograms:
         if not isinstance(payload, dict) or not self._allowed(owner) or not authorized():
             return failure('PERMISSION', 'This turn cannot change a room program.')
         keys = set(payload)
-        start = operation == 'program-start' and keys == {'request_id', 'device_id', 'bpm'}
+        song_start = operation == 'program-start' and keys == {'request_id', 'device_id', 'song_id'}
+        start = operation == 'program-start' and (keys == {'request_id', 'device_id', 'bpm'} or song_start)
         update = (operation == 'program-update' and {'request_id', 'program_id'} < keys
                   and keys <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
                   and ('light_beats_per_state' not in keys or 'light_device_id' in keys))
@@ -206,17 +224,41 @@ class RoomPrograms:
             if program is None or not self._same_owner(program.owner, owner):
                 return failure('PERMISSION', 'This guest does not own that room program.')
             return {'ok': True, 'result': self._status(program)}
+        # Preserve request-time targets through the room-program mutation queue.
+        # Status/stop/detach own fresh cleanup authority, not the old run's fence.
+        targets = set()
+        if start and isinstance(payload.get('device_id'), str):
+            targets.add(payload['device_id'])
+        elif update:
+            prior = self.programs.get(payload.get('program_id')) if isinstance(payload.get('program_id'), str) else None
+            if 'bpm' in payload and prior is not None:
+                targets.add(prior.audio.id)
+            if isinstance(payload.get('light_device_id'), str):
+                targets.add(payload['light_device_id'])
+        metadata_guard = self.registry.metadata.guard(targets)
+        caller_authorized = authorized
+        authorized = lambda: caller_authorized() and metadata_guard()
         async with self._control:
             if not self._allowed(owner) or not authorized():
                 return failure('PERMISSION', 'This turn can no longer change a room program.')
             if start:
                 dev = self.registry.devices.get(payload['device_id']) if isinstance(payload['device_id'], str) else None
-                if dev is None or not self._connection(dev, dev.ws) or not all(cap in dev.caps for cap in ('beat.prepare', 'beat.start', 'beat.stop', 'beat.status')):
-                    return failure('OFFLINE', 'That exact device has no connected generated beat bridge. No alternative was used.')
-                if not all(self.leases.allows(owner.lease, dev, cap) for cap in ('beat.prepare', 'beat.start', 'beat.stop', 'beat.status')):
-                    return failure('PERMISSION', 'This guest cannot start and manage that generated beat.')
-                program = Program('p_' + uuid.uuid4().hex, owner, dev, dev.ws, payload['bpm'])
+                prefix = 'song' if song_start else 'beat'
+                caps = tuple(prefix + '.' + name for name in ('prepare', 'start', 'stop', 'status'))
+                if dev is None or not self._connection(dev, dev.ws) or not all(cap in dev.caps for cap in caps):
+                    return failure('OFFLINE', 'That exact audio bridge is unavailable. No alternative was used.')
+                if not all(self.leases.allows(owner.lease, dev, cap) for cap in caps):
+                    return failure('PERMISSION', 'This guest cannot start and manage that audio source.')
+                if song_start and payload['song_id'] not in dev.caps['song.prepare'].args.get('song_id', {}).get('enum', []):
+                    return failure('INVALID', 'Select an exact available recording from inventory; no substitution was made.')
+                if any(p.audio is dev and (song_start or p.song_id) and
+                       (p.state != 'stopped' or any(v != 'confirmed' for v in p.cleanup.values())) for p in self.programs.values()):
+                    return failure('CONFLICT', 'Stop the existing owned audio before selecting this recording or mixing another clock.')
+                program = Program('p_' + uuid.uuid4().hex, owner, dev, dev.ws, payload.get('bpm', 0),
+                                  song_id=payload.get('song_id'))
                 self.programs[program.id] = program
+                if song_start:
+                    return await self._launch_song(program, authorized)
                 return await self._launch(program, authorized)
             if not isinstance(payload.get('program_id'), str):
                 return failure('INVALID', 'A program ID is required.')
@@ -231,10 +273,12 @@ class RoomPrograms:
                         'result': self._status(program), 'message': 'Future program steps stopped; cleanup status is reported separately.'}
             if program.state != 'running':
                 return failure('STOPPED', 'That program is not running. It was not restarted or replayed.')
+            if program.song_id and 'bpm' in payload:
+                return failure('UNSUPPORTED', 'A recording follows its analyzed beats. Tempo edits require time stretching and are unavailable; no audio changed.')
             cadences = dict(program.light_cadences)
             if isinstance(payload.get('light_device_id'), str):
                 device_id = payload['light_device_id']
-                cadences[device_id] = payload.get('light_beats_per_state', cadences.get(device_id, .5))
+                cadences[device_id] = payload.get('light_beats_per_state', cadences.get(device_id, 1 if program.song_id else .5))
             for cadence in cadences.values():
                 duration = 60 / payload.get('bpm', program.bpm) * cadence
                 now = self.clock()
@@ -299,6 +343,7 @@ class RoomPrograms:
                     program.output_cleanup.pop(('light', dev.id, program.run_id), None)
                     program.cleanup.pop(dev.id, None)
                     program.lights[dev.id] = (dev, dev.ws)
+                    program.light_metadata_guards[dev.id] = self.registry.metadata.guard((dev.id,))
                     program.light_cadences[dev.id] = cadence
                     self._begin_first_cycle(program, dev.id)
                     program.light_tasks[dev.id] = self._task(program, self._light_loop(program, dev, dev.ws))
@@ -308,11 +353,14 @@ class RoomPrograms:
         return await self._await_first_cycles(program, grant, authorized, wait_ids)
 
     def _begin_first_cycle(self, program, device_id):
-        beats_per_state = program.light_cadences.get(device_id, .5)
+        beats_per_state = program.light_cadences.get(device_id, 1 if program.song_id else .5)
         duration_ms = 60 / program.bpm * beats_per_state * 1000
         program.participants[device_id] = {'participant_state': 'pending',
             'light_beats_per_state': beats_per_state, 'on_duration_ms': duration_ms, 'off_duration_ms': duration_ms,
             'first_cycle': {'on_ack': False, 'off_ack': False, 'physical_verified': False}}
+        if program.song_id:
+            program.participants[device_id]['durations_are_estimates'] = True
+            program.participants[device_id]['timing_source'] = 'actual per-beat timestamps, not median BPM'
         program.first_cycles[device_id] = asyncio.get_running_loop().create_future()
 
     async def _await_first_cycles(self, program, grant, authorized, device_ids):
@@ -371,6 +419,7 @@ class RoomPrograms:
         return task
 
     async def _launch(self, program, authorized):
+        program.audio_metadata_guard = self.registry.metadata.guard((program.audio.id,))
         if any(self._light_owners.get(device_id) is not program
                or program.light_locks.get(device_id) is not self.device_locks[device_id]
                or not self.device_locks[device_id].locked() for device_id in program.lights):
@@ -420,21 +469,72 @@ class RoomPrograms:
                 raise
             return failure('UNKNOWN', 'Generated beat outcome is unknown. No automatic replay or substitution.')
 
+    async def _launch_song(self, program, authorized):
+        program.audio_metadata_guard = self.registry.metadata.guard((program.audio.id,))
+        program.run_id = 's_' + uuid.uuid4().hex
+        remaining = max(0, program.owner.lease.expires_at - self.leases.clock())
+        args = {'program_id': program.run_id, 'song_id': program.song_id,
+                'expires_at_ms': (self.wall_clock() + remaining) * 1000}
+        def permitted(dev, cap, _):
+            return (authorized() and self._allowed(program.owner) and dev is program.audio
+                    and self._connection(dev, program.audio_connection)
+                    and self.leases.allows(program.owner.lease, dev, cap))
+        try:
+            result = await self.bus.call(program.audio.id, 'song.prepare', args,
+                                         timeout=self.action_timeout, authorize=permitted)
+            data = result.result if isinstance(result.result, dict) else {}
+            if not result.ok or data.get('program_id') != program.run_id or data.get('state') != 'prepared':
+                self._invalidate(program, result.code or 'FAILED')
+                return failure(result.code or 'FAILED', 'Selected recording preparation was not confirmed. No start was sent.')
+            program.song_timeline = SongTimeline(data.get('recording'))
+            if program.song_timeline.recording['song_id'] != program.song_id:
+                raise ValueError('Selected song identity changed')
+            program.bpm = program.song_timeline.bpm
+            sent = {}
+            result = await self.bus.call(program.audio.id, 'song.start', {'program_id': program.run_id},
+                timeout=self.action_timeout, authorize=permitted,
+                on_dispatch=lambda *_: sent.__setitem__('at', self.clock()))
+            data = result.result if isinstance(result.result, dict) else {}
+            if not result.ok or data.get('program_id') != program.run_id or data.get('state') not in ('playing', 'buffering'):
+                self._invalidate(program, result.code or 'UNKNOWN')
+                return failure(result.code or 'UNKNOWN', 'Selected recording start was not confirmed; it was not repeated.')
+            program.song_timeline.observe(data, sent['at'], self.clock())
+            if not self._allowed(program.owner) or not authorized():
+                self._invalidate(program, 'PERMISSION')
+                return failure('PERMISSION', 'Access ended during song start; owned cleanup is being recorded.')
+            program.active, program.state = True, 'running'
+            program.monitor_task = self._task(program, self._monitor(program))
+            ready = program.song_timeline.ready(self.clock())
+            return {'ok': True, 'complete': ready, **({} if ready else {'code': 'PENDING'}),
+                    'result': self._status(program),
+                    'message': 'Selected recording start accepted. Live playhead/beat estimate status is reported; hearing and physical light alignment remain unverified.'}
+        except BaseException as exc:
+            self._invalidate(program, 'UNKNOWN')
+            if isinstance(exc, asyncio.CancelledError):
+                raise
+            return failure('UNKNOWN', 'Selected recording outcome is unknown; no start replay or substitution.')
+
     async def _monitor(self, program):
-        next_status = self.clock() + 1
+        metadata_guard = program.audio_metadata_guard
+        next_status = self.clock() + (min(.25, program.song_timeline.ttl / 2) if program.song_id else 1)
         try:
             while program.active:
-                if not self._allowed(program.owner) or not self._connection(program.audio, program.audio_connection):
+                if (not metadata_guard() or not self._allowed(program.owner)
+                        or not self._connection(program.audio, program.audio_connection)):
                     self._invalidate(program, 'PERMISSION_OR_OFFLINE')
                     return
                 if self.clock() >= next_status:
                     try:
-                        result = await self.bus.call(program.audio.id, 'beat.status', {'program_id': program.run_id},
+                        dispatched = {}
+                        def status_sent(req, _):
+                            program.status_dispatch = req
+                            dispatched['at'] = self.clock()
+                        result = await self.bus.call(program.audio.id, 'song.status' if program.song_id else 'beat.status', {'program_id': program.run_id},
                             timeout=self.action_timeout,
-                            authorize=lambda dev, cap, _: program.active and self._allowed(program.owner)
+                            authorize=lambda dev, cap, _: metadata_guard() and program.active and self._allowed(program.owner)
                             and dev is program.audio and self._connection(dev, program.audio_connection)
                             and self.leases.allows(program.owner.lease, dev, cap),
-                            on_dispatch=lambda req, _: setattr(program, 'status_dispatch', req))
+                            on_dispatch=status_sent)
                     finally:
                         program.status_dispatch = None
                     if not program.active:
@@ -448,6 +548,17 @@ class RoomPrograms:
                         next_status = self.clock() + .25
                         await self.sleep(.05)
                         continue
+                    if program.song_id and result.ok and data.get('program_id') == program.run_id:
+                        try:
+                            program.song_timeline.observe(data, dispatched['at'], self.clock())
+                        except (ValueError, KeyError):
+                            self._invalidate(program, 'INVALID_SONG_CLOCK')
+                            return
+                        if data.get('state') in ('paused', 'ended'):
+                            self._invalidate(program, 'SONG_' + data['state'].upper())
+                            return
+                        next_status = self.clock() + min(.25, program.song_timeline.ttl / 2)
+                        continue
                     if not result.ok or data.get('program_id') != program.run_id or data.get('state') != 'launched':
                         self._invalidate(program, result.code or 'AUDIO_STOPPED')
                         return
@@ -458,7 +569,120 @@ class RoomPrograms:
         except Exception:
             self._invalidate(program, 'UNKNOWN')
 
+    async def _song_edge(self, program, dev, connection, on, due, deadline, beat_number, discontinuity, metadata_guard):
+        timeline = program.song_timeline
+        dispatched = {}
+        def permitted(current, cap, _):
+            allowed = (metadata_guard() and program.active and self._allowed(program.owner) and dev.id not in program.detached
+                       and self.clock() < deadline and current is dev and self._connection(dev, connection)
+                       and self._light_owners.get(dev.id) is program
+                       and self.leases.allows(program.owner.lease, current, cap)
+                       and (not on or timeline.ready(self.clock()) and timeline.discontinuity == discontinuity))
+            if allowed:
+                dispatched['at'] = self.clock()
+            return allowed
+        try:
+            result = await self.bus.call(dev.id, 'light', {'on': on},
+                timeout=min(self.action_timeout, max(.001, deadline - self.clock())), authorize=permitted,
+                on_dispatch=lambda req, _: program.light_dispatches.__setitem__(dev.id, req))
+        finally:
+            program.light_dispatches.pop(dev.id, None)
+        record = {'device_id': dev.id, 'on': on, 'song_id': program.song_id,
+                  'song_beat_number': beat_number, 'song_time_seconds': timeline.beat_time(beat_number),
+                  'target_monotonic_ms': round(due * 1000, 3),
+                  'dispatch_monotonic_ms': round(dispatched['at'] * 1000, 3) if 'at' in dispatched else None,
+                  'ack_monotonic_ms': round(self.clock() * 1000, 3),
+                  'playhead_uncertainty_ms': round(timeline.sample['uncertainty'] * 1000, 3),
+                  'ack_code': 'OK' if result.ok else result.code, 'req': result.req}
+        program.timings.append(record)
+        del program.timings[:-1000]
+        self.log.append('program', 'A selected recording light timing was recorded.', program_id=program.id, **record)
+        confirmed = result.ok and isinstance(result.result, dict) and result.result.get('on') is on
+        if not confirmed:
+            if on and result.req is None and result.code in ('TIMEOUT', 'PERMISSION'):
+                program.missed_ticks += 1
+                return False  # known unsent: wait for a fresh future beat, never catch up
+            self._invalidate(program, result.code or 'UNKNOWN', dev.id)
+            return False
+        program.last_on[dev.id] = on
+        if program.active and dev.id not in program.detached:
+            participant = program.participants[dev.id]
+            cycle = participant['first_cycle']
+            if on:
+                cycle['on_ack'] = True
+            elif cycle['on_ack']:
+                cycle['off_ack'] = True
+                participant['participant_state'] = 'following'
+                future = program.first_cycles[dev.id]
+                if not future.done():
+                    future.set_result({'ok': True})
+        return True
+
+    async def _song_light_loop(self, program, dev, connection, metadata_guard):
+        timeline = program.song_timeline
+        cadence = program.light_cadences.get(dev.id, 1)
+        try:
+            while program.active and dev.id not in program.detached:
+                if not metadata_guard() or not self._allowed(program.owner):
+                    self._invalidate(program, 'PERMISSION')
+                    return
+                if not timeline.ready(self.clock()):
+                    await self.sleep(.05)
+                    continue
+                cycle = timeline.next_cycle(self.clock(), cadence)
+                number = cycle * 2 * cadence
+                targets = [timeline.due(number + offset * cadence) for offset in (0, 1, 2)]
+                if any(value is None for value in targets):
+                    # The song may have a trailing section without detected beats.
+                    # Stop only this phone; do not fabricate a constant-BPM tail.
+                    self._task(program, self._detach(program, dev.id))
+                    return
+                discontinuity = timeline.discontinuity
+                while self.clock() < targets[0]:
+                    await self.sleep(min(.05, targets[0] - self.clock()))
+                    if not metadata_guard():
+                        self._invalidate(program, 'PERMISSION')
+                        return
+                    if not program.active or dev.id in program.detached:
+                        return
+                    if not timeline.ready(self.clock()) or timeline.discontinuity != discontinuity:
+                        break
+                    targets = [timeline.due(number + offset * cadence) for offset in (0, 1, 2)]
+                if not timeline.ready(self.clock()) or timeline.discontinuity != discontinuity:
+                    continue
+                if self.clock() >= targets[1]:
+                    program.missed_ticks += 1
+                    continue
+                if not await self._song_edge(program, dev, connection, True, targets[0], targets[1], number, discontinuity, metadata_guard):
+                    await self.sleep(.01)
+                    continue
+                # OFF stays available even if the clock becomes stale/seeked.
+                while self.clock() < targets[1] and timeline.discontinuity == discontinuity:
+                    await self.sleep(min(.05, targets[1] - self.clock()))
+                    if not metadata_guard():
+                        self._invalidate(program, 'PERMISSION')
+                        return
+                    if not program.active or dev.id in program.detached:
+                        return
+                if not program.active or dev.id in program.detached:
+                    return
+                due = min(targets[1], self.clock())
+                if not await self._song_edge(program, dev, connection, False, due,
+                    max(targets[2], self.clock() + self.action_timeout), number + cadence, discontinuity, metadata_guard):
+                    return
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            self._invalidate(program, 'UNKNOWN', dev.id)
+
     async def _light_loop(self, program, dev, connection):
+        # Captured synchronously when this participant/run was installed. A
+        # revoke followed by re-enable never resumes an old pulse sequence.
+        audio_guard = program.audio_metadata_guard
+        light_guard = program.light_metadata_guards[dev.id]
+        metadata_guard = lambda: audio_guard() and light_guard()
+        if program.song_id:
+            return await self._song_light_loop(program, dev, connection, metadata_guard)
         audio_period = 60 / program.bpm
         # The existing boolean bridge has measured ACKs up to 197 ms. A 90 BPM
         # quarter pulse allowed only 166.7 ms. The controlled 60 BPM baseline now
@@ -473,7 +697,7 @@ class RoomPrograms:
                     await self.sleep(max(0, due - self.clock()))
                     if dev.id in program.detached:
                         return
-                    if not program.active or not self._allowed(program.owner):
+                    if not metadata_guard() or not program.active or not self._allowed(program.owner):
                         self._invalidate(program, 'PERMISSION')
                         return
                     if self.clock() >= deadline:
@@ -487,7 +711,7 @@ class RoomPrograms:
                     sent = self.clock()
                     dispatch_time = {}
                     def permitted(current, cap, _):
-                        allowed = (program.active and self._allowed(program.owner)
+                        allowed = (metadata_guard() and program.active and self._allowed(program.owner)
                                    and dev.id not in program.detached
                                    and self.clock() < deadline and current is dev
                                    and self._connection(current, connection)
@@ -601,7 +825,7 @@ class RoomPrograms:
     async def _stop_audio_after_status(self, program):
         if program.monitor_task is not None:
             await asyncio.gather(program.monitor_task, return_exceptions=True)
-        await self._stop_output(program, program.audio, program.audio_connection, 'beat.stop', {'program_id': program.run_id},
+        await self._stop_output(program, program.audio, program.audio_connection, 'song.stop' if program.song_id else 'beat.stop', {'program_id': program.run_id},
                                 'audio', lambda data: data.get('program_id') == program.run_id and data.get('stopped') is True)
 
     async def _stop_output(self, program, dev, connection, cap, args, name, confirmed):
@@ -615,11 +839,11 @@ class RoomPrograms:
     async def _stop_once(self, program, dev, connection, cap, args, name, confirmed):
         try:
             result = await self.bus.call(dev.id, cap, args,
-                timeout=self.audio_queue_timeout if cap == 'beat.stop' else self.action_timeout,
+                timeout=self.audio_queue_timeout if cap in ('beat.stop', 'song.stop') else self.action_timeout,
                 authorize=lambda current, *_: self.programs.get(program.id) is program
                 and (not program.active or dev.id in program.detached)
                 and current is dev and self._connection(current, connection)
-                and (cap == 'beat.stop' or self._light_owners.get(dev.id) is program))
+                and (cap in ('beat.stop', 'song.stop') or self._light_owners.get(dev.id) is program))
             data = result.result if isinstance(result.result, dict) else {}
             program.cleanup[name] = 'confirmed' if result.ok and confirmed(data) else 'unknown'
         except (Exception, asyncio.CancelledError):

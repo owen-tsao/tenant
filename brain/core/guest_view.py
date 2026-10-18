@@ -34,6 +34,7 @@ def lease_frame(core, guest_id):
         if device.room_id != current.room_id or not device.online or ambiguous(device):
             continue
         caps = sorted(cap for cap in device.caps if cap in ALLOWED_CAPS
+                      and core.registry.metadata.available(device, cap)
                       and ('*' in current.scopes or cap in current.scopes))
         if caps:
             controls.append({'label': device_label(device), 'caps': caps})

@@ -16,7 +16,7 @@ def invoke(context_path, operation, payload=None):
     if len(encoded) > MAX_BYTES:
         raise ValueError('Request too large')
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
-        timeout = context.get('long_timeout', 122) if operation == 'light-blink' or operation.startswith('program-') else 8
+        timeout = context.get('long_timeout', 122) if operation in ('light-blink', 'photo-capture') or operation.startswith('program-') else 8
         if operation == 'call' and isinstance(payload, dict) and payload.get('cap') == 'say':
             timeout = context.get('speech_timeout', 17)
         if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
@@ -38,7 +38,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description='Use the current Tenant native-turn device grant.')
     parser.add_argument('--context', required=True)
     parser.add_argument('operation', choices=('inventory', 'call', 'light-blink', 'program-start',
-                                             'program-update', 'program-stop', 'program-status', 'reply-voice'))
+                                             'program-update', 'program-stop', 'program-status', 'reply-voice',
+                                             'photo-capture', 'photo-status'))
     args = parser.parse_args(argv)
     try:
         payload = None
@@ -48,6 +49,8 @@ def main(argv=None):
                 raise ValueError('Request too large')
             payload = json.loads(text)
             valid = (isinstance(payload, dict) and (
+                (args.operation == 'photo-capture' and set(payload) == {'request_id', 'source_device_id'}) or
+                (args.operation == 'photo-status' and set(payload) == {'request_id', 'capture_request_id'}) or
                 (args.operation == 'call' and set(payload) == {'request_id', 'device_id', 'cap', 'args'}) or
                 (args.operation == 'light-blink' and {'request_id', 'device_id'} <= set(payload)
                  and set(payload) <= {'request_id', 'device_id', 'count'}) or
@@ -57,7 +60,8 @@ def main(argv=None):
                       or (payload['enabled'] is True
                           and set(payload) == {'request_id', 'enabled', 'device_id', 'speaker_ref'}
                           and isinstance(payload['device_id'], str) and isinstance(payload['speaker_ref'], str)))) or
-                (args.operation == 'program-start' and set(payload) == {'request_id', 'device_id', 'bpm'}) or
+                (args.operation == 'program-start' and set(payload) in (
+                    {'request_id', 'device_id', 'bpm'}, {'request_id', 'device_id', 'song_id'})) or
                 (args.operation == 'program-update' and {'request_id', 'program_id'} < set(payload)
                  and set(payload) <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
                  and ('light_beats_per_state' not in payload or 'light_device_id' in payload)) or

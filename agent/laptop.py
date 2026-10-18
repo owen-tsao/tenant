@@ -15,8 +15,10 @@ import time
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 if __package__:
     from .beat_audio import BeatAudio, BeatError, capabilities as beat_capabilities
+    from .song_audio import SongAudio, SongError
 else:
     from beat_audio import BeatAudio, BeatError, capabilities as beat_capabilities
+    from song_audio import SongAudio, SongError
 
 
 class AudioError(Exception):
@@ -29,6 +31,7 @@ class AudioError(Exception):
 class Config:
     playlist: str | None = None
     app_path: str = "/System/Applications/Music.app"
+    song_manifest: str | None = None
 
 
 # Values are passed as argv, never interpolated into executable AppleScript.
@@ -79,12 +82,13 @@ end run'''
 class AudioDispatcher:
     """Inject runner/system/exists for deterministic tests; no effects on import."""
     def __init__(self, config: Config | None = None, *, runner=subprocess.run,
-                 system=platform.system, exists=lambda p: Path(p).exists(), beats=None):
+                 system=platform.system, exists=lambda p: Path(p).exists(), beats=None, songs=None):
         self.config = config or Config()
         self.runner, self.exists = runner, exists
         self.is_mac = (system() if callable(system) else system) == "Darwin"
         self.music_ready = False
         self.beats = beats if beats is not None else BeatAudio()
+        self.songs = songs if songs is not None else SongAudio(self.config.song_manifest)
         self.discovery_error = "Set TENANT_MUSIC_PLAYLIST to a playlist containing downloaded local audio."
 
     def _run(self, argv, timeout, *, input=None):
@@ -128,6 +132,7 @@ class AudioDispatcher:
             caps["say"] = {"description": "Speak a short phrase through the Mac's current audio output.", "args": {"text": {"type": "string", "maxLength": 160}}}
         if self.exists('/usr/bin/afplay'):
             caps.update(beat_capabilities())
+        caps.update(self.songs.capabilities())
         if self.music_ready:
             caps["music.play"] = {"description": "Play the first downloaded local track in the prepared room playlist; no streaming or arbitrary search.", "args": {}}
             caps["music.pause"] = {"description": "Pause Music on this Mac.", "args": {}}
@@ -142,6 +147,11 @@ class AudioDispatcher:
             try:
                 return self.beats.dispatch(cap, args, timeout)
             except BeatError as exc:
+                raise AudioError(exc.code, exc.message) from None
+        if cap.startswith('song.'):
+            try:
+                return self.songs.dispatch(cap, args, timeout)
+            except SongError as exc:
                 raise AudioError(exc.code, exc.message) from None
         if cap == "volume":
             level = args.get("level")
@@ -199,7 +209,10 @@ class AudioDispatcher:
         return {"state": state.lower(), "audible_verified": False}
 
     def stop_programs(self):
-        return self.beats.close()
+        try:
+            return self.beats.close()
+        finally:
+            self.songs.stop_all()
 
 
 class DeviceAgent:
@@ -352,7 +365,9 @@ async def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="Probe local capabilities without connecting or playing audio")
     options = parser.parse_args()
-    dispatcher = AudioDispatcher(Config(playlist=os.environ.get("TENANT_MUSIC_PLAYLIST")))
+    default_song = Path(__file__).resolve().parents[1] / '.venv/song-assets/cyanide/song.json'
+    dispatcher = AudioDispatcher(Config(playlist=os.environ.get("TENANT_MUSIC_PLAYLIST"),
+        song_manifest=os.environ.get('TENANT_SONG_MANIFEST', str(default_song))))
     caps = await asyncio.to_thread(dispatcher.discover)
     print(json.dumps({"caps": caps, "music_note": dispatcher.discovery_error if not dispatcher.music_ready else "Prepared local playlist ready; audibility unverified."}))
     if options.check:

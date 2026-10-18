@@ -12,6 +12,7 @@ from brain.core.agent import Agent
 from brain.core.leases import Leases
 from brain.core.log import EventLog
 from brain.core.copy import confirmed_sentence, failure_sentence
+from brain.core.conversation_results import TerminalFailure, TerminalFailureFrames
 
 
 class Core:
@@ -19,6 +20,8 @@ class Core:
         self.registry = app.state.registry
         self.bus = app.state.bus
         self.config = app.state.config
+        self.registry.metadata.configure_private_values((self.config.host_token, self.config.device_token,
+                                                         os.getenv('PHOTON_API_KEY', '')))
         self.leases = Leases(self.registry.room, clock=clock, on_change=self.registry.persist,
                              healthy=lambda: self.registry.persistence_healthy)
         self.log = EventLog(log_path, clock=clock)
@@ -95,6 +98,7 @@ class Core:
 
     def sweep(self):
         self.leases.sweep()
+        self.photos.sweep()
         if hasattr(self.agent, 'check_access'):
             self.agent.check_access()
         # Credentials/tombstones last through the original cookie lifetime only.
@@ -120,8 +124,7 @@ class Core:
         return {'type': 'state',
                 'room': {'code': room.code, 'label': room.label,
                          'join_url': self.config.public_url.rstrip('/') + '/j/' + room.code},
-                'devices': [{'id': d.id, 'label': d.label, 'caps': list(d.caps), 'online': d.online, 'busy': d.busy}
-                            for d in self.registry.devices.values() if d.room_id == room.id],
+                'devices': self.registry.metadata.public_devices(),
                 'guests': [{'guest_id': lease.guest_id, 'display_name': lease.display_name,
                             'channel': lease.channel,
                             'lease_total': lease.joining_total if lease.state == 'joining' else lease.access_total,
@@ -136,15 +139,27 @@ class Core:
     def published_reply(self, guest_id, frames, text):
         """Called after transport acceptance; receipts/private native history stay internal."""
         receipt = getattr(frames, 'completed_reply', None)
-        if (receipt is None or receipt.guest_id != guest_id or receipt.text != text
-                or not self.agent.allows_reply(receipt)):
+        if receipt is not None:
+            if (receipt.guest_id != guest_id or receipt.text != text or not self.agent.allows_reply(receipt)):
+                return
+            publication = (receipt.generation, receipt.thread_id, receipt.turn_id)
+        elif isinstance(frames, TerminalFailureFrames):
+            receipt = frames.terminal_failure
+            authorize = getattr(self.agent, 'allows_terminal_failure', lambda _: False)
+            if (not isinstance(receipt, TerminalFailure) or receipt.guest_id != guest_id
+                    or receipt.text != text or not authorize(receipt)):
+                return
+            publication = ('terminal_failure', receipt.generation, receipt.thread_id, receipt.turn_id)
+        else:
             return
         self.leases.record_public(receipt.lease, 'room', text,
-                                  publication=(receipt.generation, receipt.thread_id, receipt.turn_id))
+                                  publication=publication)
 
     async def host_do(self, body):
         if not isinstance(body, dict) or not isinstance(body.get('device_id'), str) or not isinstance(body.get('cap'), str):
             raise HTTPException(400, 'Expected device_id, cap, args')
+        if body['cap'] == 'camera.capture':
+            raise HTTPException(403, 'Use the authorized room photo workflow for capture')
         # Keep the acknowledged connection's label even if its ID reconnects
         # while the bus is awaiting the reply.
         dev = self.registry.devices.get(body['device_id'])
@@ -159,6 +174,7 @@ class Core:
 
     def revoke(self, guest_id, *, actor='host'):
         revoked = self.leases.revoke(guest_id)
+        self.photos.invalidate_guest(guest_id)
         self.agent.pending.pop(guest_id, None)
         if hasattr(self.agent, 'access_ended'):
             self.agent.access_ended(guest_id)
@@ -170,6 +186,7 @@ class Core:
     async def reset(self):
         # No await before revocation/invitation rotation. Do not cancel an already sent physical command.
         revoked = self.leases.reset()
+        self.photos.reset()  # Synchronous clear before any awaited cleanup.
         self.agent.pending.clear()
         self.log.clear()
         self.log.append('guest.leave', 'The host ended all guest access and refreshed the room invitation.')
@@ -217,8 +234,11 @@ def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=N
     from brain.api.host import router as host_router
     from brain.channels.webchat import router as guest_router
     from brain.ws.display import router as display_router
+    from brain.api.device_metadata import router as metadata_router
     core = Core(app, planner, clock=clock, log_path=log_path, cleanup_hook=cleanup_hook, conversation=conversation, photon_factory=photon_factory)
     app.state.core = core
+    from brain.core.photo_install import install_photos
+    install_photos(app, core)
     previous_lifespan = app.router.lifespan_context
 
     @asynccontextmanager
@@ -239,6 +259,7 @@ def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=N
                     task.cancel()
                     with suppress(asyncio.CancelledError):
                         await task
+                core.photos.close()
                 if core.photon is not None:
                     with suppress(Exception):
                         await core.photon.close()
@@ -247,6 +268,6 @@ def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=N
                         await core.agent.close()
 
     app.router.lifespan_context = lifespan
-    for router in (join_router, host_router, guest_router, display_router):
+    for router in (join_router, host_router, guest_router, display_router, metadata_router):
         app.include_router(router)
     return core

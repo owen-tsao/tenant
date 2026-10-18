@@ -1,5 +1,17 @@
 # Tenant scope and channel alignment
 
+## Current policy — software checks resumed; live gate held
+
+Jay permits implementation and software unit/component/isolated integration checks using fakes, temporary files and stubbed model/device transports. End-to-end/live trials, public UI/chat, actual models/camera/devices/outputs, deployed-service experiments, restarts and deployment remain PAUSED. Root holds the live gate. Earlier all-testing-paused sections below are historical and superseded by this policy. No staging/commits while sharing checkout.
+
+## Current override — photo implementation authorized; testing paused
+
+Jay authorized this specific photo backend/UI feature for parallel implementation, superseding older photo-planning gates below. Backend modules/routes are implemented separately; central device/native/lifecycle integration and Owen UI remain pending. Physical release is unaccepted. Exact source/evidence/progress: notes/photo-handoff.md.
+
+Jay has paused ALL automated/live/UI/device/audio testing, new test cases, retries, restarts and deployment until he resumes. Local photo agents notified; no active test/output/guest or cleanup from this owner. Most recent completed component checks passed before pause; final integration review/checks remain pending. No staging/commits or shared central-file edits by photo owner.
+
+Initiative decision is accepted: context-appropriate concrete suggestion or capability notice, with demo leaning concrete. Suggested actions await yes; discovery authorizes neither effects nor speech. No fixed two-minute/two-per-guest rule approved. Central suggestion coordination stays with Root.
+
 Local planning update: October 17, 2026, 19:58 PT. Source inspected: `f228b39963958bc2911b13f8e933ae5aeb4d800d`. Evidence below is attributed to Root/notes; planning did not rerun source or live checks.
 
 ## Settled direction and ownership
@@ -44,6 +56,8 @@ Local planning update: October 17, 2026, 19:58 PT. Source inspected: `f228b39963
 **Gate opening:** photo/perception/proactive features remain closed. Music is authorized and belongs to Audio; physical synchronization and expiry limits stay explicit. No approval or question is being sent to Jay by planning.
 
 ## Preserved idea stock
+
+Direct Jay update, October 17, 20:13 PT: prioritize a room that grows through discovered devices and AI coordination; add selective suggestions generated internally and surfaced only after useful criteria pass; extend the photo finale with an explicit request to show the same image through the Mac on its connected projector. Detailed bounded proposal is in planning-local.md. Suggestions do not perform effects; projector discovery/routing and physical output remain unverified. Photo/proactive implementation gates stay closed. No new human checklist or live test is initiated.
 
 All demo candidates remain in demo-ideas.md: impromptu vocal beat → ongoing computer sound → phone light joins → optional already-available projector visual; useful computer/room conversation; bounded room controls and access ending; explicit alternatives when a device disappears; light plus short speech; deferred join-welcome rules, camera/perception and guest-supplied agents; interactive demos, marketing and live talks; final team+judges whiteboard photo from room phone appearing on Mac. A rehearsal, clean test count or tool inventory cannot prove unfinished pieces.
 

@@ -1,0 +1,268 @@
+{
+  "composition_inputs": {
+    "device_awareness_patch": {
+      "applied": true,
+      "path": "notes/proposed-device-awareness-wiring.patch",
+      "sha256": "1dc18d54e98ad62fdbef00e1e049f4f922ae7c32aa01b6e281ae53519df00df3"
+    },
+    "frozen_owner_implementations_preserved": [
+      "Selected song driver, preparation, timeline, programs and helper/CLI behavior",
+      "Device identity, revision guards, persistence and metadata policy",
+      "Photo service, image normalization, HTTP router and actual installer callback",
+      "Native terminal transport and stale approval refusal",
+      "Photon successful completion gate and completion-only speech"
+    ],
+    "owner_handoffs": [
+      "notes/audio-local.md",
+      "notes/device-runtime.md",
+      "notes/photo-handoff.md",
+      "notes/tester.md",
+      "notes/photon-status.md"
+    ],
+    "photo_patch": {
+      "applied": true,
+      "path": "notes/proposed-photo-integration.patch",
+      "sha256": "6fbe7d2717fcee9abdfb9cedd028b168cac1e5e8db3ec4b7fa6d041fe4975327"
+    },
+    "withdrawn_photo_readiness_patch_applied": false
+  },
+  "independent_review": {
+    "checks": [
+      "Independently recomputed shared and copied-snapshot software maps with zero mismatches",
+      "Public evidence map and PCM fixture match frozen snapshot",
+      "Fifth queued-photo boundary regression hash869f5153 matches",
+      "Diff whitespace check clean",
+      "Composed metadata/photo queue and typed terminal-feedback source fences have no remaining blocker"
+    ],
+    "live_actions_performed": false,
+    "reviewer": "access_contract_review",
+    "status": "FINAL_SCOPED_SOFTWARE_PASS",
+    "test_result_attribution": "761 Python and 12 Node checks were run once by central integration against the frozen snapshot; reviewer did not repeat broad tests.",
+    "verified_software_files": 103,
+    "verified_software_map_sha256": "6400bb3a79472bed2498687962d3acee4b37a52bee974d61110f401c60853bac"
+  },
+  "local_date": "2026-10-17",
+  "new_cross_feature_coverage": {
+    "behaviors": [
+      "Synchronous revoke fences a running selected song and sent pending photo including late upload/ACK",
+      "Photo UNKNOWN prevents later same-phone song attachment after late ACK",
+      "Program-phone UNKNOWN prevents later photo after late ACK",
+      "Photo queued before metadata deny/reenable remains denied",
+      "Photo admitted before light UNKNOWN remains denied after Bus late-ACK resolution"
+    ],
+    "checks": 5,
+    "file": "tests/test_composed_software_boundaries.py"
+  },
+  "publication": "No stage, commit, push, deployment, restart, live request, model call or physical effect performed by this central integration loop. Root alone reviews and publishes.",
+  "resolved_failure_history": [
+    {
+      "change": "Include exact source_device_id in immutable admission metadata snapshot.",
+      "evidence": "Disposable composed test recorded one camera frame before correction.",
+      "finding": "Photo source_device_id omitted from pre-ledger-lock metadata snapshot. Host deny then reenable while queued could revive an old camera request.",
+      "regression": "Queued photo across deny/reenable is PERMISSION with zero frames."
+    },
+    {
+      "change": "Photo dispatch_allowed checks source device not in turn unknown_devices after waits and at dispatch.",
+      "evidence": "Read-only reviewer fake composition reproduced sent_caps light,camera.capture with turn UNKNOWN latch still set.",
+      "finding": "Already-admitted queued photo could dispatch after same-phone light became UNKNOWN and late ACK cleared Bus uncertainty.",
+      "regression": "Queued camera is PERMISSION/sent:false; only the light frame exists after late ACK."
+    },
+    {
+      "change": "Use current frozen fixture; keep production stale-approval rejection unchanged.",
+      "evidence": "Old fixture revision 68390976 reproduced one expected-success mismatch; current tester revision 2c1dc62d passes twenty dedicated fake checks with separate clean/stale schedules.",
+      "finding": "Retained photo snapshot expected fresh success after injecting a stale prior-turn approval.",
+      "limitation": "No inference about live Batch3 pending or interruption cause."
+    }
+  ],
+  "runs": [
+    {
+      "command": "python -m unittest discover -s tests -p 'test_*.py'",
+      "failed": 0,
+      "passed": 738,
+      "seconds": 32.338,
+      "skipped": 0
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'device_metadata_*checks.py'",
+      "failed": 0,
+      "passed": 16,
+      "reason": "Explicit filenames lie outside canonical test_*.py discovery.",
+      "seconds": 0.436,
+      "skipped": 0
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'photo_wiring_checks.py'",
+      "failed": 0,
+      "passed": 7,
+      "reason": "Explicit filename lies outside canonical test_*.py discovery.",
+      "seconds": 0.1,
+      "skipped": 0
+    },
+    {
+      "command": "node --test tests/*.test.cjs",
+      "failed": 0,
+      "passed": 12,
+      "seconds": 2.281,
+      "skipped": 0
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Unit/component and isolated fake integration only; all live/E2E/public UI/real model/device/player/audio/photo tests and deployment/restarts remain paused.",
+  "source": {
+    "base_head": "3239c1a15324f68bb22349add07e27ab6d76334a",
+    "fixture_files": {
+      "tests/fixtures/say-pcm-bei16.aiff": "328af174874fd08b2552842389ffdbfe57933d4843997b37fea03b8dbdb57e0b"
+    },
+    "map_digest_format": "SHA256 of UTF-8 json.dumps(software_files, sort_keys=True, separators=(comma, colon))",
+    "shared_source_matched_snapshot_after_tests": true,
+    "software_file_count": 103,
+    "software_files": {
+      "agent/beat_audio.py": "9bbcadf7d0c1d3ef650ddd55c2b759b649aa61ff042f78ec049cfd6354872de4",
+      "agent/laptop.py": "025326471483d3aee81e341b2c0efb23ecad7aae851c9358469702bbab919aeb",
+      "agent/prepare_song.py": "962c911f3d9bbcbc889596458747a577f4cadf21426edfee38d174bd0f139456",
+      "agent/room_session.py": "d41c40dd231c5d8f50a052c47f4d2985c231723e299c1e908729fe59ad89ca95",
+      "agent/song_audio.py": "d3d6c15d9195d55aa1000ac7bf3943e5fb27755b327704596bb4f2102887af88",
+      "agent/tenant_device.py": "c242f4df5e9e4da0c0eaf403aea38a427a16b44718146db40bd74970f42ace1d",
+      "brain/api/device_metadata.py": "f13af289fc63494805c764ab0c7e290a83e15ccdb9ca561a402f4e0cddb2f17b",
+      "brain/api/host.py": "dda09e0918386cd84e5de68ab3a4e35bb901985a8960a7fe68020afe528ead00",
+      "brain/api/join.py": "c89997f6da9e084d0ec7e4cfc23a94a2800a2e83e28771432cc048eff65ca3f4",
+      "brain/api/photos.py": "5e4b62ba8c75dc11fe46505bbfd9f91f5fe0bea12beb4d484e093989ec41a6e6",
+      "brain/channels/photon.py": "b14a991215249efe17766ac583187b4b62d557bd3b3ff0638e8a2f803c8f46c8",
+      "brain/channels/webchat.py": "e6efed70d9c593fe0a0a79bde56a75a5f9f66843160c922c8641e4cc94fff2ae",
+      "brain/config.py": "c3ce8a85658ad9a30cfd7ae7ef7e5456a994553a28689755ecdfbc06c76d0d38",
+      "brain/core/agent.py": "d79a69db491e1f7da923d2eebae3a2ad03b9b266cc7e3493121f65f8ddfa03b5",
+      "brain/core/bus.py": "601c2c2587a38940f14e3118c34272cc59414703af1999d62d9b0840e71791d0",
+      "brain/core/conversation_results.py": "8ed54082716498d7af604c0191754a0d06f24f452045ff8b048f192dd770fcd8",
+      "brain/core/conversation_speech.py": "d2ce964f6061fd38ce12caff0e0320f8cbcf93ec2e78618cfc10f1584417ca82",
+      "brain/core/copy.py": "fc49bcdb2eda6745ee38f9d294bbcbac3e0969a592c9e5afb420d408a6ab3898",
+      "brain/core/device_metadata.py": "7b6a4ec48bdffa9a1592b515d75950a476f5026f9901578d5f1d1e834b619ffd",
+      "brain/core/guest_view.py": "a59bb7ecd366fe421fa511f5ac6d08ae2fc96891dbab2be9fe9c0b16038a5cc6",
+      "brain/core/integration.py": "3f5561a3a1592311654f5b3a45145f9bf25721150691d70e05e3ec3b1f8e0f58",
+      "brain/core/leases.py": "fb83bba8e4b1b1123937df057c293f71e4fffef9c59c1df53abfedd100facf5a",
+      "brain/core/log.py": "362d952539ff9a9800af6b0b96c9dfe80c2ff1a027d48d2743bd2a70ce45ff59",
+      "brain/core/native_devices.py": "53773242371ae6f1782d5676cbe5ed51fbe9116eb3266b8b6a59efebc11d28e0",
+      "brain/core/persistence.py": "bb1f2af07c5aa65c14f85c83054b12e188cd61478f4071edc050945fe0fb3199",
+      "brain/core/photo_image.py": "e6477dc469c85ad70f9d517ea10d83289bd82f327498bc5bf9bb6ea883d58afe",
+      "brain/core/photo_install.py": "aa08ed9e09b061619f8c697fe02fc414593ae472ecfa8a84e541f5d335ce5c0d",
+      "brain/core/photos.py": "83bd615a15f490d4c30c7a35d78b0e8f0b7eee773c93628ccb620e29169a494e",
+      "brain/core/planner.py": "a7bb9bd83ea5255723de03983fdd8e69547af3282fee1b4f0b8cf4349ee0fb33",
+      "brain/core/registry.py": "c0a7f260bbad1e3de732d98b2b9d94009428b4d2ac8f5070abffb44ec73b57bf",
+      "brain/core/retirement.py": "f96a86f91732de902291ef58d445f86f330b29052c9526dfc6891343042c156a",
+      "brain/core/room_conversation.py": "cd1abba10a4f251f1f0e328bfc83d8da926b57ffe9dc90304dea54ccd3309af5",
+      "brain/core/room_programs.py": "59c6ec3921db37b36bf52c4616e5aa92b6409f840104276c70cf063e41646f82",
+      "brain/core/room_setup.py": "1fefba1ba853e88899b86f26ff89153cec1165117750a25592222f91a0318f77",
+      "brain/core/song_timing.py": "7e63248b4008363e246291e8684aba51fe000dd9fa2f105ba0c448da571e6814",
+      "brain/core/tools.py": "962fc34388ae05716aabe7122a6150c77deb441f2492d97fe3f18118fdce596a",
+      "brain/main.py": "9e0a32168090bc6ab45ac8197b07bfdbf2f5857be500ea483355792a2e256b18",
+      "brain/state.py": "49325832ecf376c7b8db2064d30df08b644770d261bf8c8b316cc35b605be863",
+      "brain/ws/devices.py": "8aa6b7d4f7acf0a9d7fad8b94be22e79dc9ce87a46cf23dfeeade904e8e67069",
+      "brain/ws/display.py": "05bfc22db834b7ac597a3140224d0707f22b0dd9888525e42d5b85a889c65c8b",
+      "requirements-photo.txt": "053f79eae479c140adf5f2430e8c711253c522b5dd583977c5d7ea58b8ad5d4f",
+      "requirements-song-analysis.txt": "9e55a6c5d24863d72c3b4d374caa4d9c620e7ac96698dcfe20b5d68f2fefa70a",
+      "requirements.txt": "e065a44eb3c25f2c9f28e5b997bacaacf30434ead22fc7098ea519c3974194ac",
+      "scripts/prepare_demo_audio.py": "93002fa0ed5472212b07bbba50a2cb67b1bd1cd2930b8e8b154865721853d907",
+      "scripts/runtime.py": "5494e2f2b8af8c0b67a184647a627222e145610b43a90461bb5f7be043fb86f3",
+      "spikes/codex_planner/check.py": "3be8e2d8e1e32cdfb89da203954df1bcf4510f6dc45bf8e752d27637474ad5d9",
+      "spikes/photon/test.py": "1cfa28c6a2f9c60cd90d675c120ba67ce2b044733daef56e6f512e014fdf753d",
+      "spikes/reproduce/reproduce.py": "2c0193a1179b40a423fd264750e2bdea961cbf8fc135e9e44d4b87767ed33ad8",
+      "spikes/reproduce/reproduce_ml.py": "c1f4487c3b23f73df9db5351970191d0ad165441848501ad82da714c35cd4af7",
+      "tests/device-runtime.test.cjs": "0d0edec4f531f6da0b9722a4790b3c76ed96dd7e7f86478ec547c73de91684e3",
+      "tests/device_metadata_queue_checks.py": "deecdda453da0d5b8d321f2eb55ffa4757df7c102169a859a9f4db182cb844a3",
+      "tests/device_metadata_wiring_checks.py": "452ea2c74b99e99cb077b9afcc00d89c61f43d29d169c3d941dd92ccb2971693",
+      "tests/photo_wiring_checks.py": "3945750f2631651c0044ed4634e02335fd3bfac77f936fd196382ffa52f29fd0",
+      "tests/test_access_core.py": "3b3933e029836e53f33a13acceabcb9e0564aac65c407e2a50fa8531f9279cc0",
+      "tests/test_access_persistence.py": "912f766583d3c47233a856c69fa2f20f535c1e3ca93f4be14e1bee576cb319c9",
+      "tests/test_app_integration.py": "50b627c8d83f2488f324dcaa01133962c437e4c657a4117bbebf29d9d996e5d9",
+      "tests/test_beat_audio.py": "dfbf8f65578713016a10458023d6a31fb48ce10eb71d2b40896d1b776f96c1bc",
+      "tests/test_bus_dispatch.py": "e4427292886c0291e11b0c08d4ec112ed9f21f6bad57edc44da7871b4743f11b",
+      "tests/test_composed_software_boundaries.py": "869f51531c2498930484e39389c44424934ef94cd7cf51824868ce65e1249e8c",
+      "tests/test_conversation_speech.py": "c0bb623d444199daac6c14832478d05577166b89f504865cd307e5c34892c5af",
+      "tests/test_device_metadata.py": "31fb26f2f896ee622b6d48fde86060fb0a75f89fd66681fc19a8d8c22d428039",
+      "tests/test_device_retirement.py": "4abbc604945a9d065e44e0806f2f1acd071b19df48d13b66dd07f7204407be65",
+      "tests/test_display_projection.py": "d150dde16b37a784795f29b9901563495bf606a21b8e32e5dcf8ebe376d0ae69",
+      "tests/test_guest_view.py": "20bb617c748d588dd22db7131f6715a293fcc30f65e5bdffe3458ea57c4b78ea",
+      "tests/test_laptop_audio.py": "2050abce8a69f7d8034268007a159b981adb0f58ed3292068813a98f3847c33a",
+      "tests/test_native_blink.py": "3ca632519f20c0de3faebca562ae3d3d39ec485727fee6e231d2ec0aa60e82a8",
+      "tests/test_native_devices.py": "e5df356f251ce579804589f584c0d0f4592ae9b0f4bd5476004e6ae29fdb6c9b",
+      "tests/test_native_terminal_events.py": "2c1dc62d47a3059e27362a96fc862329f86e8c0c598694ae877ea0236d9bb2c3",
+      "tests/test_photo_api.py": "a2b8551ead2a96d7a4d3eca12cd9ec4f3e2391e7d1f89af1743df1f5cf568bce",
+      "tests/test_photo_backend.py": "d66e20aaa99e66a9642754979839fa930f7ec5ba990e0d810f6e735e554b7317",
+      "tests/test_photo_image.py": "6af94477274ef90d7614dd71cf5cd40c81f8e552c316812569ec4144c9a9cbab",
+      "tests/test_photo_installer.py": "3b0468fc5eb01dad4794412580d286b8fa158f13b7105b66f5027a13fc12b54d",
+      "tests/test_photo_service.py": "019ba2de0fd916bc8acb4c92649cfedb850d6f6fbd681c84cf721e00de1b2463",
+      "tests/test_photon.py": "15d58b9bd355beabe994dcc59fafdcb3b78147943a9d9d1efcbc04861b44548f",
+      "tests/test_photon_terminal_failures.py": "188ecec607523bb98612b032685b29e25655d0f9686d7070b0e677ab60f7e299",
+      "tests/test_planner.py": "54e8657ad52cadc6b972438fff69717204c4cf3fc7091edb4e8b93d849998a6b",
+      "tests/test_reply_voice_acceptance.py": "73a5f6583cc5c8229395f061a5bfa777229f930e19eb9edf7c7b7f4e578acda1",
+      "tests/test_reply_voice_helper.py": "29b2a6fdfe551cfd4830f28629cd79e84a0ff75c0ba8a4d514a8d4ae2e122b15",
+      "tests/test_reply_voice_policy.py": "12c3f41ebe42627721a11e0270ae90f8d7f51df4d7afaa0b74867629922952e7",
+      "tests/test_room_cleanup.py": "663ee135c88ebf1525b38deae3991625d0156e5bf2906d490ddf77c6caa10c08",
+      "tests/test_room_conversation.py": "a7f6c8ce50fae6c0f2710ba601461cf2384057ee6cf52e99019f6397d22ff789",
+      "tests/test_room_copy.py": "c24cfb1f0cc41002b0a94579b8c790fee904e8057447359b69e12d2012b16196",
+      "tests/test_room_program_integration.py": "29f3e1412ca687a261d1d38fc2c8648c1eb6b4e77141b7a8936d167600222f21",
+      "tests/test_room_program_races.py": "a223fc841dab0bd83cb81a3aff997a19f158d323db43bd57b98913158f3f9d25",
+      "tests/test_room_program_stop.py": "c2e33a30ce245e6adb49cf8ac4edc057899fc84a03826321008fe04cc4be671f",
+      "tests/test_room_program_sync.py": "507bc8d0bbaff65a159eba41bce802f18ce2250ccb64c1a234374755efe956da",
+      "tests/test_room_programs.py": "df4569e506b243711c6e1d323b8d88c582131e94545b341dae8d9f4bd04a0e83",
+      "tests/test_room_session.py": "f6057f43b614a56d0b9cf32e618f6c13591c2072a22c1883d2e41c5e60732585",
+      "tests/test_room_setup.py": "8a58da72303ce57e39c3e729c4b13854dd7820c299758534e30665944cda7f40",
+      "tests/test_runtime.py": "3a4ec7f45a3e22f58d96ac0c9346ed5af9e3a073ce3a19154538b9c108bc638d",
+      "tests/test_runtime_services.py": "c5770de44a5b43674afc085afb6b2f003827972b140cfbb924b3db5559dcee3c",
+      "tests/test_song_audio.py": "47ccd9109a136bf04a880591fc7b4aee26732df97c849259bf7c350e677c7e7f",
+      "tests/test_song_programs.py": "e17f387429c95c774b89c9d3930e066be55e4e62721b9dba39dd1d1615c89826",
+      "tests/test_song_timing.py": "55628962438d669e78af79b7181b8dd518b1143de27474fbb83ded4cf81e42d2",
+      "tests/test_terminal_failure_receipts.py": "fb11fe86e760b47bea42aa5f81135066091ef4dea622fc79d2a64430ba34571f",
+      "web/device.html": "0d51881aeaa511eb5cb63c0ddb22db9ae810d8d4eb6432a0fba37519ca035862",
+      "web/display.html": "3260f8533ca82cd76d518100909ace0d003eb99582e45cf093fae8d255e0a6b8",
+      "web/guest.html": "355a87718103535cfe73cd6ebcba495233b171e4c8eb856556d326175d733afe",
+      "web/index.html": "bdc6c7947a64dce3d40c4bbeecfac8356c6fc7ab70d55dced37c024c34cffa8f",
+      "web/join.html": "f1266c9f1820c3694944a47ff46c090f7d8fa0690de63cda00ee24cb03023291",
+      "web/setup.html": "e20ea9858b3f5f266cbcb082e0a94e1c27c8d6930a95e3a16ea201fbae592411",
+      "web/shared.js": "a90d4df4fa77ecbb9d597d8963fde3f8f8fc2b05d0663548a84bbc6adf513398",
+      "web/tenant.css": "e94fe5097f916f9b1829593c5e8eceffe822321e1919e093ff51a9659a9df7dc"
+    },
+    "software_map_sha256": "6400bb3a79472bed2498687962d3acee4b37a52bee974d61110f401c60853bac",
+    "web_and_project_sources_edited": false
+  },
+  "status": "SOFTWARE_PASS",
+  "terminal_feedback_contract": {
+    "authority": "Exact issued receipt object plus current exact lease/controller/generation/thread/actual turn/computer scopes; stopped access is denied. Device-control failure latch remains closed.",
+    "excluded": [
+      "Early preflight validation",
+      "Start with no confirmed actual turn identity",
+      "Generic exception or cancellation",
+      "Revoked/expired/superseded controller",
+      "Raw provider errors or partial model text"
+    ],
+    "issued_by": "Actual native terminal error after bounded cleanup only",
+    "photon": "Successful CompletedReply gate unchanged; durable SENDING/UNKNOWN and idempotence preserved; acceptance audit reply_kind distinguishes terminal failure.",
+    "projection": "Exact generic assistant text after transport acceptance only, separately deduplicated from native completion.",
+    "speech": "Terminal failure never creates a completion or speech receipt.",
+    "types": [
+      "TerminalFailure",
+      "TerminalFailureFrames"
+    ]
+  },
+  "test_runtime": {
+    "configuration": "Plain private virtualenv interpreter; no .env loading or deployed service. Synthetic native/provider/player/device transports, temporary files and test clocks.",
+    "python": "3.12.5"
+  },
+  "totals": {
+    "failed": 0,
+    "node_passed": 12,
+    "python_passed": 761,
+    "skipped": 0
+  },
+  "unperformed_or_retained_gates": [
+    "All live/E2E/public UI/real model-room/device/player/audio/photo acceptance remains paused until Jay reopens it.",
+    "Owen-owned phone consent/capture/upload and selected Mac viewer UI are not established by backend fake tests.",
+    "Deployment must install photo requirements and provide song-player/prepared-source runtime dependencies.",
+    "Prepared selected-song analysis and fake-player tests do not establish actual playback or calibrated optical/acoustic synchronization.",
+    "Projector output remains unverified.",
+    "Actual long-duration automatic lease expiry remains unverified; interrupted or aborted historical attempts are not passes.",
+    "Current model compliance and real native terminal-failure notice delivery require separately released acceptance.",
+    "Historical Photon inbound/shared-thread/provider acceptance remains scoped to its prior evidence; no new real provider or handset delivery was tested here.",
+    "Live Batch3 pending/abort root cause remains undetermined.",
+    "Broad native shell/computer tools remain outside Bus physical-action atomicity and general secret-isolation guarantees."
+  ]
+}

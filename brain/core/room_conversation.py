@@ -11,7 +11,8 @@ import asyncio
 import re
 from dataclasses import dataclass, field
 from typing import Callable
-from agent.room_session import RoomSession, RoomSessionError
+from agent.room_session import NativeTurnError, RoomSession, RoomSessionError
+from brain.core.conversation_results import TerminalFailure, TerminalFailureFrames
 from brain.core.conversation_speech import CompletedReply, ReplyFrames
 
 
@@ -48,6 +49,8 @@ class ConversationAgent:
         self._cleanup_tasks = set()
         self._failed = False
         self._first_guest_turn = None
+        self._native_turn_identity = None
+        self._terminal_failures = {}
         self.device_tools = None
         self.programs = None
         self.reply_speech = None
@@ -95,8 +98,28 @@ class ConversationAgent:
                 and self.leases.current(receipt.guest_id) is receipt.lease
                 and self._allowed(receipt.guest_id, receipt.generation))
 
+    def allows_terminal_failure(self, receipt):
+        """Allow only issued terminal text, even when cleanup blocked control.
+
+        This conveys no successful execution, device authority or voice consent.
+        Unlike successful replies, cleanup failure must not hide this feedback
+        from its still-current guest; all other authority fences remain intact.
+        """
+        if type(receipt) is not TerminalFailure:
+            return False
+        key = (receipt.guest_id, receipt.generation, receipt.turn_id)
+        return (self._terminal_failures.get(key) is receipt
+                and receipt.thread_id == self.settings.thread_id
+                and self.leases.current(receipt.guest_id) is receipt.lease
+                and self._controller == receipt.guest_id
+                and self._generation == receipt.generation
+                and ('*' in receipt.lease.scopes or 'computer' in receipt.lease.scopes)
+                and not self._stop.is_set())
+
     def _admit(self, guest_id):
         if self._controller != guest_id:
+            self._terminal_failures.clear()
+            self._native_turn_identity = None
             if self.device_tools is not None:
                 self.device_tools.revoke_all()
             previous = self._controller
@@ -124,6 +147,8 @@ class ConversationAgent:
         """Synchronous authority transition; asynchronously interrupt/drain native work."""
         if self._controller != guest_id:
             return
+        self._terminal_failures.clear()
+        self._native_turn_identity = None
         if self.device_tools is not None:
             self.device_tools.revoke_all()
         self._stop.set()
@@ -317,6 +342,7 @@ class ConversationAgent:
         if application_context is not None:
             options['application_context'] = application_context
         turn_id = await session.start_turn(text, **options)
+        self._native_turn_identity = (guest_id, generation, turn_id)
         if grant is not None:
             self.device_tools.activate(grant, turn_id)
         self._first_guest_turn = self._first_guest_turn or turn_id
@@ -343,13 +369,25 @@ class ConversationAgent:
                         continue
                     if 'id' in event:
                         await self._answer_request(event, guest_id, generation, turn_id)
+                    if event.get('method') == 'error':
+                        if params.get('willRetry') is True:
+                            continue  # Native progress, not a second Tenant submission.
+                        if params.get('willRetry') is not False:
+                            raise RoomSessionError('Invalid native error status', outcome_unknown=True)
+                        # Error text may contain private provider/tool details. Do not
+                        # publish it or infer quota/permissions. Cleanup still has to
+                        # observe turn completion; an error is not a stop receipt.
+                        raise NativeTurnError('error', turn_id=turn_id)
                     if event.get('method') == 'item/completed':
                         item = params.get('item', {})
                         if item.get('type') == 'agentMessage' and item.get('phase') != 'commentary' and isinstance(item.get('text'), str):
                             final.append(item['text'])
                     if event.get('method') == 'turn/completed':
-                        if params['turn'].get('status') != 'completed':
-                            raise RoomSessionError('Native turn was not completed', outcome_unknown=True)
+                        status = params['turn'].get('status')
+                        if status in ('interrupted', 'failed', 'cancelled'):
+                            raise NativeTurnError(status, turn_id=turn_id)
+                        if status != 'completed':
+                            raise RoomSessionError('Invalid native terminal status', outcome_unknown=True)
                         if not self._allowed(guest_id, generation):
                             return self._denied(guest_id)
                         if not final:
@@ -388,6 +426,7 @@ class ConversationAgent:
                 return self.reply('Tenant could not verify a clean conversation. Ask the host to check the connection; nothing was retried.')
             if not self._allowed(guest_id, generation):
                 return self._denied(guest_id)
+            self._native_turn_identity = None
             try:
                 await self._connect()
                 if self._clean_generation != generation:
@@ -406,6 +445,37 @@ class ConversationAgent:
                 except Exception:
                     self._failed = True
                 raise
+            except NativeTurnError as error:
+                cleanup = 'confirmed'
+                try:
+                    # Keep the controller lock until pending work/background jobs
+                    # and same-guest history are verified. Never resubmit this text.
+                    await self._cancel_cleanup(guest_id, generation)
+                except Exception:
+                    cleanup = 'unconfirmed'
+                if (self.leases.current(guest_id) is not lease or self._controller != guest_id
+                        or self._generation != generation or self._stop.is_set()):
+                    return self._denied(guest_id)
+                self.log.append('err', 'Tenant could not complete the request. Nothing was retried.',
+                                guest_id=guest_id, generation=generation, turn_id=error.turn_id,
+                                native_status=error.status, cleanup=cleanup)
+                suffix = (' Control remains blocked because cleanup could not be confirmed.'
+                          if cleanup == 'unconfirmed' else '')
+                text = ('Tenant could not complete the request. Already-started actions may have happened; '
+                        'nothing was retried.' + suffix)
+                identity = (guest_id, generation, error.turn_id)
+                if (not isinstance(error.turn_id, str) or not error.turn_id
+                        or self._native_turn_identity != identity):
+                    return self.reply(text)
+                # A separate issued identity lets text channels deliver truthful
+                # failure feedback without granting success or speech authority.
+                receipt = TerminalFailure(guest_id, generation, self.settings.thread_id,
+                                          error.turn_id, text, lease, cleanup == 'confirmed')
+                self._terminal_failures[identity] = receipt
+                while len(self._terminal_failures) > 32:
+                    self._terminal_failures.pop(next(iter(self._terminal_failures)))
+                self._native_turn_identity = None
+                return TerminalFailureFrames(receipt)
             except Exception:
                 self._failed = True
                 try:
@@ -425,6 +495,8 @@ class ConversationAgent:
         return max(self.settings.cleanup_timeout, queue) + ordinary
 
     async def close(self):
+        self._terminal_failures.clear()
+        self._native_turn_identity = None
         controller = self._controller
         if controller:
             self.leases.revoke(controller)

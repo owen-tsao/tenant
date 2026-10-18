@@ -16,7 +16,7 @@ class AppIntegrationTests(unittest.TestCase):
         self.host = {'Authorization': 'Bearer host'}
 
     def enroll(self, ws, caps):
-        ws.send_json({'type': 'hello', 'id': 'combo', 'label': 'Room device', 'room': self.app.state.registry.room.code, 'caps': caps})
+        ws.send_json({'type': 'hello', 'id': 'combo', 'label': 'Room endpoint', 'room': self.app.state.registry.room.code, 'caps': caps})
         self.assertEqual(ws.receive_json()['type'], 'welcome')
 
     def test_host_audio_route_and_internal_request_correlation(self):
@@ -29,7 +29,7 @@ class AppIntegrationTests(unittest.TestCase):
             ws.send_json({'type': 'ok', 'req': frame['req'], 'result': {'level': 25}})
             self.assertEqual(response.result(2).json(), {'ok': True, 'result': {'level': 25}})
             public = self.app.state.core.log.rows[-1]
-            self.assertEqual(public['text'], 'Room device set its volume to 25 percent.')
+            self.assertEqual(public['text'], 'Room endpoint set its volume to 25 percent.')
             self.assertEqual(set(public), {'t', 'kind', 'text'})
             self.assertNotIn(frame['req'], public['text'])
             self.assertEqual(self.app.state.core.log.audit_rows[-1]['audit']['req'], frame['req'])

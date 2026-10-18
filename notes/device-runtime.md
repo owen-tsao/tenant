@@ -1,5 +1,59 @@
 # Device runtime — local Mac owner
 
+## Device-awareness candidate — FROZEN SOFTWARE PASS, not deployed
+
+Jay resumed software work only. **All end-to-end/live/public UI/real model-room/deployed-service/device/camera/music testing remains paused; Root holds the live gate.** No service restart, deployment, live effect, staging or commit was performed. Independent bounded diagnostic, queue and freeze reviewers were used.
+
+Final immutable `validation4` passes **710 Python tests +16 explicit metadata wiring/queue checks**, zero failures/errors/skips. The12 Node checks passed on the identical phone runtime/test hashes; no unnecessary rerun after the speech-only patch. Independent final reviewer `/root/device_awareness_final_review` passed **68 targeted checks** (28 metadata,8 wiring,8 queue/scheduling,24 existing speech/voice), found no remaining actionable issues, and matched all137 validation hashes. Full-map canonical digest: `1b730f941a2f4369bf78ed4e32877706f788f6a58ec7ce2b1f0679a1b69d8b04`. Exact full source map, changed-source map, commands' results/limits and failure history are in `tests/evidence/2026-10-17-device-awareness.json`.
+
+Implemented only registry/persistence/device metadata/API/tests and the **unapplied** `notes/proposed-device-awareness-wiring.patch`. **No state.py, ws/display.py, web/, sources/, Audio driver/song source or Tester room_session/room_conversation/webchat edits by this owner.** Root must integrate the proposed central hooks before exposing the new API/state. Patch is tested on the snapshot, not applied in the shared checkout. It targets integration.py, bus.py, guest_view.py, native_devices.py, conversation_speech.py, room_programs.py, tools.py and agent.py; expected base/applied hashes for each are in evidence. Preserve the parallel owners' source when adapting it. Any post-freeze edit needs appropriate review/checks before a new source PASS claim.
+
+Behavior: existing authenticated enrollment ID/stable room identity is retained across reconnect/reset/restart; host label/role/location/output description/use allowance survive changed hello frames. V1 room state migrates to strict V2 with bounded metadata; connections, capability schemas, guest credentials/history and camera consent stay transient. Failed/ambiguous persistence remains closed until trusted reload, so unrelated hellos cannot overwrite a durably saved denial. Known private literals and control characters are removed from retained/public adapter labels; host metadata rejects credentials. Unknown facts remain unknown; a Mac output is an attribute, never a fabricated speaker/projector endpoint.
+
+Persistence migration savesV2 at startup; an olderV1-only reader cannot load it. Root must use trusted compatible state/recovery for any rollback, rather than silently downgrading or replacing room identity.
+
+Availability requires exact current enrollment/binding/room, online/fresh heartbeat, healthy identity storage, advertised capability and host allowance. Guest scopes/controller/consent remain separate. Revisions are captured before logical queues and checked through Bus dispatch, blink waits, generated/song pulse loops, monitors and scheduled speech. Host deny→reenable cannot revive old work. Scheduled old narration is consumed with0sends; a fresh reply can still speak once under the existing opt-in. Discovery grants no authority, triggers no effect, enables no speech and creates no suggestion engine.
+
+Host `allowed:false` blocks all new Bus effects, including cleanup; it does **not** claim to undo started effects. Cleanup may remain unconfirmed until host re-enable and a fresh explicit OFF/stop. Those fresh paths are verified with fakes, while old queued actions stay fenced. UNKNOWN no-replay/substitution and existing voice/default-output policy are preserved.
+
+### Root / photo coordination
+
+`metadata.camera_ready` defaults false. Photo owner now supplies `PhotoService.camera_ready` via its explicit installer, checking exact source/consent/host allowance and current authenticated viewer; PhotoService still owns originating guest/controller/epoch/ticket/commit authorization. Raw `Core.host_do` camera capture is rejected, including display host.do. The former optional `notes/proposed-device-photo-readiness.patch` was **withdrawn/deleted** because it duplicated the owner's real callback; do not restore/apply it. Photo's direct-service fixture now explicitly binds that same callback. Final710-test snapshot includes those owner fixes and nonnegative viewer-age bounds. Photo/UI/physical acceptance is separate, not opened by this software pass.
+
+Read-only interface: `registry.metadata.role_devices(role)` returns detached `({device_id,metadata_revision},...)` for live host-allowed explicit role matches. `binding(id)` returns the exact live Device object or None; `revision(id)` and `guard(ids)` fence identity/metadata across waits. `available(device,cap)` is only a necessary availability check, never a guest grant, source consent or viewer authorization.
+
+### Optional state/API contract — ready for Owen via Root
+
+Existing device rows keep `id,label,caps,online,busy`. Add optional `role,location,output_description` (null when unknown), `connection_state` (`online|offline|unknown`), `allowed`, `metadata_revision`, field-level `provenance`, and `capability_status:[{name,status:'available'|'blocked',reason,provenance:'adapter_reported',observed_at}]`. Public `caps` lists available operations only; guest controls intersect scopes. Internal/native inventory keeps offline schemas as non-executable descriptions for compatibility. Provenance distinguishes `host_specified`, `adapter_reported`, `authenticated_enrollment`, `existing_enrollment_policy`, and `unknown`; no hardware attestation is inferred. No sockets/raw schemas/private provider keys/known credentials are public. A Mac output description stays on the same row. Owen owns every UI file; no redesign requested.
+
+Bearer-authenticated `PATCH /host/devices/{existing_id}/metadata` accepts a nonempty subset of `label,role,location,output_description,allowed`. Unknown identity404; missing/invalid host auth403; invalid/private text400; uncertain storage503. It never creates an identity, guest scope, speech choice or effect. The coordinator can diff factual availability changes and apply Jay's contextual suggestion/notice judgment; no fixed announcements, quotas or separate suggestion engine were added.
+
+### Failure history — retained, resolved in final snapshot
+
+The paused validation2 run ended by SIGINT/130, not PASS. Exact causes were independently diagnosed: retirement fixture incorrectly expected an ordinary persist to heal unhealthy storage; app fixture's credential `device` overlapped visible label `Room device`; direct PhotoService fixture omitted readiness wiring. Device compatibility tests now use independent audit scenarios/trusted reload and a noncolliding label; photo owner corrected its fixture.
+
+Validation3 completed698 tests with2 failures from incomplete **other-owner** candidates: native stale-approval recovery and song buffering/resume. Both reproduced identically with this metadata patch reversed, confirming separate causes. Tester/Audio subsequently updated their source; final validation4 captures their new hashes and passes710/710. These earlier failures are retained in evidence, not averaged away or credited as fixes by this owner.
+
+### Frozen owned files — Root integrates, no owner staging/commit
+
+SHA256s below cover the11 owned source/test/proposal files. Root may add this note, final evidence, historical paused evidence and `notes/device-awareness-manifest.sha256`; do not stage other owners' files on this owner's behalf. Proposed patch SHA256 is `1dc18d54e98ad62fdbef00e1e049f4f922ae7c32aa01b6e281ae53519df00df3`.
+
+```text
+f13af289fc63494805c764ab0c7e290a83e15ccdb9ca561a402f4e0cddb2f17b  brain/api/device_metadata.py
+7b6a4ec48bdffa9a1592b515d75950a476f5026f9901578d5f1d1e834b619ffd  brain/core/device_metadata.py
+bb1f2af07c5aa65c14f85c83054b12e188cd61478f4071edc050945fe0fb3199  brain/core/persistence.py
+c0a7f260bbad1e3de732d98b2b9d94009428b4d2ac8f5070abffb44ec73b57bf  brain/core/registry.py
+1dc18d54e98ad62fdbef00e1e049f4f922ae7c32aa01b6e281ae53519df00df3  notes/proposed-device-awareness-wiring.patch
+deecdda453da0d5b8d321f2eb55ffa4757df7c102169a859a9f4db182cb844a3  tests/device_metadata_queue_checks.py
+452ea2c74b99e99cb077b9afcc00d89c61f43d29d169c3d941dd92ccb2971693  tests/device_metadata_wiring_checks.py
+912f766583d3c47233a856c69fa2f20f535c1e3ca93f4be14e1bee576cb319c9  tests/test_access_persistence.py
+50b627c8d83f2488f324dcaa01133962c437e4c657a4117bbebf29d9d996e5d9  tests/test_app_integration.py
+31fb26f2f896ee622b6d48fde86060fb0a75f89fd66681fc19a8d8c22d428039  tests/test_device_metadata.py
+4abbc604945a9d065e44e0806f2f1acd071b19df48d13b66dd07f7204407be65  tests/test_device_retirement.py
+```
+
+Historical public-conversation projection handoff follows; it was integrated/deployed as c7e902b and actual-UI verified by Tester. Its older deployment/feature status statements are history, not this candidate's current status.
+
 October 17: working from frozen voice baseline `f228b39`. Scope is Owen's existing public display transcript and truthful lease totals. Voice policy/helper code remains frozen; the only overlapping seams are additive publication hooks in Core, GuestPublisher and Photon after successful text publication. No web/source-reference edits, deployment, service restart, live guest creation or physical actions. Root owns final integration and live testing.
 
 20:00 PT — READY FOR ROOT INTEGRATION, source only. No staging or commit. Independent review `/root/display_projection_review` reports no actionable findings; 165 related fake-I/O checks passed, followed by confirmation of the final test-only assertions. Frozen isolated source passes **496 Python +12 Node**, zero failures/skips (17.472s /2.268s). This count includes the concurrently supplied one-test voice acceptance file; its ownership remains with tester/Root. Projection adds 11 tests. Shared source still matches all 106 frozen validation files.

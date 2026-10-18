@@ -44,7 +44,7 @@ class PersistenceTests(unittest.IsolatedAsyncioTestCase):
         content = self.path.read_text()
         for forbidden in (lease.guest_id, token, 'messages', 'capabilities', 'ws', 'credentials'):
             self.assertNotIn(forbidden, content)
-        self.assertEqual(set(json.loads(content)), {'version', 'room', 'enrollments'})
+        self.assertEqual(set(json.loads(content)), {'version', 'room', 'enrollments', 'device_metadata'})
         self.assertEqual(os.stat(self.path).st_mode & 0o777, 0o600)
 
     async def test_repeated_restart_and_reset_keeps_monotonic_epoch_and_canonical_alias(self):

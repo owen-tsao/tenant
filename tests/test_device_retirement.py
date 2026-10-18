@@ -182,14 +182,21 @@ class DeviceRetirementTests(unittest.TestCase):
         self.assertEqual(self.core.log.audit_rows[-1]['audit']['outcome'], 'persistence_unconfirmed')
         self.assertEqual(self.phone.frames + self.audio.frames, [])
 
-    def test_audit_failure_before_or_after_persistence_is_honest_and_fail_closed(self):
-        append = self.core.log.append
+    def test_audit_failure_before_persistence_stays_closed_until_trusted_reload(self):
         with patch.object(self.core.log, 'append', side_effect=OSError('audit unavailable')):
             response = self.retire()
         self.assertEqual(response.status_code, 503)
         self.assert_old_preserved()
         self.assertFalse(self.registry.persistence_healthy)
-        self.assertTrue(self.registry.persist())
+        before = self.path.read_bytes()
+        self.assertFalse(self.registry.persist())
+        self.assertEqual(self.path.read_bytes(), before)
+        restored = RoomStateStore(self.path).load_registry('TEST')
+        self.assertTrue(restored.persistence_healthy)
+        self.assertIn('phone-a', restored.enrollments)
+
+    def test_completion_audit_failure_reports_persisted_retirement_and_fails_closed(self):
+        append = self.core.log.append
         def fail_completion(*args, **kwargs):
             if kwargs.get('outcome') == 'persisted': raise OSError('audit unavailable')
             return append(*args, **kwargs)

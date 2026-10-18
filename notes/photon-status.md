@@ -44,3 +44,16 @@ These are stage timestamps, not phone-delivery or acoustic-effect latency measur
 - Current `brain/channels/photon.py`, `brain/api/join.py`, integration source, and allowlisted runtime settings: conversation mode and Photon enabled; configured thread matches both real native turn records. Local HEAD at audit: `e7695d1` with other owners' work in progress; no source change made by this audit.
 
 Only genuinely unrecorded observations remain conditional: handset receipt, Photon-specific human audibility, a same-enrollment web memory follow-up, real browser retry recovery, and a Photon post-end denial. Preserve the existing positive inbound/shared-thread/acceptance evidence and do not repeat those checks by default. Root coordinates any remaining observation with the single active tester.
+
+
+## Terminal-failure feedback — software handoff (2026-10-17 20:54 PDT)
+
+This additive change is software-only, not deployed or tested against a handset. It does not replace or downgrade the historical real inbound/shared-thread/provider-acceptance evidence above.
+
+- Photon retains its existing successful-completion `_can_reply` predicate unchanged (AST comparison against HEAD passed). A separate typed `TerminalFailureFrames` route requires the exact current lease plus the central agent's issued-receipt/controller/thread/turn/generation authorization. Generic lists, unissued receipts and altered frame text remain ineligible.
+- The same durable inbound claim, `SENDING`/`UNKNOWN` states, idempotency key and no-retry policy apply. Authority is rechecked immediately before the provider call. A cleanup-blocked notice may reach its still-current guest without reopening action authority.
+- Terminal feedback never becomes a `CompletedReply` or automatic-speech-eligible result. Acceptance audit adds only a fixed `reply_kind` distinction (`terminal_failure` / `completed_reply`). Provider acceptance still does not establish phone delivery.
+- Focused fake checks passed: 11 new terminal-composition tests plus 45 existing Photon tests, zero failures. They use the real conversation controller and public projection with fake native/provider inputs: confirmed/unconfirmed cleanup, one-send/no replay, separate next explicit request, revoke/expiry/reset/replacement before send, plain/unissued/tampered result rejection, unknown/cancelled send, no terminal narration or partial private output. No broad suite, live API/model/device/UI operation, restart, stage or commit was performed by this owner.
+- Frozen Photon source: `brain/channels/photon.py` SHA256 `b14a991215249efe17766ac583187b4b62d557bd3b3ff0638e8a2f803c8f46c8`; new `tests/test_photon_terminal_failures.py` SHA256 `188ecec607523bb98612b032685b29e25655d0f9686d7070b0e677ab60f7e299`. Diff and whitespace checks passed. The central integration owner supplies the additive neutral receipt/controller and projection contracts and owns the final combined snapshot/review/release.
+
+All live verification remains paused under central integration. Any later phone observation must be recorded separately from these fake-provider software checks.

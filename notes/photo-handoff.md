@@ -1,5 +1,56 @@
 # Photo backend → Root / Owen handoff
 
+## Freeze hold for central composition
+
+Root assigned additive central software integration to the existing core_access_integration agent. This owner holds all frozen production/test/requirements/patch files stable; notes may be updated. No additional broad reruns without a concrete new finding. Any necessary correction must first be recorded here for Root before editing an overlapping file. Software checks with fakes remain permitted; all E2E/live work, deployment and restarts remain paused. No new source changes or tests were made for this handoff.
+
+## Final software freeze — ready for Root integration, live gate held
+
+Software checks are resumed; live/E2E/public UI/chat/actual model/device/camera/output/deployed-service experiments, restarts and deployment remain paused. This summary supersedes historical pause/pending-status sections below. No photo operation was sent to the live room. No active output/test guest or cleanup exists from this owner. No staging/commits.
+
+Exact owned-file/patch/requirement hashes and composed-source manifest: `tests/evidence/2026-10-17-photo-software-freeze.json`. Independent final source review verified that manifest and found no material defects. Final callback, installer, default-closed metadata fixtures and proposed central composition are software-tested; no final owned source edits remain untested.
+
+Completed on the disposable source copy with mandatory device-awareness + photo wiring applied: **93 photo components +7 dedicated stubbed wiring +52 access/persistence PASS**, zero failures/errors/skips in those batches. Tests used in-process HTTP, temporary private helper sockets and fake model/device/viewer transports only. Broader existing native batch **51/52 PASS,1 failure retained** in the same-guest native interruption/follow-up regression (exact name/expected/actual in evidence). It constructs ConversationAgent without a registry/helper, outside the photo path; Root owns central resolution. No full integrated-suite or physical acceptance claim.
+
+Root merges: (1) device-awareness source + mandatory wiring patch; (2) new photo modules/requirements; (3) `notes/proposed-photo-integration.patch` for Core synchronous reset/revoke/sweep/close, installer, authenticated device consent and private native/CLI photo operations. The photo installer already binds the actual `metadata.camera_ready` callback. **Do not apply the older optional `proposed-device-photo-readiness.patch` on top:** it duplicates the now-owned installer code. Patch shapes remain compatible with the original Owen contract; source revision/identifier/native semantics clarifications are dated below. Root must reconcile against its final concurrent Audio/helper/native-error source; shared central files were not edited by this owner.
+
+Remaining: Root central integration and final combined software gate, dependency installation on deployment, Owen phone/viewer implementation, and live/physical acceptance only when Jay reopens that gate. Projection remains a separate unverified output path. Retention stays latest displayed still through Leave/expiry/new guests until replacement/host reset, with image bytes outside model history. Q-PHONE-SHARE is queued only.
+
+### Frozen owned file hashes
+
+- `brain/core/photos.py` — `83bd615a15f490d4c30c7a35d78b0e8f0b7eee773c93628ccb620e29169a494e`
+- `brain/core/photo_image.py` — `e6477dc469c85ad70f9d517ea10d83289bd82f327498bc5bf9bb6ea883d58afe`
+- `brain/core/photo_install.py` — `aa08ed9e09b061619f8c697fe02fc414593ae472ecfa8a84e541f5d335ce5c0d`
+- `brain/api/photos.py` — `5e4b62ba8c75dc11fe46505bbfd9f91f5fe0bea12beb4d484e093989ec41a6e6`
+- `requirements-photo.txt` — `053f79eae479c140adf5f2430e8c711253c522b5dd583977c5d7ea58b8ad5d4f`
+- `tests/test_photo_api.py` — `a2b8551ead2a96d7a4d3eca12cd9ec4f3e2391e7d1f89af1743df1f5cf568bce`
+- `tests/test_photo_backend.py` — `d66e20aaa99e66a9642754979839fa930f7ec5ba990e0d810f6e735e554b7317`
+- `tests/test_photo_image.py` — `6af94477274ef90d7614dd71cf5cd40c81f8e552c316812569ec4144c9a9cbab`
+- `tests/test_photo_installer.py` — `3b0468fc5eb01dad4794412580d286b8fa158f13b7105b66f5027a13fc12b54d`
+- `tests/test_photo_service.py` — `019ba2de0fd916bc8acb4c92649cfedb850d6f6fbd681c84cf721e00de1b2463`
+- `tests/photo_wiring_checks.py` — `3945750f2631651c0044ed4634e02335fd3bfac77f936fd196382ffa52f29fd0`
+- `notes/proposed-photo-integration.patch` — `6fbe7d2717fcee9abdfb9cedd028b168cac1e5e8db3ec4b7fa6d041fe4975327`
+
+## Historical work log and published contract
+
+## Current policy — software checks resumed; live gate held
+
+Jay permits implementation and software unit/component/isolated integration checks using fakes, temporary files and stubbed model/device transports. End-to-end/live trials, public UI/chat, actual models/camera/devices/outputs, deployed-service experiments, restarts and deployment remain PAUSED. Root holds the live gate. Earlier all-testing-paused sections below are historical and superseded by this policy. No staging/commits while sharing checkout.
+
+Device Runtime coordination resolved in the final software-only composition: the real installer binds `metadata.camera_ready = photos.camera_ready`, and the photo owner's direct service fixture now binds the same callback. The old optional runtime lambda patch has been withdrawn/deleted. Final immutable runtime validation4 passes710 Python tests plus16 explicit wiring/queue checks; this includes the current photo source and nonnegative viewer-age correction. Root still must merge the unapplied central hooks; physical/UI acceptance remains paused and unclaimed. Exact source/hash/result record: tests/evidence/2026-10-17-device-awareness.json.
+
+## Current handoff — TESTING PAUSED by Jay
+
+Jay explicitly paused all testing after the completed evidence below. No live/UI/device/audio trials, automated runs, new cases, retries, deployment or service restart until Jay resumes. All owned review/test agents were notified. Implementation/read-only review may continue. No test, guest, output or cleanup is active from this owner; all completed tests used fake I/O and closed their local contexts.
+
+Implemented, new files only: brain/core/photos.py (consent, dedup/ticket, exact binding/authority fences, upload staging, matching device ACK, selected viewer/version/receipt, bounded retention/reset), brain/core/photo_image.py (Pillow JPEG validation/metadata removal), brain/api/photos.py (scoped authenticated endpoints), brain/core/photo_install.py (explicit installer), requirements-photo.txt and four dedicated test modules. Pillow13.0.0 was installed only into the development .venv; deployment dependency installation remains Root's step.
+
+Most recent completed evidence BEFORE pause: 15 image tests,25 API tests,4 real HTTP/service/Bus path tests and28 service tests passed individually. An earlier combined photo suite passed69 tests before the last3 metadata service tests were added; no combined72-test run has occurred and none will start during this pause. The service suite includes real metadata host denial, revision/role/heartbeat fences, post-decode races, UNKNOWN/no replay, secret-echo sanitization, Leave/new-guest retention and reset. Original independent read-only review found no material issues in its inspected module revisions; the newer dispatch_allowed/metadata fences/installer still need final review. Initial end-to-end fixture failures were corrected (HTTPS Secure-cookie origin and duplicate-installer fixture);4/4 then passed.
+
+Pending: Root's central installer/lifecycle/same-device consent/native-helper wiring; reconcile the device-awareness Bus feature-gate seam described below; Owen phone opt-in/capture/upload and selected Mac viewer UI; final integrated review and checks only after Jay resumes; then Root deployment and Tester-initiated physical acceptance. No source/physical release PASS is claimed. An unapplied integration patch is now written at notes/proposed-photo-integration.patch, composed on top of the device-awareness proposal in a disposable copy. It is UNVALIDATED: no integrated checks were run after the testing pause. Shared central files were untouched. No staging/commits by this owner.
+
+The photo implementation gate was explicitly OPENED by Jay's parallel-work direction, superseding older planning-only statements for this feature. Physical release remains unaccepted. Perception and automatic physical rules are not opened by this work. Accepted latest-displayed-photo retention remains unchanged.
+
 Owner: local photo backend. Initial exact interface, October 17, 2026. Base HEAD0058cc1; no deployment or physical effects. Implementation below is being built in new files only. Root routes this request to Owen; no other chat was messaged.
 
 ## Accepted behavior
@@ -52,3 +103,29 @@ All JSON mutations require approved same-origin Origin. Host endpoints additiona
 ## Library / review / evidence
 
 Image normalizer, backend, routes and dedicated tests are being implemented separately. Final tested hashes, independent review, dependency version and remaining integration/physical gates will be appended here. No source PASS, deployment or physical success is claimed by this initial contract.
+
+## Compatibility addendum — October 17, implementation in progress
+
+The initial phone/HTTP wire shapes above remain unchanged. Source/request/viewer identifiers are ASCII letters/digits plus `_-.` (1–128 chars); generated capture IDs already meet this. Error codes from devices are whitelisted before safe status; arbitrary device code/message text is never copied to model/guest status.
+
+Native integration adds optional `dispatch_allowed` to capture(), checked at actual Bus dispatch after queue waits. Root passes the exact native grant/connection check there. Once a request has been dispatched, image validation/render confirmation may complete while that SAME guest/controller generation/lease remains authorized, even after its originating native turn finishes; a finished turn is not permission to transfer the request to another guest. Revoke/expiry/new controller/epoch/source/consent/role/viewer changes still fence commit. This allows a natural final reply while Mac rendering finishes without extending authority.
+
+Device Runtime's new metadata interface was read: binding(device_id), revision/guard, and host allowed are used as necessary source checks. PhotoService snapshots metadata.guard({source_id}) at admission and checks it through validation/rendering, so metadata edits cancel pending photos. configure() defines the explicit photo roles; a generic device role never grants consent/viewer/guest permission.
+
+**Integration collision to resolve before enabling:** the unapplied device-awareness patch makes Bus call metadata.available(), while the metadata owner's blocked_reason currently always blocks camera.capture as not enabled. Preserve that raw/public gate; do not simply advertise camera.capture globally. Root/device owner must distinguish transport binding/host-policy availability from guest-facing feature availability: the photo service supplies its own required consent/viewer/lease dispatch policy, while ordinary raw helper calls still omit camera.capture. The final proposed photo patch will show the small required metadata/Bus seam, for Root to coordinate with the runtime owner. Do not deploy a photo backend behind an unconditional camera dispatch rejection.
+
+## Post-pause implementation addendum — NOT EXECUTION-VALIDATED
+
+The metadata owner has now supplied `registry.metadata.camera_ready = callback`, default false. PhotoService.camera_ready(dev) checks configured host allowance/source, exact live binding and photo consent, plus the selected authenticated viewer's liveness; it does not claim guest authority. The installer attaches this callback. This resolves the earlier unconditional-camera rejection collision without a metadata/Bus source edit. Full photo-specific guest/controller/epoch/revision checks remain in the Bus authorization callback. Neither this new callback nor its final composition has been tested after the pause.
+
+`notes/proposed-photo-integration.patch` is a narrow UNAPPLIED proposal for Core sweep/revoke/reset/close, explicit installer, actual authenticated source WS photo.consent routing, and native helper/CLI operations. It is composed against the concurrent device-awareness patch, not bare HEAD; Root must merge the small hooks with its final integration source. No web or shared runtime source was edited by this owner.
+
+Native exact operations proposed in the patch: `photo-capture {request_id,source_device_id}` and `photo-status {request_id,capture_request_id}`. The status request's own request_id is distinct from the original capture_request_id, so existing helper deduplication can safely cache each operation. Photo capture uses the existing long helper deadline; raw camera.capture is still not in ordinary CAPABILITIES. Native grant/connection is checked after queue waits. An uncertain source is added to that native turn's unknown-device set, preventing a fresh-ID recapture in the same turn. Image tickets/bytes never reach native helper replies.
+
+Dependency: `requirements-photo.txt` pins Pillow13.0.0, installed only in the development .venv. Primary references used by the image owner: https://pillow.readthedocs.io/en/stable/releasenotes/13.0.0.html ; https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#jpeg ; https://pillow.readthedocs.io/en/stable/reference/ImageOps.html#PIL.ImageOps.exif_transpose ; https://pillow.readthedocs.io/en/stable/reference/Image.html . JPEG is fully decoded before fresh RGB encoding; EXIF orientation is applied, metadata removed, input/output each5MiB and decoded pixels16million bounded. Strict single-JPEG envelope rejects concatenated/trailing data. No durable album or image-model history was added.
+
+Final source-only independent review during the testing pause found no material defects in the updated service, installer or unapplied integration patch. No code execution/tests were performed. Exact current source hashes and completed pre-pause component evidence are recorded in tests/evidence/2026-10-17-photo-backend.json; the manifest is explicitly NOT an executed final-source validation. Testing remains paused, central/UI integration and physical acceptance pending. No cleanup is active.
+
+## Software composition progress after resume
+
+Final callback/installer and direct fixture compatibility are software-tested. In a disposable copy with mandatory device-awareness + proposed photo wiring applied:93 photo component tests PASS,7 dedicated stubbed native/device/HTTP wiring checks PASS,52 existing access/persistence tests PASS. Every model/device/viewer transport is fake/in-process; no live/public UI or physical effects. Existing native regression batch:51/52 PASS, one failure retained at test_native_terminal_events.NativeTerminalEventsTests.test_confirmed_interruption_allows_only_next_explicit_request_without_old_tool_replay, which expected Fresh request completed. but received the generic unconfirmed-result reply. That test constructs ConversationAgent without a registry/device helper, so photo wiring is not on its execution path. Root owns native-error source; this owner did not edit it or hide the failure. Exact frozen composed-source hashes are in tests/evidence/2026-10-17-photo-freeze-candidate.json. No full integrated-suite or physical PASS is claimed.

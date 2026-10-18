@@ -1,0 +1,53 @@
+{
+  "candidate_sha256": {
+    "brain/api/device_metadata.py": "f13af289fc63494805c764ab0c7e290a83e15ccdb9ca561a402f4e0cddb2f17b",
+    "brain/core/device_metadata.py": "7b6a4ec48bdffa9a1592b515d75950a476f5026f9901578d5f1d1e834b619ffd",
+    "brain/core/persistence.py": "bb1f2af07c5aa65c14f85c83054b12e188cd61478f4071edc050945fe0fb3199",
+    "brain/core/registry.py": "c0a7f260bbad1e3de732d98b2b9d94009428b4d2ac8f5070abffb44ec73b57bf",
+    "notes/proposed-device-awareness-wiring.patch": "5bd7798d4915cb266ab7b779c81023a439ade856b3b649c78126e9f5d177c5cf",
+    "notes/proposed-device-photo-readiness.patch": "3232cf73df58b69e379ffe3ff85bd29eb10740b422040474f387fbaea68dc7cc",
+    "tests/device_metadata_queue_checks.py": "7cce9aa58bd3318cbe191d69191532261649c3d1e96ea622099b3997f2a15836",
+    "tests/device_metadata_wiring_checks.py": "452ea2c74b99e99cb077b9afcc00d89c61f43d29d169c3d941dd92ccb2971693",
+    "tests/test_access_persistence.py": "912f766583d3c47233a856c69fa2f20f535c1e3ca93f4be14e1bee576cb319c9",
+    "tests/test_device_metadata.py": "31fb26f2f896ee622b6d48fde86060fb0a75f89fd66681fc19a8d8c22d428039"
+  },
+  "cleanup": "Only isolated synthetic test runner interrupted; no owner live guest/effects/services created",
+  "completed_before_pause": {
+    "explicit_wired_and_queue": 15,
+    "independent_existing_native_program_song": 143,
+    "independent_metadata": 28,
+    "independent_queue": 7,
+    "metadata_unit": 28,
+    "node": 12
+  },
+  "interrupted_validation": {
+    "copy": "validation2",
+    "full_python_suite": "SIGINT exit130",
+    "last_wait": "test_photo_service request tracking fake-I/O test",
+    "no_pass_claim": true,
+    "observed_before_interruption": "two failures and multiple errors; no completed summary/count"
+  },
+  "live_actions_or_restarts": false,
+  "new_tests_or_runs_after_pause": false,
+  "pending": [
+    "Root apply mandatory central wiring patch",
+    "Photo owner reconcile default-closed camera gate for direct service instances outside installer",
+    "Resolve full-suite failures after explicit testing resume",
+    "Final integrated source/review/checks/manifest before deployment"
+  ],
+  "previous_validation": {
+    "classification": "two offline-schema compatibility errors fixed in proposal; twelve concurrent Audio fixture errors fixed by Audio source, not retested there",
+    "copy": "validation1",
+    "errors": 14,
+    "python_count": 588
+  },
+  "recorded_at_utc": "2026-10-18T03:29:40.466919+00:00",
+  "review": {
+    "agent": "/root/metadata_contract_review",
+    "camera_only_final_hook": "reviewed_not_retested",
+    "combined_core_patch_reviewed_sha256": "5bd7798d4915cb266ab7b779c81023a439ade856b3b649c78126e9f5d177c5cf",
+    "result": "No remaining actionable read-only findings after sticky persistence, private-text and queue/pulse fixes"
+  },
+  "staged_or_committed": false,
+  "status": "TESTING_PAUSED_BY_JAY_NOT_DEPLOYABLE_NOT_FINAL_ACCEPTANCE"
+}

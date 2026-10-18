@@ -1,5 +1,31 @@
 # Tenant demo ideas
 
+## Latest demo selection preference
+
+Jay rejects the band/album-cover idea. Creative multi-device exploration remains interesting as a product direction, but reliability is a reason not to depend on it for the main demo. This records a selection preference only; it does not authorize more demo features or change the current Audio/device/photo/native-error priorities. The earlier performance and coordination ideas remain preserved below as candidates with their evidence limits.
+
+## Strategy hypotheses and infrastructure vision
+
+Customer candidates discussed by Jay: hotels, hospitals, Airbnb/short-term-rental operators, shared spaces, and event/demo teams. These are exploration candidates, not validated customers. No single buyer, buying process or willingness to pay has been validated; do not imply a selected segment, commercial demand or an approved sector integration.
+
+Jay's thesis: Tenant is infrastructure **for future scalable, multimodal AI coordination**, with capabilities and space integration designed to remain useful as AI systems evolve. The growing device inventory and coordination direction express that vision. This is not evidence of an established moat, proven scalable deployment or currently implemented independence from the model/provider. Those claims remain to be established separately. Root is discussing positioning and defensibility with Jay and records current decisions in jay.md.
+
+Status: VISION / HYPOTHESES ONLY. No hospital, hotel, PMS, property-platform, space or device integration is authorized by this discussion. Keep the photo source/test freeze stable for central integration; no additional features or experiments are requested here.
+
+## Current testing policy and queued work
+
+Software unit/component/isolated integration tests with fake transports are allowed. End-to-end/live/public UI/chat/actual model/device/output experiments remain paused; Root holds the live gate. Earlier all-testing-paused summaries are historical. Current Audio/device/photo/native-error priorities continue.
+
+| Queue ID | Idea | Desired flow / rationale | Status and eventual owner |
+| --- | --- | --- | --- |
+| Q-PHONE-SHARE | One phone: chat + contribute | One room QR opens chat; optional “Share this phone” enables Light and/or Camera with separate explicit permissions; keep chatting on the same page; “Stop sharing” releases contributed capability without ending guest chat. Earlier separate chat/light-page switching caused confusion and disconnects. | QUEUED / NOT IMPLEMENTING. Owen owns eventual UI; backend owners assess session/permission/foreground feasibility when scheduled. No new source/UI work or tests for this idea now. |
+
+## Current photo work and initiative preference
+
+Jay explicitly authorized parallel photo implementation. The isolated backend is implemented and software-frozen; Root has assigned central integration to the existing core_access_integration agent. Photo production/test files stay stable while that composition proceeds. Exact contract/progress: notes/photo-handoff.md. Software checks with fakes are allowed, but no additional broad reruns are needed without a concrete finding. E2E/live trials, restarts and deployment remain paused. There is no physical photo PASS; component evidence is not final demo acceptance.
+
+Jay's accepted initiative preference: the agent may offer a concrete useful suggestion or simply announce a newly useful capability, according to context; lean toward concrete suggestions in the demo. Proposed actions wait for yes; discovery is not consent for effects or speech. No rigid two-minute/two-per-guest constants were approved. Root owns suggestion coordination.
+
 Owner: local demo planning. Updated October 17, 2026, 19:58 PT.
 Source inspected: f228b39963958bc2911b13f8e933ae5aeb4d800d. Planning-only additions; shared acceptance remains Root's record.
 
@@ -12,6 +38,8 @@ Coordinated music is explicitly AUTHORIZED. Acceptance is still BLOCKED. One nat
 Audio owns music/timing. Lighting owns execution/permissions. Root owns integration/live checks. Planning owns experience evaluation. Owen owns ALL web files and presentation.
 
 Latest direction: discover newer capabilities from actual MCP/adapter evidence, let the host supply missing role/location/permissions, and progressively show distinct evidenced devices on the dashboard. Keep stable identity through reconnect, current capability availability, connection state and detected-versus-host-specified provenance. One Mac endpoint does not establish separate controllable speakers/projectors. See planning-local.md for the minimal proposed contract and concise Owen request; no new integrations or UI edits are requested here.
+
+Jay's direct feature discussion, October 17, 20:13 PT: the room should keep growing as devices join, rather than feel like a static configured device list. AI coordination across those devices is central. He also wants internally generated suggestions that reach the user only when useful criteria pass, and an explicit follow-up after taking a photo: “can you display it on the projector,” using the Mac connected to it. These are product directions and planning scope, not instructions to start physical effects or open existing implementation gates.
 
 Root reports f228b39 voice deployed with independent 484 Python + 12 Node PASS and actual native default-silent TEXT_DEFAULT/zero say PASS. Text is default; ongoing voice needs current-guest opt-in to the exact available speaker; one-off say is independent. The local tester owns live experiments; no competing physical asks, forced unbriefed rehearsal or repeated human checklists.
 
@@ -71,6 +99,7 @@ Strong historical bounded evidence at6075a3a, not automatic acceptance of the ch
 | Show access ending | Leave/expiry denies further commands; host reset restores explicit defaults. | Historical core PASS; new conversation/program lifecycle checks remain open. |
 | Light plus short speech | One natural request coordinates an explicit light state and spoken response. | Alternative within authorized coordination, not an additional project. |
 | Join-triggered welcome | “Whenever someone joins, flash green and say welcome.” | Feature7 CLOSED; one rule/guest, bounded triggers/cooldown, dispatch authority required. |
+| Filtered proactive suggestions | Internally ask the agent whether there is a useful next suggestion; publish only when relevant, available, permitted, novel and timely. User accepts before effects. | New Jay-endorsed direction; proposal in planning-local.md. Distinct from autonomous welcome rules; no scheduler or implementation started. |
 | Photo -> screen | Enrolled room phone takes one opted-in still and displays it on the Mac. Accepted: keep the latest displayed photo after Leave and across new guests until replacement or host reset; clear new-guest context/commands and keep image bytes out of model history. | Feature5 implementation CLOSED; capture-to-viewer design in planning-local.md, physical acceptance unperformed. Future host retention setting deferred. |
 | Camera/perception interaction | Contributed camera supports room behavior. | Outside increment; no tracking/video/musical-chairs adjudication. |
 | Guest's own coding agent | Guest brings another agent. | Deferred; current system uses Jay's signed-in agent. |
@@ -90,6 +119,8 @@ The room performance is one example of this broader product direction. Preserve 
 ## Photo finale: the judges join the group photo
 
 Jay's finale idea: at the very end, place the enrolled room phone facing the group near the whiteboard/front of the demo area. Invite the judges to gather with the team, frame everyone manually, then ask the same Tenant agent to take the group photo. Display the actual captured image on the Mac.
+
+Latest extension: after capture, Jay explicitly asks to display that same photo on the projector connected to the Mac. Use the retained photo reference, not another capture. The Mac supplies the output path; identify its actual display/output and have the host confirm which one is the projector. If extended-display targeting is supported, show the approved photo there after the request. If the Mac is mirrored and the picture is already projected, say so rather than pretending a second transition occurred. Connection, routing and physical projection are not yet established.
 
 This uses the existing room-phone -> Mac photo direction, with no person detection or new camera integration. The operator explicitly enables photo capture separately from torch/OS camera permission, assigns the capture-source role and manually frames the group; the group poses knowingly. A brief visible countdown is a proposed staging detail. Accepted Jay 19:17 policy, confirmed by Root: keep the latest displayed photo after Leave until replacement or host reset. New guests reset agent context and pending commands, without automatically clearing the physical displayed photo; image bytes stay out of model history. Configurable host retention stays deferred; no decision blocker or further Jay question remains.
 

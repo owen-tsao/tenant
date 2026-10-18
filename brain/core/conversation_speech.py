@@ -107,12 +107,12 @@ class ConversationSpeech:
         dev = state.speaker
         return (dev is not None and self.registry.devices.get(dev.id) is dev and dev.online
                 and dev.ws is state.connection and dev.room_id == self.registry.room.id
-                and 'say' in dev.caps and self.leases.allows(state.lease, dev, 'say'))
+                and self.registry.metadata.available(dev, 'say') and self.leases.allows(state.lease, dev, 'say'))
 
     def _choices(self, owner):
         choices = []
         for dev in self.registry.devices.values():
-            if (not dev.online or dev.room_id != self.registry.room.id or 'say' not in dev.caps
+            if (not self.registry.metadata.available(dev, 'say')
                     or not self.leases.allows(owner.lease, dev, 'say')
                     or self.speaker_device_id is not None and dev.id != self.speaker_device_id):
                 continue
@@ -190,7 +190,12 @@ class ConversationSpeech:
         if key in self._scheduled or key in self._seen:
             return None
         self._scheduled.add(key)
-        task = asyncio.create_task(self.speak_reply(frames))
+        receipt = frames.completed_reply
+        state = self._preferences.get((receipt.guest_id, receipt.generation, receipt.thread_id))
+        metadata_guard = (self.registry.metadata.guard((state.speaker.id,))
+                          if state is not None and state.enabled and state.speaker is not None
+                          else lambda: True)
+        task = asyncio.create_task(self.speak_reply(frames, metadata_guard=metadata_guard))
         self._tasks[task] = {'guest_id': frames.completed_reply.guest_id, 'dispatched': False, 'key': key}
         def finished(done):
             self._seen.add(key)
@@ -224,7 +229,7 @@ class ConversationSpeech:
                         turn_id=receipt.turn_id, generation=receipt.generation,
                         audio_status=status, device_id=getattr(device, 'id', None), req=req)
 
-    async def speak_reply(self, frames):
+    async def speak_reply(self, frames, *, metadata_guard=lambda: True):
         """Call only after sending these final frames successfully to the guest."""
         if not isinstance(frames, ReplyFrames):
             return  # History, errors, access notices and interpreter replies are never read aloud.
@@ -252,6 +257,9 @@ class ConversationSpeech:
         if receipt.voice_revision is not None and receipt.voice_revision != revision:
             self._record(receipt, 'POLICY_CHANGED')
             return
+        if not metadata_guard():
+            self._record(receipt, 'POLICY_CHANGED')
+            return
         timeout = min(self.timeout, lease.expires_at - self.leases.clock())
         if timeout <= 0:
             self._record(receipt, 'PERMISSION')
@@ -263,7 +271,7 @@ class ConversationSpeech:
         speaker, connection = state.speaker, state.connection
 
         def permitted(device, cap, args):
-            return (device is speaker and device.ws is connection and self._bound(state)
+            return (metadata_guard() and device is speaker and device.ws is connection and self._bound(state)
                     and self._preference(receipt) is state and state.enabled and state.revision == revision
                     and self.leases.current(receipt.guest_id) is lease
                     and self.authorize_reply(receipt)

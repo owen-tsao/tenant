@@ -1,0 +1,408 @@
+--- a/brain/core/integration.py
++++ b/brain/core/integration.py
+@@ -19,6 +19,8 @@
+         self.registry = app.state.registry
+         self.bus = app.state.bus
+         self.config = app.state.config
++        self.registry.metadata.configure_private_values((self.config.host_token, self.config.device_token,
++                                                         os.getenv('PHOTON_API_KEY', '')))
+         self.leases = Leases(self.registry.room, clock=clock, on_change=self.registry.persist,
+                              healthy=lambda: self.registry.persistence_healthy)
+         self.log = EventLog(log_path, clock=clock)
+@@ -120,8 +122,7 @@
+         return {'type': 'state',
+                 'room': {'code': room.code, 'label': room.label,
+                          'join_url': self.config.public_url.rstrip('/') + '/j/' + room.code},
+-                'devices': [{'id': d.id, 'label': d.label, 'caps': list(d.caps), 'online': d.online, 'busy': d.busy}
+-                            for d in self.registry.devices.values() if d.room_id == room.id],
++                'devices': self.registry.metadata.public_devices(),
+                 'guests': [{'guest_id': lease.guest_id, 'display_name': lease.display_name,
+                             'channel': lease.channel,
+                             'lease_total': lease.joining_total if lease.state == 'joining' else lease.access_total,
+@@ -145,6 +146,8 @@
+     async def host_do(self, body):
+         if not isinstance(body, dict) or not isinstance(body.get('device_id'), str) or not isinstance(body.get('cap'), str):
+             raise HTTPException(400, 'Expected device_id, cap, args')
++        if body['cap'] == 'camera.capture':
++            raise HTTPException(403, 'Use the authorized room photo workflow for capture')
+         # Keep the acknowledged connection's label even if its ID reconnects
+         # while the bus is awaiting the reply.
+         dev = self.registry.devices.get(body['device_id'])
+@@ -217,6 +220,7 @@
+     from brain.api.host import router as host_router
+     from brain.channels.webchat import router as guest_router
+     from brain.ws.display import router as display_router
++    from brain.api.device_metadata import router as metadata_router
+     core = Core(app, planner, clock=clock, log_path=log_path, cleanup_hook=cleanup_hook, conversation=conversation, photon_factory=photon_factory)
+     app.state.core = core
+     previous_lifespan = app.router.lifespan_context
+@@ -247,6 +251,6 @@
+                         await core.agent.close()
+ 
+     app.router.lifespan_context = lifespan
+-    for router in (join_router, host_router, guest_router, display_router):
++    for router in (join_router, host_router, guest_router, display_router, metadata_router):
+         app.include_router(router)
+     return core
+--- a/brain/core/bus.py
++++ b/brain/core/bus.py
+@@ -46,6 +46,7 @@
+         args = copy.deepcopy(args)
+         dev = self.registry.devices.get(device_id)
+         if not dev or not dev.online: return Result(False, code="OFFLINE", message="Device offline; nothing sent")
++        metadata_revision = self.registry.metadata.revision(device_id)
+         sent = False
+         expires = asyncio.get_running_loop().time() + timeout
+         req = None
+@@ -59,6 +60,9 @@
+                     spec = dev.caps.get(cap)
+                     if not spec: return Result(False, code="UNSUPPORTED", message="Capability absent")
+                     if not self.valid_args(spec, args): return Result(False, code="INVALID", message="Invalid arguments")
++                    if (self.registry.metadata.revision(device_id) != metadata_revision
++                            or not self.registry.metadata.available(dev, cap)):
++                        return Result(False, code="PERMISSION", message="Device availability or host policy changed; nothing sent")
+                     # Required synchronous dispatch-time policy; no await between check and send initiation.
+                     # Guest owner must capture lease identity/scopes/room in this callback.
+                     if authorize is None or not authorize(dev, cap, args):
+--- a/brain/core/guest_view.py
++++ b/brain/core/guest_view.py
+@@ -34,6 +34,7 @@
+         if device.room_id != current.room_id or not device.online or ambiguous(device):
+             continue
+         caps = sorted(cap for cap in device.caps if cap in ALLOWED_CAPS
++                      and core.registry.metadata.available(device, cap)
+                       and ('*' in current.scopes or cap in current.scopes))
+         if caps:
+             controls.append({'label': device_label(device), 'caps': caps})
+--- a/brain/core/native_devices.py
++++ b/brain/core/native_devices.py
+@@ -237,15 +237,17 @@
+             for dev in self.registry.devices.values():
+                 if dev.room_id != grant.room_id:
+                     continue
+-                caps = [{'name': spec.name, 'args': copy.deepcopy(spec.args), 'description': spec.description}
++                caps = [{'name': spec.name, 'args': copy.deepcopy(spec.args), 'description': spec.description,
++                         'available': self.registry.metadata.available(dev, spec.name)}
+                         for spec in dev.caps.values() if spec.name in CAPABILITIES
++                        and self.registry.metadata.described(dev, spec.name)
+                         and ('*' in grant.lease.scopes or spec.name in grant.lease.scopes)]
+-                devices.append({'id': dev.id, 'label': dev.label, 'online': dev.online, 'busy': dev.busy,
+-                                'caps': caps, 'executable': dev.online,
++                devices.append({'id': dev.id, 'label': dev.label, 'online': self.registry.metadata.binding(dev.id) is dev, 'busy': dev.busy,
++                                'caps': caps, 'executable': any(cap['available'] for cap in caps),
+                                 'derived_operations': ([{'name': 'light-blink', 'args': {
+                                     'count': {'type': 'integer', 'minimum': 1, 'default': 3}},
+                                     'interval_ms': 500, 'bounded_by': 'current_turn_and_lease', 'ends_off_on_success': True}]
+-                                    if any(cap['name'] == 'light' for cap in caps) else [])})
++                                    if any(cap['name'] == 'light' and cap['available'] for cap in caps) else [])})
+             return {'ok': True, 'devices': devices,
+                     **({'programs': self.programs.inventory(grant)} if self.programs is not None else {}),
+                     **({'reply_voice': self.reply_voice.inventory(grant)} if self.reply_voice is not None else {})}
+@@ -281,6 +283,12 @@
+             fingerprint = json.dumps(payload, sort_keys=True, separators=(',', ':'), allow_nan=False)
+         except (TypeError, ValueError):
+             return denied('INVALID', 'Invalid helper payload. Nothing was sent.')
++        # Snapshot before any logical queue. Duplicate readers still receive the
++        # original result even when later metadata has changed.
++        program_targets = self._program_targets(grant, operation, payload) if valid_program else set()
++        targets = program_targets if valid_program else ({payload['device_id']}
++                  if isinstance(payload.get('device_id'), str) else set())
++        metadata_guard = self.registry.metadata.guard(targets)
+         async with grant.lock:
+             if not self.permitted(grant) or not connected():
+                 return denied()
+@@ -295,7 +303,8 @@
+         if not owner:
+             # Disconnecting a duplicate caller cannot cancel the original action.
+             return copy.deepcopy(await asyncio.shield(future))
+-        program_targets = self._program_targets(grant, operation, payload) if valid_program else set()
++        caller_connected = connected
++        connected = lambda: caller_connected() and metadata_guard()
+         try:
+             if valid_voice:
+                 response = self.reply_voice.set_voice(grant,
+--- a/brain/core/conversation_speech.py
++++ b/brain/core/conversation_speech.py
+@@ -107,12 +107,12 @@
+         dev = state.speaker
+         return (dev is not None and self.registry.devices.get(dev.id) is dev and dev.online
+                 and dev.ws is state.connection and dev.room_id == self.registry.room.id
+-                and 'say' in dev.caps and self.leases.allows(state.lease, dev, 'say'))
++                and self.registry.metadata.available(dev, 'say') and self.leases.allows(state.lease, dev, 'say'))
+ 
+     def _choices(self, owner):
+         choices = []
+         for dev in self.registry.devices.values():
+-            if (not dev.online or dev.room_id != self.registry.room.id or 'say' not in dev.caps
++            if (not self.registry.metadata.available(dev, 'say')
+                     or not self.leases.allows(owner.lease, dev, 'say')
+                     or self.speaker_device_id is not None and dev.id != self.speaker_device_id):
+                 continue
+@@ -190,7 +190,12 @@
+         if key in self._scheduled or key in self._seen:
+             return None
+         self._scheduled.add(key)
+-        task = asyncio.create_task(self.speak_reply(frames))
++        receipt = frames.completed_reply
++        state = self._preferences.get((receipt.guest_id, receipt.generation, receipt.thread_id))
++        metadata_guard = (self.registry.metadata.guard((state.speaker.id,))
++                          if state is not None and state.enabled and state.speaker is not None
++                          else lambda: True)
++        task = asyncio.create_task(self.speak_reply(frames, metadata_guard=metadata_guard))
+         self._tasks[task] = {'guest_id': frames.completed_reply.guest_id, 'dispatched': False, 'key': key}
+         def finished(done):
+             self._seen.add(key)
+@@ -224,7 +229,7 @@
+                         turn_id=receipt.turn_id, generation=receipt.generation,
+                         audio_status=status, device_id=getattr(device, 'id', None), req=req)
+ 
+-    async def speak_reply(self, frames):
++    async def speak_reply(self, frames, *, metadata_guard=lambda: True):
+         """Call only after sending these final frames successfully to the guest."""
+         if not isinstance(frames, ReplyFrames):
+             return  # History, errors, access notices and interpreter replies are never read aloud.
+@@ -252,6 +257,9 @@
+         if receipt.voice_revision is not None and receipt.voice_revision != revision:
+             self._record(receipt, 'POLICY_CHANGED')
+             return
++        if not metadata_guard():
++            self._record(receipt, 'POLICY_CHANGED')
++            return
+         timeout = min(self.timeout, lease.expires_at - self.leases.clock())
+         if timeout <= 0:
+             self._record(receipt, 'PERMISSION')
+@@ -263,7 +271,7 @@
+         speaker, connection = state.speaker, state.connection
+ 
+         def permitted(device, cap, args):
+-            return (device is speaker and device.ws is connection and self._bound(state)
++            return (metadata_guard() and device is speaker and device.ws is connection and self._bound(state)
+                     and self._preference(receipt) is state and state.enabled and state.revision == revision
+                     and self.leases.current(receipt.guest_id) is lease
+                     and self.authorize_reply(receipt)
+--- a/brain/core/room_programs.py
++++ b/brain/core/room_programs.py
+@@ -85,6 +85,8 @@
+     cleanup_workers: dict = field(default_factory=dict)
+     song_id: str | None = None
+     song_timeline: object = None
++    audio_metadata_guard: object = None
++    light_metadata_guards: dict = field(default_factory=dict)
+ 
+ 
+ class RoomPrograms:
+@@ -167,12 +169,12 @@
+         if not self._allowed(owner):
+             return {'audio_devices': [], 'programs': []}
+         return {'audio_devices': [{'device_id': dev.id, 'label': dev.label, 'online': dev.online,
+-                                  'generated_beat': all(cap in dev.caps for cap in ('beat.prepare', 'beat.start', 'beat.stop', 'beat.status')),
++                                  'generated_beat': all(self.registry.metadata.available(dev, cap) for cap in ('beat.prepare', 'beat.start', 'beat.stop', 'beat.status')),
+                                   'songs': ([{'song_id': identifier, 'label': dev.caps['song.prepare'].description} for identifier in
+                                              dev.caps['song.prepare'].args.get('song_id', {}).get('enum', [])]
+-                                            if all('song.' + name in dev.caps for name in ('prepare', 'start', 'stop', 'status')) else [])}
++                                            if all(self.registry.metadata.available(dev, 'song.' + name) for name in ('prepare', 'start', 'stop', 'status')) else [])}
+                                  for dev in self.registry.devices.values() if dev.room_id == owner.room_id
+-                                 and ('beat.start' in dev.caps or 'song.start' in dev.caps)],
++                                 and (self.registry.metadata.available(dev, 'beat.start') or self.registry.metadata.available(dev, 'song.start'))],
+                 'programs': [self._status(p) for p in self.programs.values() if self._same_owner(p.owner, owner)]}
+ 
+     async def dispatch(self, grant, operation, payload, *, authorized=lambda: True):
+@@ -222,6 +224,20 @@
+             if program is None or not self._same_owner(program.owner, owner):
+                 return failure('PERMISSION', 'This guest does not own that room program.')
+             return {'ok': True, 'result': self._status(program)}
++        # Preserve request-time targets through the room-program mutation queue.
++        # Status/stop/detach own fresh cleanup authority, not the old run's fence.
++        targets = set()
++        if start and isinstance(payload.get('device_id'), str):
++            targets.add(payload['device_id'])
++        elif update:
++            prior = self.programs.get(payload.get('program_id')) if isinstance(payload.get('program_id'), str) else None
++            if 'bpm' in payload and prior is not None:
++                targets.add(prior.audio.id)
++            if isinstance(payload.get('light_device_id'), str):
++                targets.add(payload['light_device_id'])
++        metadata_guard = self.registry.metadata.guard(targets)
++        caller_authorized = authorized
++        authorized = lambda: caller_authorized() and metadata_guard()
+         async with self._control:
+             if not self._allowed(owner) or not authorized():
+                 return failure('PERMISSION', 'This turn can no longer change a room program.')
+@@ -327,6 +343,7 @@
+                     program.output_cleanup.pop(('light', dev.id, program.run_id), None)
+                     program.cleanup.pop(dev.id, None)
+                     program.lights[dev.id] = (dev, dev.ws)
++                    program.light_metadata_guards[dev.id] = self.registry.metadata.guard((dev.id,))
+                     program.light_cadences[dev.id] = cadence
+                     self._begin_first_cycle(program, dev.id)
+                     program.light_tasks[dev.id] = self._task(program, self._light_loop(program, dev, dev.ws))
+@@ -402,6 +419,7 @@
+         return task
+ 
+     async def _launch(self, program, authorized):
++        program.audio_metadata_guard = self.registry.metadata.guard((program.audio.id,))
+         if any(self._light_owners.get(device_id) is not program
+                or program.light_locks.get(device_id) is not self.device_locks[device_id]
+                or not self.device_locks[device_id].locked() for device_id in program.lights):
+@@ -452,6 +470,7 @@
+             return failure('UNKNOWN', 'Generated beat outcome is unknown. No automatic replay or substitution.')
+ 
+     async def _launch_song(self, program, authorized):
++        program.audio_metadata_guard = self.registry.metadata.guard((program.audio.id,))
+         program.run_id = 's_' + uuid.uuid4().hex
+         remaining = max(0, program.owner.lease.expires_at - self.leases.clock())
+         args = {'program_id': program.run_id, 'song_id': program.song_id,
+@@ -496,10 +515,12 @@
+             return failure('UNKNOWN', 'Selected recording outcome is unknown; no start replay or substitution.')
+ 
+     async def _monitor(self, program):
++        metadata_guard = program.audio_metadata_guard
+         next_status = self.clock() + (min(.25, program.song_timeline.ttl / 2) if program.song_id else 1)
+         try:
+             while program.active:
+-                if not self._allowed(program.owner) or not self._connection(program.audio, program.audio_connection):
++                if (not metadata_guard() or not self._allowed(program.owner)
++                        or not self._connection(program.audio, program.audio_connection)):
+                     self._invalidate(program, 'PERMISSION_OR_OFFLINE')
+                     return
+                 if self.clock() >= next_status:
+@@ -510,7 +531,7 @@
+                             dispatched['at'] = self.clock()
+                         result = await self.bus.call(program.audio.id, 'song.status' if program.song_id else 'beat.status', {'program_id': program.run_id},
+                             timeout=self.action_timeout,
+-                            authorize=lambda dev, cap, _: program.active and self._allowed(program.owner)
++                            authorize=lambda dev, cap, _: metadata_guard() and program.active and self._allowed(program.owner)
+                             and dev is program.audio and self._connection(dev, program.audio_connection)
+                             and self.leases.allows(program.owner.lease, dev, cap),
+                             on_dispatch=status_sent)
+@@ -548,11 +569,11 @@
+         except Exception:
+             self._invalidate(program, 'UNKNOWN')
+ 
+-    async def _song_edge(self, program, dev, connection, on, due, deadline, beat_number, discontinuity):
++    async def _song_edge(self, program, dev, connection, on, due, deadline, beat_number, discontinuity, metadata_guard):
+         timeline = program.song_timeline
+         dispatched = {}
+         def permitted(current, cap, _):
+-            allowed = (program.active and self._allowed(program.owner) and dev.id not in program.detached
++            allowed = (metadata_guard() and program.active and self._allowed(program.owner) and dev.id not in program.detached
+                        and self.clock() < deadline and current is dev and self._connection(dev, connection)
+                        and self._light_owners.get(dev.id) is program
+                        and self.leases.allows(program.owner.lease, current, cap)
+@@ -597,12 +618,12 @@
+                     future.set_result({'ok': True})
+         return True
+ 
+-    async def _song_light_loop(self, program, dev, connection):
++    async def _song_light_loop(self, program, dev, connection, metadata_guard):
+         timeline = program.song_timeline
+         cadence = program.light_cadences.get(dev.id, 1)
+         try:
+             while program.active and dev.id not in program.detached:
+-                if not self._allowed(program.owner):
++                if not metadata_guard() or not self._allowed(program.owner):
+                     self._invalidate(program, 'PERMISSION')
+                     return
+                 if not timeline.ready(self.clock()):
+@@ -619,6 +640,9 @@
+                 discontinuity = timeline.discontinuity
+                 while self.clock() < targets[0]:
+                     await self.sleep(min(.05, targets[0] - self.clock()))
++                    if not metadata_guard():
++                        self._invalidate(program, 'PERMISSION')
++                        return
+                     if not program.active or dev.id in program.detached:
+                         return
+                     if not timeline.ready(self.clock()) or timeline.discontinuity != discontinuity:
+@@ -629,19 +653,22 @@
+                 if self.clock() >= targets[1]:
+                     program.missed_ticks += 1
+                     continue
+-                if not await self._song_edge(program, dev, connection, True, targets[0], targets[1], number, discontinuity):
++                if not await self._song_edge(program, dev, connection, True, targets[0], targets[1], number, discontinuity, metadata_guard):
+                     await self.sleep(.01)
+                     continue
+                 # OFF stays available even if the clock becomes stale/seeked.
+                 while self.clock() < targets[1] and timeline.discontinuity == discontinuity:
+                     await self.sleep(min(.05, targets[1] - self.clock()))
++                    if not metadata_guard():
++                        self._invalidate(program, 'PERMISSION')
++                        return
+                     if not program.active or dev.id in program.detached:
+                         return
+                 if not program.active or dev.id in program.detached:
+                     return
+                 due = min(targets[1], self.clock())
+                 if not await self._song_edge(program, dev, connection, False, due,
+-                    max(targets[2], self.clock() + self.action_timeout), number + cadence, discontinuity):
++                    max(targets[2], self.clock() + self.action_timeout), number + cadence, discontinuity, metadata_guard):
+                     return
+         except asyncio.CancelledError:
+             raise
+@@ -649,8 +676,13 @@
+             self._invalidate(program, 'UNKNOWN', dev.id)
+ 
+     async def _light_loop(self, program, dev, connection):
++        # Captured synchronously when this participant/run was installed. A
++        # revoke followed by re-enable never resumes an old pulse sequence.
++        audio_guard = program.audio_metadata_guard
++        light_guard = program.light_metadata_guards[dev.id]
++        metadata_guard = lambda: audio_guard() and light_guard()
+         if program.song_id:
+-            return await self._song_light_loop(program, dev, connection)
++            return await self._song_light_loop(program, dev, connection, metadata_guard)
+         audio_period = 60 / program.bpm
+         # The existing boolean bridge has measured ACKs up to 197 ms. A 90 BPM
+         # quarter pulse allowed only 166.7 ms. The controlled 60 BPM baseline now
+@@ -665,7 +697,7 @@
+                     await self.sleep(max(0, due - self.clock()))
+                     if dev.id in program.detached:
+                         return
+-                    if not program.active or not self._allowed(program.owner):
++                    if not metadata_guard() or not program.active or not self._allowed(program.owner):
+                         self._invalidate(program, 'PERMISSION')
+                         return
+                     if self.clock() >= deadline:
+@@ -679,7 +711,7 @@
+                     sent = self.clock()
+                     dispatch_time = {}
+                     def permitted(current, cap, _):
+-                        allowed = (program.active and self._allowed(program.owner)
++                        allowed = (metadata_guard() and program.active and self._allowed(program.owner)
+                                    and dev.id not in program.detached
+                                    and self.clock() < deadline and current is dev
+                                    and self._connection(current, connection)
+--- a/brain/core/tools.py
++++ b/brain/core/tools.py
+@@ -14,10 +14,10 @@
+             continue
+         caps = []
+         for cap in dev.caps.values():
+-            if '*' in lease.scopes or cap.name in lease.scopes:
++            if registry.metadata.described(dev, cap.name) and ('*' in lease.scopes or cap.name in lease.scopes):
+                 caps.append({'name': cap.name, 'args': cap.args, 'description': cap.description,
+-                             'tool': f'{slug(dev.id)}__{slug(cap.name)}' if dev.online else None})
+-        out.append({'id': dev.id, 'label': dev.label, 'online': dev.online,
++                             'tool': f'{slug(dev.id)}__{slug(cap.name)}' if registry.metadata.available(dev, cap.name) else None})
++        out.append({'id': dev.id, 'label': dev.label, 'online': registry.metadata.binding(dev.id) is dev,
+                     'busy': dev.busy, 'caps': caps})
+     return out
+ 
+@@ -39,4 +39,4 @@
+     return [dev for dev in registry.devices.values()
+             if dev.id != source_id and dev.online and dev.room_id == registry.room.id
+             and ('*' in lease.scopes or cap in lease.scopes)
+-            and cap in dev.caps and Bus.valid_args(dev.caps[cap], args)]
++            and registry.metadata.available(dev, cap) and Bus.valid_args(dev.caps[cap], args)]
+--- a/brain/core/agent.py
++++ b/brain/core/agent.py
+@@ -86,7 +86,8 @@
+         devices = [d for d in self.registry.devices.values() if d.room_id == self.registry.room.id and d.online]
+         descriptions = []
+         for dev in devices:
+-            caps = [cap for cap in dev.caps if '*' in lease.scopes or cap in lease.scopes]
++            caps = [cap for cap in dev.caps if self.registry.metadata.available(dev, cap)
++                    and ('*' in lease.scopes or cap in lease.scopes)]
+             sentence = supported_sentence(dev, caps)
+             if sentence:
+                 descriptions.append(sentence)

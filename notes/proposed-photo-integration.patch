@@ -1,0 +1,194 @@
+--- a/brain/core/integration.py
++++ b/brain/core/integration.py
+@@ -97,6 +97,7 @@
+ 
+     def sweep(self):
+         self.leases.sweep()
++        self.photos.sweep()
+         if hasattr(self.agent, 'check_access'):
+             self.agent.check_access()
+         # Credentials/tombstones last through the original cookie lifetime only.
+@@ -162,6 +163,7 @@
+ 
+     def revoke(self, guest_id, *, actor='host'):
+         revoked = self.leases.revoke(guest_id)
++        self.photos.invalidate_guest(guest_id)
+         self.agent.pending.pop(guest_id, None)
+         if hasattr(self.agent, 'access_ended'):
+             self.agent.access_ended(guest_id)
+@@ -173,6 +175,7 @@
+     async def reset(self):
+         # No await before revocation/invitation rotation. Do not cancel an already sent physical command.
+         revoked = self.leases.reset()
++        self.photos.reset()  # Synchronous clear before any awaited cleanup.
+         self.agent.pending.clear()
+         self.log.clear()
+         self.log.append('guest.leave', 'The host ended all guest access and refreshed the room invitation.')
+@@ -223,6 +226,8 @@
+     from brain.api.device_metadata import router as metadata_router
+     core = Core(app, planner, clock=clock, log_path=log_path, cleanup_hook=cleanup_hook, conversation=conversation, photon_factory=photon_factory)
+     app.state.core = core
++    from brain.core.photo_install import install_photos
++    install_photos(app, core)
+     previous_lifespan = app.router.lifespan_context
+ 
+     @asynccontextmanager
+@@ -243,6 +248,7 @@
+                     task.cancel()
+                     with suppress(asyncio.CancelledError):
+                         await task
++                core.photos.close()
+                 if core.photon is not None:
+                     with suppress(Exception):
+                         await core.photon.close()
+--- a/brain/main.py
++++ b/brain/main.py
+@@ -74,7 +74,7 @@
+ 
+     @app.websocket("/ws/device")
+     async def devices(ws: WebSocket):
+-        await device_socket(ws, config, registry, bus)
++        await device_socket(ws, config, registry, bus, photos=core.photos)
+ 
+     @app.post("/host/do")
+     async def host_do(request: Request):
+--- a/brain/ws/devices.py
++++ b/brain/ws/devices.py
+@@ -5,7 +5,7 @@
+ from fastapi import WebSocketDisconnect
+ from brain.core.registry import DeviceAlreadyConnected
+ 
+-async def device_socket(ws, config, registry, bus, heartbeat=5.0):
++async def device_socket(ws, config, registry, bus, heartbeat=5.0, *, photos=None):
+     supplied = ws.query_params.get("t", "")
+     if not config.device_token or not secrets.compare_digest(supplied, config.device_token):
+         await ws.close(code=1008)
+@@ -38,6 +38,13 @@
+             if not isinstance(frame, dict): raise ValueError("Invalid frame")
+             if frame.get("type") == "pong": dev.last_seen = time.monotonic()
+             elif frame.get("type") in ("ok", "err"): bus.receive(dev, frame)
++            elif frame.get("type") == "photo.consent" and photos is not None:
++                from brain.core.photos import PhotoError
++                try:
++                    result = photos.device_event(dev, frame)
++                except PhotoError as error:
++                    result = {"type": "photo.consent", "ok": False, "code": error.code, "message": error.message}
++                await ws.send_json(result)
+             else: raise ValueError("Unexpected frame")
+     except DeviceAlreadyConnected:
+         with contextlib.suppress(Exception):
+--- a/brain/core/native_devices.py
++++ b/brain/core/native_devices.py
+@@ -66,6 +66,7 @@
+         self.device_locks = defaultdict(asyncio.Lock)
+         self.programs = None
+         self.reply_voice = None
++        self.photos = None
+ 
+     async def prepare(self, guest_id, generation, lease, thread_id):
+         if self._closed:
+@@ -173,6 +174,10 @@
+                      'One-off say never enables it; use say only for requested speech, not final narration. '
+                      'Append reply-voice with JSON request_id,enabled:false; '
+                      'or request_id,enabled:true,device_id,speaker_ref from inventory.reply_voice.')
++        if self.photos is not None and self.photos.enabled:
++            text += ('\nPhotos: use inventory.photos. photo-capture takes request_id,source_device_id; '
++                     'photo-status takes request_id,capture_request_id. No raw camera calls or retries. '
++                     'Captured/stored are not displayed; only a matching viewer receipt confirms rendering.')
+         return text
+ 
+     async def _handle(self, reader, writer):
+@@ -250,7 +255,9 @@
+                                     if any(cap['name'] == 'light' and cap['available'] for cap in caps) else [])})
+             return {'ok': True, 'devices': devices,
+                     **({'programs': self.programs.inventory(grant)} if self.programs is not None else {}),
+-                    **({'reply_voice': self.reply_voice.inventory(grant)} if self.reply_voice is not None else {})}
++                    **({'reply_voice': self.reply_voice.inventory(grant)} if self.reply_voice is not None else {}),
++                    **({'photos': self.photos.inventory(grant.lease, generation=grant.generation)}
++                       if self.photos is not None and self.photos.enabled else {})}
+         valid_call = operation == 'call' and set(request) == {'token', 'operation', 'request_id', 'device_id', 'cap', 'args'}
+         valid_blink = (operation == 'light-blink'
+                        and {'token', 'operation', 'request_id', 'device_id'} <= set(request)
+@@ -269,14 +276,17 @@
+                                 and fields == {'request_id', 'enabled', 'device_id', 'speaker_ref'}
+                                 and isinstance(request['device_id'], str)
+                                 and isinstance(request['speaker_ref'], str))))
+-        if not valid_call and not valid_blink and not valid_program and not valid_voice:
++        valid_photo = self.photos is not None and (
++            (operation == 'photo-capture' and fields == {'request_id', 'source_device_id'}) or
++            (operation == 'photo-status' and fields == {'request_id', 'capture_request_id'}))
++        if not valid_call and not valid_blink and not valid_program and not valid_voice and not valid_photo:
+             return denied('INVALID', 'Invalid helper request. Nothing was sent.')
+         request_id = request['request_id']
+         if (not isinstance(request_id, str) or not 1 <= len(request_id) <= 80
+                 or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in request_id)):
+             return denied('INVALID', 'A short request ID is required. Nothing was sent.')
+         payload = ({key: copy.deepcopy(request[key]) for key in ('device_id', 'cap', 'args')} if valid_call else
+-                   {key: copy.deepcopy(request[key]) for key in fields} if valid_program or valid_voice else
++                   {key: copy.deepcopy(request[key]) for key in fields} if valid_program or valid_voice or valid_photo else
+                    {'device_id': copy.deepcopy(request['device_id']), 'count': copy.deepcopy(request.get('count', 3))})
+         payload['operation'] = operation
+         try:
+@@ -306,7 +316,20 @@
+         caller_connected = connected
+         connected = lambda: caller_connected() and metadata_guard()
+         try:
+-            if valid_voice:
++            if valid_photo:
++                from brain.core.photos import PhotoError
++                try:
++                    if operation == 'photo-status':
++                        response = self.photos.status(grant.lease, payload['capture_request_id'])
++                    elif payload['source_device_id'] in grant.unknown_devices:
++                        response = denied('UNKNOWN', 'That phone has an uncertain earlier action. Nothing was resent.')
++                    else:
++                        response = await self.photos.capture(grant.lease, payload['request_id'],
++                            payload['source_device_id'], generation=grant.generation,
++                            dispatch_allowed=lambda: self.permitted(grant) and connected())
++                except PhotoError as error:
++                    response = denied(error.code, error.message)
++            elif valid_voice:
+                 response = self.reply_voice.set_voice(grant,
+                     {key: value for key, value in payload.items() if key != 'operation'},
+                     authorized=lambda: self.permitted(grant) and connected())
+@@ -329,6 +352,10 @@
+                 ids = response.get('unknown_device_ids', program_targets)
+                 if isinstance(ids, (list, set, tuple)):
+                     grant.unknown_devices.update(device_id for device_id in ids if isinstance(device_id, str))
++            elif valid_photo:
++                device_id = payload.get('source_device_id')
++                if isinstance(device_id, str):
++                    grant.unknown_devices.add(device_id)
+             elif not valid_voice:
+                 device_id = payload.get('device_id')
+                 if isinstance(device_id, str):
+--- a/agent/tenant_device.py
++++ b/agent/tenant_device.py
+@@ -16,7 +16,7 @@
+     if len(encoded) > MAX_BYTES:
+         raise ValueError('Request too large')
+     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+-        timeout = context.get('long_timeout', 122) if operation == 'light-blink' or operation.startswith('program-') else 8
++        timeout = context.get('long_timeout', 122) if operation in ('light-blink', 'photo-capture') or operation.startswith('program-') else 8
+         if operation == 'call' and isinstance(payload, dict) and payload.get('cap') == 'say':
+             timeout = context.get('speech_timeout', 17)
+         if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
+@@ -38,7 +38,8 @@
+     parser = argparse.ArgumentParser(description='Use the current Tenant native-turn device grant.')
+     parser.add_argument('--context', required=True)
+     parser.add_argument('operation', choices=('inventory', 'call', 'light-blink', 'program-start',
+-                                             'program-update', 'program-stop', 'program-status', 'reply-voice'))
++                                             'program-update', 'program-stop', 'program-status', 'reply-voice',
++                                             'photo-capture', 'photo-status'))
+     args = parser.parse_args(argv)
+     try:
+         payload = None
+@@ -48,6 +49,8 @@
+                 raise ValueError('Request too large')
+             payload = json.loads(text)
+             valid = (isinstance(payload, dict) and (
++                (args.operation == 'photo-capture' and set(payload) == {'request_id', 'source_device_id'}) or
++                (args.operation == 'photo-status' and set(payload) == {'request_id', 'capture_request_id'}) or
+                 (args.operation == 'call' and set(payload) == {'request_id', 'device_id', 'cap', 'args'}) or
+                 (args.operation == 'light-blink' and {'request_id', 'device_id'} <= set(payload)
+                  and set(payload) <= {'request_id', 'device_id', 'count'}) or

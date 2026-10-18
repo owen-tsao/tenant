@@ -1,4 +1,6 @@
 from brain.state import Device, CapSpec
+from brain.core.device_metadata import DeviceMetadata
+import copy
 
 
 class DeviceAlreadyConnected(ValueError):
@@ -12,16 +14,24 @@ class Registry:
         self.enrollments = {}
         self.on_change = None
         self.persistence_healthy = True
+        self.metadata = DeviceMetadata(self)
 
     def persist(self):
-        if self.on_change is None:
-            return True
+        # An ambiguous write may have durably saved a denial while memory was
+        # rolled back. Only a trusted reload reconciles that state; a later
+        # hello or unrelated save must never overwrite it and reopen control.
+        if not self.persistence_healthy:
+            return False
         try:
-            self.on_change(self)
+            if self.on_change is not None:
+                self.on_change(self)
         except Exception:
             self.persistence_healthy = False
             return False
         self.persistence_healthy = True
+        # Successful retirement removes evidence as well as old aliases.
+        self.metadata.records = {key: value for key, value in self.metadata.records.items() if key in self.enrollments}
+        self.metadata.observed_at = {key: value for key, value in self.metadata.observed_at.items() if key in self.enrollments}
         return True
 
     def register(self, frame, ws):
@@ -60,14 +70,25 @@ class Registry:
         if previous and previous.online:
             raise DeviceAlreadyConnected("Device already connected")
         saved_aliases = self.enrollments.get(frame['id'])
+        saved_record = copy.deepcopy(self.metadata.records.get(frame['id']))
+        saved_observation = self.metadata.observed_at.get(frame['id'])
         self.enrollments[frame['id']] = set(saved_aliases or ()) | {frame['room'], self.room.code}
+        self.metadata.observe_label(frame['id'], frame['label'], new_identity=saved_aliases is None)
         if not self.persist():
             if saved_aliases is None:
                 self.enrollments.pop(frame['id'], None)
             else:
                 self.enrollments[frame['id']] = saved_aliases
+            if saved_record is None:
+                self.metadata.records.pop(frame['id'], None)
+            else:
+                self.metadata.records[frame['id']] = saved_record
+            if saved_observation is None:
+                self.metadata.observed_at.pop(frame['id'], None)
+            else:
+                self.metadata.observed_at[frame['id']] = saved_observation
             raise ValueError('Room persistence unavailable')
-        dev = Device(frame["id"], frame["label"], self.room.code, parsed, ws, room_id=self.room.id)
+        dev = Device(frame["id"], self.metadata.label(frame['id']), self.room.code, parsed, ws, room_id=self.room.id)
         self.devices[dev.id] = dev
         self.room.device_ids.add(dev.id)
         return dev

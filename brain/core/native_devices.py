@@ -66,6 +66,7 @@ class NativeDevices:
         self.device_locks = defaultdict(asyncio.Lock)
         self.programs = None
         self.reply_voice = None
+        self.photos = None
 
     async def prepare(self, guest_id, generation, lease, thread_id):
         if self._closed:
@@ -149,21 +150,22 @@ class NativeDevices:
             '[End Tenant room integration context]')
         if self.programs is not None:
             text += (
-                '\nRoom programs use the same helper prefix with program-start, program-update, program-stop, '
-                'or program-status and JSON stdin. Start takes request_id, beat-capable Mac device_id, bpm; save program_id. '
-                'A generated beat continues while you reply and the same guest speaks again. Update takes request_id, '
-                'program_id, and bpm and/or light_device_id and/or remove_light_device_id. With light_device_id, '
-                'light_beats_per_state sets beats per ON and OFF (default 0.5; 1 means one full beat each, 2s at 30 BPM). '
-                'Omitting it preserves an existing phone cadence. Stop/status take request_id, '
-                'program_id. Discover Macs/programs in inventory.programs. By default, phone pulses use half a beat ON/OFF '
-                '(60 BPM: 500ms each); stale unsent ON is skipped. Attach stays pending until its first ON and OFF '
-                'ACKs. ok with complete:false/code PENDING means accepted only, not following. '
-                'Only following/first_cycle ACKs confirm that cycle, never visible pulses or physical sync. '
-                'UNKNOWN stops dependent work. '
-                'For a non-OFF phone CONFLICT, detach via program-update/remove_light_device_id, then submit the original '
-                'raw action with a fresh request_id only after confirmed detach; music may continue. Never retry UNKNOWN detach. '
-                'A bpm update restarts the loop with a new phase. Process launch/dispatch timestamps do not prove '
-                'physical audio/light sync; prepared Music is not tempo-synced. Programs end with guest access.')
+                '\nRoom programs: program-start, program-update, program-stop, program-status with JSON stdin. '
+                'Start takes request_id,device_id and EITHER bpm for a generated beat OR exact song_id from '
+                'inventory.programs.audio_devices[].songs for a real selected recording. Save program_id. '
+                'Never substitute generated audio for requested music or invent a song/BPM. '
+                'A song uses its analyzed beats plus live playhead; song_clock pending means timing unready, not synced. '
+                'Do not also open an independent browser player. Audio continues through conversation. '
+                'Update takes request_id,program_id plus bpm (generated only), light_device_id, remove_light_device_id, '
+                'and/or light_beats_per_state with light_device_id. Cadence means beats per ON and OFF '
+                '(generated default0.5; song default1; 1 means 2s each at30BPM). Omission preserves cadence. '
+                'Stop/status take request_id,program_id. Attach PENDING/complete:false is accepted only; '
+                'following/first_cycle ACKs confirm ON+OFF, never visible pulses or physical sync. '
+                'Stale unsent ON is skipped; UNKNOWN stops dependent work. '
+                'For non-OFF phone CONFLICT, detach with program-update/remove_light_device_id, '
+                'then the original raw action with fresh request_id after confirmed detach; music may continue. '
+                'Never retry UNKNOWN detach. BPM update restarts generated phase; song tempo edits unavailable. '
+                'Programs end with access; process/ACK timing never proves physical sync.')
         if self.reply_voice is not None:
             text += ('\nReply voice context: '
                      + json.dumps(self.reply_voice.context(grant), separators=(',', ':'))
@@ -172,6 +174,10 @@ class NativeDevices:
                      'One-off say never enables it; use say only for requested speech, not final narration. '
                      'Append reply-voice with JSON request_id,enabled:false; '
                      'or request_id,enabled:true,device_id,speaker_ref from inventory.reply_voice.')
+        if self.photos is not None and self.photos.enabled:
+            text += ('\nPhotos: use inventory.photos. photo-capture takes request_id,source_device_id; '
+                     'photo-status takes request_id,capture_request_id. No raw camera calls or retries. '
+                     'Captured/stored are not displayed; only a matching viewer receipt confirms rendering.')
         return text
 
     async def _handle(self, reader, writer):
@@ -236,25 +242,29 @@ class NativeDevices:
             for dev in self.registry.devices.values():
                 if dev.room_id != grant.room_id:
                     continue
-                caps = [{'name': spec.name, 'args': copy.deepcopy(spec.args), 'description': spec.description}
+                caps = [{'name': spec.name, 'args': copy.deepcopy(spec.args), 'description': spec.description,
+                         'available': self.registry.metadata.available(dev, spec.name)}
                         for spec in dev.caps.values() if spec.name in CAPABILITIES
+                        and self.registry.metadata.described(dev, spec.name)
                         and ('*' in grant.lease.scopes or spec.name in grant.lease.scopes)]
-                devices.append({'id': dev.id, 'label': dev.label, 'online': dev.online, 'busy': dev.busy,
-                                'caps': caps, 'executable': dev.online,
+                devices.append({'id': dev.id, 'label': dev.label, 'online': self.registry.metadata.binding(dev.id) is dev, 'busy': dev.busy,
+                                'caps': caps, 'executable': any(cap['available'] for cap in caps),
                                 'derived_operations': ([{'name': 'light-blink', 'args': {
                                     'count': {'type': 'integer', 'minimum': 1, 'default': 3}},
                                     'interval_ms': 500, 'bounded_by': 'current_turn_and_lease', 'ends_off_on_success': True}]
-                                    if any(cap['name'] == 'light' for cap in caps) else [])})
+                                    if any(cap['name'] == 'light' and cap['available'] for cap in caps) else [])})
             return {'ok': True, 'devices': devices,
                     **({'programs': self.programs.inventory(grant)} if self.programs is not None else {}),
-                    **({'reply_voice': self.reply_voice.inventory(grant)} if self.reply_voice is not None else {})}
+                    **({'reply_voice': self.reply_voice.inventory(grant)} if self.reply_voice is not None else {}),
+                    **({'photos': self.photos.inventory(grant.lease, generation=grant.generation)}
+                       if self.photos is not None and self.photos.enabled else {})}
         valid_call = operation == 'call' and set(request) == {'token', 'operation', 'request_id', 'device_id', 'cap', 'args'}
         valid_blink = (operation == 'light-blink'
                        and {'token', 'operation', 'request_id', 'device_id'} <= set(request)
                        and set(request) <= {'token', 'operation', 'request_id', 'device_id', 'count'})
         fields = set(request) - {'token', 'operation'}
         valid_program = self.programs is not None and (
-            (operation == 'program-start' and fields == {'request_id', 'device_id', 'bpm'}) or
+            (operation == 'program-start' and fields in ({'request_id', 'device_id', 'bpm'}, {'request_id', 'device_id', 'song_id'})) or
             (operation == 'program-update' and {'request_id', 'program_id'} < fields
              and fields <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
              and ('light_beats_per_state' not in fields or 'light_device_id' in fields)) or
@@ -266,20 +276,31 @@ class NativeDevices:
                                 and fields == {'request_id', 'enabled', 'device_id', 'speaker_ref'}
                                 and isinstance(request['device_id'], str)
                                 and isinstance(request['speaker_ref'], str))))
-        if not valid_call and not valid_blink and not valid_program and not valid_voice:
+        valid_photo = self.photos is not None and (
+            (operation == 'photo-capture' and fields == {'request_id', 'source_device_id'}) or
+            (operation == 'photo-status' and fields == {'request_id', 'capture_request_id'}))
+        if not valid_call and not valid_blink and not valid_program and not valid_voice and not valid_photo:
             return denied('INVALID', 'Invalid helper request. Nothing was sent.')
         request_id = request['request_id']
         if (not isinstance(request_id, str) or not 1 <= len(request_id) <= 80
                 or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in request_id)):
             return denied('INVALID', 'A short request ID is required. Nothing was sent.')
         payload = ({key: copy.deepcopy(request[key]) for key in ('device_id', 'cap', 'args')} if valid_call else
-                   {key: copy.deepcopy(request[key]) for key in fields} if valid_program or valid_voice else
+                   {key: copy.deepcopy(request[key]) for key in fields} if valid_program or valid_voice or valid_photo else
                    {'device_id': copy.deepcopy(request['device_id']), 'count': copy.deepcopy(request.get('count', 3))})
         payload['operation'] = operation
         try:
             fingerprint = json.dumps(payload, sort_keys=True, separators=(',', ':'), allow_nan=False)
         except (TypeError, ValueError):
             return denied('INVALID', 'Invalid helper payload. Nothing was sent.')
+        # Snapshot before any logical queue. Duplicate readers still receive the
+        # original result even when later metadata has changed.
+        program_targets = self._program_targets(grant, operation, payload) if valid_program else set()
+        targets = program_targets if valid_program else ({payload['device_id']}
+                  if isinstance(payload.get('device_id'), str) else set())
+        if valid_photo and operation == 'photo-capture' and isinstance(payload.get('source_device_id'), str):
+            targets.add(payload['source_device_id'])
+        metadata_guard = self.registry.metadata.guard(targets)
         async with grant.lock:
             if not self.permitted(grant) or not connected():
                 return denied()
@@ -294,9 +315,24 @@ class NativeDevices:
         if not owner:
             # Disconnecting a duplicate caller cannot cancel the original action.
             return copy.deepcopy(await asyncio.shield(future))
-        program_targets = self._program_targets(grant, operation, payload) if valid_program else set()
+        caller_connected = connected
+        connected = lambda: caller_connected() and metadata_guard()
         try:
-            if valid_voice:
+            if valid_photo:
+                from brain.core.photos import PhotoError
+                try:
+                    if operation == 'photo-status':
+                        response = self.photos.status(grant.lease, payload['capture_request_id'])
+                    elif payload['source_device_id'] in grant.unknown_devices:
+                        response = denied('UNKNOWN', 'That phone has an uncertain earlier action. Nothing was resent.')
+                    else:
+                        response = await self.photos.capture(grant.lease, payload['request_id'],
+                            payload['source_device_id'], generation=grant.generation,
+                            dispatch_allowed=lambda: self.permitted(grant) and connected()
+                            and payload['source_device_id'] not in grant.unknown_devices)
+                except PhotoError as error:
+                    response = denied(error.code, error.message)
+            elif valid_voice:
                 response = self.reply_voice.set_voice(grant,
                     {key: value for key, value in payload.items() if key != 'operation'},
                     authorized=lambda: self.permitted(grant) and connected())
@@ -319,6 +355,10 @@ class NativeDevices:
                 ids = response.get('unknown_device_ids', program_targets)
                 if isinstance(ids, (list, set, tuple)):
                     grant.unknown_devices.update(device_id for device_id in ids if isinstance(device_id, str))
+            elif valid_photo:
+                device_id = payload.get('source_device_id')
+                if isinstance(device_id, str):
+                    grant.unknown_devices.add(device_id)
             elif not valid_voice:
                 device_id = payload.get('device_id')
                 if isinstance(device_id, str):

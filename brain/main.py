@@ -74,7 +74,7 @@ def create_app(config=None, *, planner=None, log_path=None, state_path=None, con
 
     @app.websocket("/ws/device")
     async def devices(ws: WebSocket):
-        await device_socket(ws, config, registry, bus)
+        await device_socket(ws, config, registry, bus, photos=core.photos)
 
     @app.post("/host/do")
     async def host_do(request: Request):

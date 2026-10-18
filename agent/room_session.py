@@ -20,6 +20,15 @@ class RoomSessionError(RuntimeError):
         self.outcome_unknown = outcome_unknown
 
 
+class NativeTurnError(RoomSessionError):
+    """A scoped native failure; it does not prove that earlier effects stopped."""
+
+    def __init__(self, status, *, turn_id):
+        super().__init__('Native turn did not complete', code='NATIVE_TERMINAL', outcome_unknown=True)
+        self.status = status
+        self.turn_id = turn_id
+
+
 class RoomSession:
     def __init__(self, thread_id, *, socket_path=None, connector=None,
                  request_timeout=10, event_limit=512):
@@ -130,9 +139,14 @@ class RoomSession:
                     if 'id' in message:
                         raise RoomSessionError('Tool request belongs to another conversation')
                     continue
-                if message['method'] in ('turn/started', 'turn/completed', 'thread/queue/changed') or 'id' in message:
-                    self._activity_generation += 1
                 turn = params.get('turn', {})
+                if message['method'] in ('turn/started', 'turn/completed') and turn.get('id') in self._completed_turns:
+                    # A terminal start response and its notification may race.
+                    # Neither a duplicate completion nor a late start reopens it.
+                    continue
+                if (message['method'] in ('turn/started', 'turn/completed', 'thread/queue/changed')
+                        or (message['method'] == 'error' and params.get('willRetry') is False) or 'id' in message):
+                    self._activity_generation += 1
                 if message['method'] == 'turn/started':
                     self._active_turn = turn.get('id')
                     self._busy_unknown = False
@@ -201,13 +215,37 @@ class RoomSession:
                     self._busy_unknown = self._active_turn is None
                 raise
             turn = result.get('turn', {})
-            if not isinstance(turn.get('id'), str):
+            if not isinstance(turn.get('id'), str) or not turn['id']:
                 self._busy_unknown = True
                 raise RoomSessionError('Room turn may have started; no turn ID was returned', outcome_unknown=True)
-            if turn.get('status') == 'inProgress' and turn['id'] not in self._completed_turns:
-                self._active_turn = turn['id']
+            status = turn.get('status')
+            if status in ('completed', 'interrupted', 'failed', 'cancelled'):
+                if turn['id'] not in self._completed_turns:
+                    self._completed_turns.add(turn['id'])
+                    if self._active_turn in (None, turn['id']):
+                        self._active_turn = None
+                    self._busy_unknown = False
+                    self._activity_generation += 1
+                    try:
+                        # A terminal RPC response need not have another notification.
+                        # Only final assistant text is eligible for guest publication.
+                        if status == 'completed':
+                            for item in turn.get('items', []):
+                                if item.get('type') == 'agentMessage':
+                                    self._events.put_nowait({'method': 'item/completed', 'params': {
+                                        'threadId': self.thread_id, 'turnId': turn['id'], 'item': item}})
+                        self._events.put_nowait({'method': 'turn/completed', 'params': {
+                            'threadId': self.thread_id, 'turn': turn}})
+                    except asyncio.QueueFull:
+                        self._fail(RoomSessionError('Room terminal events exceeded their bound', outcome_unknown=True))
+            elif status == 'inProgress':
+                if turn['id'] not in self._completed_turns:
+                    self._active_turn = turn['id']
+                else:
+                    self._busy_unknown = False
             else:
-                self._busy_unknown = False
+                self.require_reset()
+                raise RoomSessionError('Invalid native turn status; it was not retried', outcome_unknown=True)
             return turn['id']
 
     async def read_thread(self, *, include_turns=False):

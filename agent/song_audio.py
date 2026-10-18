@@ -1,0 +1,305 @@
+"""One selected real recording, through mpv's normal default output and JSON IPC.
+
+Optional: importing this module neither opens a player nor resolves any media.
+The host-prepared canonical recording and its analysis are checksum-bound.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+import hashlib
+import json
+import math
+from pathlib import Path
+import shutil
+import socket
+import subprocess
+import threading
+import time
+
+
+class SongError(Exception):
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.code, self.message = code, message
+
+
+def finite(value):
+    return type(value) in (int, float) and math.isfinite(value)
+
+
+def validate_map(data):
+    """Validate public timing data independently of a host-private audio path."""
+    if (not isinstance(data, dict) or not isinstance(data.get('song_id'), str)
+            or not 1 <= len(data['song_id']) <= 80
+            or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in data['song_id'])
+            or not isinstance(data.get('sha256'), str) or len(data['sha256']) != 64
+            or any(c not in '0123456789abcdef' for c in data['sha256'])
+            or data.get('artist') != 'Daniel Caesar' or not isinstance(data.get('title'), str)
+            or not data['title'].strip() or len(data['title']) > 160
+            or not finite(data.get('duration_seconds')) or data['duration_seconds'] <= 0):
+        raise SongError('INVALID', 'The selected recording identity is invalid.')
+    beats = data.get('beat_seconds')
+    if (not isinstance(beats, list) or len(beats) < 3
+            or any(not finite(value) or not 0 <= value < data['duration_seconds'] for value in beats)
+            or any(left >= right for left, right in zip(beats, beats[1:]))):
+        raise SongError('INVALID', 'The recording has no valid ordered beat timeline.')
+    return data
+
+
+def load_recording(manifest):
+    data = validate_map(json.loads(Path(manifest).read_text()))
+    path = Path(data['audio_path']).resolve(strict=True)
+    if hashlib.sha256(path.read_bytes()).hexdigest() != data['sha256']:
+        raise SongError('INVALID', 'The analyzed recording changed; no playback was started.')
+    return dict(data, audio_path=str(path))
+
+
+def capabilities(recording):
+    identifier = {'type': 'string', 'maxLength': 80}
+    label = recording['artist'] + ' — ' + recording['title']
+    return {
+        'song.prepare': {'description': 'Prepare selected real recording: ' + label + '; never plays.',
+            'args': {'program_id': identifier, 'song_id': {**identifier, 'enum': [recording['song_id']]},
+                     'expires_at_ms': {'type': 'number', 'minimum': 0}}},
+        **{'song.' + name: {'description': description, 'args': {'program_id': identifier}}
+           for name, description in (
+               ('start', 'Play only the prepared real recording, once, through the current default output.'),
+               ('status', 'Read selected-source identity, buffering/pause and actual audio playhead; no audibility claim.'),
+               ('stop', 'Stop only this owned selected recording and close its player.'))}}
+
+
+class MpvPlayer:
+    """Private inherited IPC FD: closing the owner also terminates this player."""
+    def __init__(self, recording, *, binary='mpv', popen=subprocess.Popen):
+        self.connection, child = socket.socketpair()
+        self.buffer, self.counter = b'', 0
+        self.lock = threading.RLock()
+        self.path = recording['audio_path']
+        try:
+            # No mixer, device, output-volume, normalization or user config edits.
+            self.process = popen([binary, '--no-config', '--pause=yes', '--idle=no',
+                '--terminal=no', '--force-window=yes', '--audio-display=no',
+                '--keep-open=yes', '--loop-file=no', '--input-ipc-client=fd://' + str(child.fileno()),
+                '--title=' + recording['artist'] + ' — ' + recording['title'],
+                '--osd-level=3', '--osd-msg1=' + recording['artist'] + ' — ' + recording['title'],
+                '--', self.path], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL, pass_fds=(child.fileno(),))
+        except BaseException:
+            self.connection.close()
+            raise
+        finally:
+            child.close()
+
+    def command(self, command, deadline):
+        with self.lock:
+            self.counter += 1
+            request = self.counter
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise SongError('UNKNOWN', 'The player deadline elapsed; nothing was repeated.')
+            self.connection.settimeout(remaining)
+            self.connection.sendall(json.dumps({'command': command, 'request_id': request}).encode() + b'\n')
+            while True:
+                while b'\n' not in self.buffer:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError()
+                    self.connection.settimeout(remaining)
+                    chunk = self.connection.recv(65536)
+                    if not chunk:
+                        raise SongError('UNKNOWN', 'The owned player connection ended.')
+                    self.buffer += chunk
+                    if len(self.buffer) > 1_048_576:
+                        raise SongError('UNKNOWN', 'The player response was invalid.')
+                line, self.buffer = self.buffer.split(b'\n', 1)
+                response = json.loads(line)
+                if response.get('request_id') != request:
+                    continue  # player events are not command receipts
+                if response.get('error') == 'property unavailable' and command[0] == 'get_property':
+                    return None  # normal decoder startup; read-only polling is safe
+                if response.get('error') != 'success':
+                    raise SongError('UNKNOWN', 'The player did not confirm its command.')
+                return response.get('data')
+
+    def snapshot(self, deadline):
+        values = {name: self.command(['get_property', name], deadline)
+                  for name in ('pause', 'paused-for-cache', 'eof-reached', 'speed', 'path', 'time-pos')}
+        if ((values['path'] is not None and values['path'] != self.path)
+                or (values['speed'] is not None and (not finite(values['speed']) or values['speed'] != 1))):
+            raise SongError('FAILED', 'The selected recording or playback speed changed.')
+        if any(values[name] is None for name in values):
+            return {'state': 'loading', 'position_seconds': 0, 'rate': 1}
+        # audio-pts updates at audio cadence and includes mpv's audio-driver delay.
+        # Before playback it may be unavailable, so prepared-state time-pos is enough.
+        if not values['pause'] and not values['eof-reached']:
+            values['time-pos'] = self.command(['get_property', 'audio-pts'], deadline)
+            if not finite(values['time-pos']) or values['time-pos'] < 0:
+                return {'state': 'buffering', 'position_seconds': 0, 'rate': 1}
+        state = ('ended' if values['eof-reached'] else 'paused' if values['pause'] else
+                 'buffering' if values['paused-for-cache'] else 'playing')
+        return {'state': state, 'position_seconds': values['time-pos'], 'rate': values['speed']}
+
+    def start(self, deadline):
+        self.command(['set_property', 'pause', False], deadline)
+
+    def close(self):
+        # IPC EOF is mpv's documented owner-disconnect shutdown mechanism.
+        try:
+            self.connection.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
+        self.connection.close()
+        try:
+            self.process.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(timeout=1)
+        return self.process.poll() is not None
+
+
+@dataclass
+class SongJob:
+    recording: dict
+    expires: float
+    player: object = None
+    attempted: bool = False
+    state: str = 'preparing'
+    stopped: bool = False
+    lock: object = field(default_factory=threading.RLock)
+    cancelled: object = field(default_factory=threading.Event)
+    close_lock: object = field(default_factory=threading.Lock)
+
+
+class SongAudio:
+    def __init__(self, manifest=None, *, factory=MpvPlayer, clock=time.monotonic,
+                 wall_clock=time.time, watch=True, binary=None):
+        self.factory, self.clock, self.wall_clock, self.watch = factory, clock, wall_clock, watch
+        self.binary = binary or shutil.which('mpv')
+        self.recording, self.note = None, 'No selected recording is prepared.'
+        self.jobs, self.lock = {}, threading.RLock()
+        if manifest and self.binary:
+            try:
+                self.recording = load_recording(manifest)
+                self.manifest = manifest
+            except Exception:
+                self.note = 'Selected recording validation failed; no song capability advertised.'
+
+    def capabilities(self):
+        return capabilities(self.recording) if self.recording else {}
+
+    def _public(self, recording):
+        return {key: recording[key] for key in ('song_id', 'artist', 'title', 'sha256',
+                                               'duration_seconds', 'beat_seconds', 'analysis')}
+
+    def dispatch(self, cap, args, timeout=4):
+        spec = self.capabilities().get(cap)
+        if spec is None or not isinstance(args, dict) or set(args) != set(spec['args']):
+            raise SongError('INVALID', 'Invalid selected-recording command.')
+        identifier = args['program_id']
+        if (not isinstance(identifier, str) or not 1 <= len(identifier) <= 80
+                or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in identifier)):
+            raise SongError('INVALID', 'Invalid selected-recording program ID.')
+        deadline = self.clock() + timeout
+        if cap == 'song.prepare':
+            if args['song_id'] != self.recording['song_id'] or not finite(args['expires_at_ms']):
+                raise SongError('INVALID', 'Select the exact available recording.')
+            remaining = args['expires_at_ms'] / 1000 - self.wall_clock()
+            if remaining <= 0:
+                raise SongError('PERMISSION', 'Song access expired before preparation.')
+            with self.lock:
+                if identifier in self.jobs:
+                    raise SongError('CONFLICT', 'This song program ID was already used; no replay.')
+                if any(not job.stopped for job in self.jobs.values()):
+                    raise SongError('BUSY', 'The selected-song player is already owned; stop it first.')
+                job = self.jobs[identifier] = SongJob(self.recording, self.clock() + remaining)
+            try:
+                # Recheck the exact bytes immediately before opening the player.
+                if hashlib.sha256(Path(job.recording['audio_path']).read_bytes()).hexdigest() != job.recording['sha256']:
+                    raise SongError('INVALID', 'The selected recording changed.')
+                with job.lock:
+                    if job.cancelled.is_set() or job.stopped or self.clock() >= min(deadline, job.expires):
+                        raise SongError('PERMISSION', 'Preparation was cancelled before the player opened.')
+                    job.player = self.factory(job.recording, binary=self.binary)
+                    if job.cancelled.is_set() or self.clock() >= min(deadline, job.expires):
+                        raise SongError('PERMISSION', 'Access ended during song preparation.')
+                    deadline = min(deadline, job.expires)
+                    sample = job.player.snapshot(deadline)
+                    while sample['state'] == 'loading' and self.clock() < deadline and not job.cancelled.is_set():
+                        time.sleep(.02)
+                        sample = job.player.snapshot(deadline)
+                    if sample['state'] != 'paused':
+                        raise SongError('UNKNOWN', 'Preparation did not confirm paused playback.')
+                    if job.cancelled.is_set() or self.clock() >= deadline:
+                        raise SongError('PERMISSION', 'Access ended during song preparation.')
+                    job.state = 'prepared'
+                if self.watch:
+                    threading.Thread(target=self._watch, args=(identifier,), daemon=True).start()
+                return {'program_id': identifier, 'state': 'prepared', 'recording': self._public(job.recording),
+                        'audible_verified': False}
+            except BaseException:
+                self.stop(identifier)
+                raise
+        job = self.jobs.get(identifier)
+        if job is None:
+            raise SongError('INVALID', 'That selected-song program does not exist.')
+        if cap == 'song.stop':
+            return self.stop(identifier)
+        with job.lock:
+            if self.clock() >= job.expires:
+                self.stop(identifier)
+            if job.stopped:
+                return {'program_id': identifier, 'state': 'stopped', 'stopped': True}
+            if job.cancelled.is_set():
+                raise SongError('PERMISSION', 'This selected-song program is stopping.')
+            deadline = min(deadline, job.expires)
+            if cap == 'song.start':
+                if job.attempted or job.state != 'prepared':
+                    raise SongError('CONFLICT', 'Song start was already attempted; it was not repeated.')
+                job.attempted = True  # consume before IPC, including uncertainty
+                if self.clock() >= job.expires or job.cancelled.is_set():
+                    raise SongError('PERMISSION', 'Access ended before song playback.')
+                job.player.start(deadline)
+            sample = job.player.snapshot(deadline)
+            if sample['state'] == 'loading':
+                sample = {'state': 'buffering', 'position_seconds': 0, 'rate': 1}
+            # A harmless pre-start status read must preserve the prepared
+            # lifecycle state; observed paused playback is not a start attempt.
+            job.state = 'prepared' if not job.attempted and sample['state'] == 'paused' else sample['state']
+            return {'program_id': identifier, 'song_id': job.recording['song_id'],
+                    'sha256': job.recording['sha256'], **sample, 'audible_verified': False}
+
+    def _watch(self, identifier):
+        job = self.jobs[identifier]
+        while not job.stopped:
+            if self.clock() >= job.expires or job.player.process.poll() is not None:
+                self.stop(identifier)
+                return
+            time.sleep(.05)
+
+    def stop(self, identifier):
+        job = self.jobs.get(identifier)
+        if job is None:
+            return {'program_id': identifier, 'state': 'stopped', 'stopped': True}
+        job.cancelled.set()  # fence a still-hashing/spawning worker before waiting
+        with job.close_lock:
+            if not job.stopped:
+                if job.player is None:
+                    # A factory can be in flight without having published its
+                    # child yet. Report pending, never confirmed absent cleanup.
+                    acquired = job.lock.acquire(blocking=False)
+                    if not acquired:
+                        return {'program_id': identifier, 'state': 'stopping', 'stopped': False}
+                    job.lock.release()
+                confirmed = job.player is None or job.player.close()
+                if not confirmed:
+                    raise SongError('UNKNOWN', 'Owned song shutdown was not confirmed.')
+                job.stopped, job.state = True, 'stopped'
+            return {'program_id': identifier, 'state': 'stopped', 'stopped': True}
+
+    def stop_all(self):
+        for identifier in tuple(self.jobs):
+            self.stop(identifier)

@@ -1,0 +1,76 @@
+{
+  "recorded_at_utc": "2026-10-18T03:31:16.026767+00:00",
+  "owner": "Tenant Photo Capture Local",
+  "base_head_at_assignment": "0058cc170ccb9e9380171bc4fb92a634d88f5520",
+  "status": "IMPLEMENTED_SOURCE_REVIEWED_TESTING_PAUSED_NOT_INTEGRATED",
+  "tests_paused_by_user": true,
+  "completed_before_pause": {
+    "image": {
+      "tests": 15,
+      "failures": 0,
+      "skips": 0
+    },
+    "api": {
+      "tests": 25,
+      "failures": 0,
+      "skips": 0
+    },
+    "http_service_bus_viewer_path": {
+      "tests": 4,
+      "failures": 0,
+      "skips": 0
+    },
+    "service_latest_including_metadata": {
+      "tests": 28,
+      "failures": 0,
+      "skips": 0
+    },
+    "earlier_combined_photo_suite": {
+      "tests": 69,
+      "failures": 0,
+      "skips": 0,
+      "scope": "Before last three metadata cases; no combined72 run occurred."
+    },
+    "initial_fixture_failures": "End-to-end Secure cookie test origin and duplicate-installer fixture corrected;4/4 then passed."
+  },
+  "post_pause_changes_not_execution_validated": [
+    "PhotoService.camera_ready metadata hook",
+    "installer callback/device-helper attachment",
+    "unapplied integration patch assembled in disposable copy"
+  ],
+  "independent_review": {
+    "initial": "No material findings in inspected service/API/image revisions; later device error-code echo risk independently found and fixed before latest service tests.",
+    "final": "No material defects by read-only inspection of updated service, installer and integration patch. No tests/code execution during final review."
+  },
+  "dependency": {
+    "package": "Pillow",
+    "version": "13.0.0",
+    "manifest": "requirements-photo.txt",
+    "installed": "development .venv only",
+    "deployment": "pending Root"
+  },
+  "pending": [
+    "Root merges narrow installer/lifecycle/device/native wiring with device-awareness proposal",
+    "Owen implements phone opt-in/framing/capture/upload and selected Mac viewer",
+    "Final integrated tests only after Jay resumes",
+    "Root deployment then Tester-initiated physical photo confirmation",
+    "Projector output routing/physical projection separate and unverified"
+  ],
+  "physical_acceptance": "NOT_RUN; no service/device/output/volume changes or live guest from this owner",
+  "active_cleanup": "none",
+  "integration_patch": "Unapplied/unvalidated. Composed on top of device-awareness proposal; shared central files not edited by this owner.",
+  "sha256_current_source_not_tested_manifest": {
+    "brain/core/photos.py": "53c6f7693c4597138f7155aff66083f8ecf47224126c181ea204647ddb6d7b4c",
+    "brain/core/photo_image.py": "e6477dc469c85ad70f9d517ea10d83289bd82f327498bc5bf9bb6ea883d58afe",
+    "brain/core/photo_install.py": "aa08ed9e09b061619f8c697fe02fc414593ae472ecfa8a84e541f5d335ce5c0d",
+    "brain/api/photos.py": "5e4b62ba8c75dc11fe46505bbfd9f91f5fe0bea12beb4d484e093989ec41a6e6",
+    "requirements-photo.txt": "053f79eae479c140adf5f2430e8c711253c522b5dd583977c5d7ea58b8ad5d4f",
+    "tests/test_photo_api.py": "a2b8551ead2a96d7a4d3eca12cd9ec4f3e2391e7d1f89af1743df1f5cf568bce",
+    "tests/test_photo_backend.py": "2e6161efe3ee622e34ec848657f8d5ff97331a35ce0427de30904ec7bfeb73b0",
+    "tests/test_photo_image.py": "6af94477274ef90d7614dd71cf5cd40c81f8e552c316812569ec4144c9a9cbab",
+    "tests/test_photo_service.py": "4afb9348a960e79cbff1c7ec5b7dbf04f16f5cc9f85c3fdab149dc5f7d65f4a9",
+    "notes/proposed-photo-integration.patch": "6fbe7d2717fcee9abdfb9cedd028b168cac1e5e8db3ec4b7fa6d041fe4975327"
+  },
+  "secrets_or_image_bytes_in_record": false,
+  "staging_or_commits_by_owner": false
+}

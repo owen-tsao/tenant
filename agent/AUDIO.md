@@ -91,6 +91,59 @@ including after UNKNOWN. Text delivery precedes optional reply audio. Synthetic
 acceptance is in `tests/test_reply_voice_acceptance.py`; it explicitly drives
 helper choices and does not prove natural-language consent recognition or hearing.
 
+## Selected real recording and phone beat timing
+
+The optional song adapter currently selects **Daniel Caesar — CYANIDE**, the
+official recording at https://www.youtube.com/watch?v=Jnm3ukzmJe4. It is a
+selected-song path, not arbitrary catalog search. A manually downloaded file is
+not required. The offline preparation command resolves that exact public source
+through existing yt-dlp, decodes it through FFmpeg into a private canonical PCM
+cache, and runs librosa's recording-derived beat tracker. No account, purchase,
+browser cookies or generated replacement is used. Media stays outside Git.
+
+Prerequisites are mpv, yt-dlp and FFmpeg from their official distributions, and
+the optional analysis dependencies in `requirements-song-analysis.txt`. Prepare
+without playback using:
+
+```sh
+uv pip install --python .venv/bin/python -r requirements-song-analysis.txt
+.venv/bin/python -m agent.prepare_song --directory .venv/song-assets/cyanide
+```
+
+The existing agent entry point discovers that prepared manifest, or the host may
+set `TENANT_SONG_MANIFEST` to another explicitly prepared manifest. Driver/Brain
+code needs Root's coordinated deployment; preparing an asset does not hot-reload
+the already-running bridge. No `song.*` capabilities are advertised without a
+valid asset/checksum and mpv. Extraction failure does not invoke a sign-in,
+cookie, download retry or alternate artist/source fallback.
+
+`program-start` with exact `song_id` from inventory prepares mpv paused, then
+starts the analyzed bytes once. The existing mpv window identifies the artist
+and title. Its private inherited JSON IPC provides live `audio-pts`, pause,
+buffering and EOF state. The default Mac output and current system volume are
+preserved. Phone timing uses individual beat timestamps from those same bytes,
+not a guessed BPM or independently started generated loop. Fractional cadences
+interpolate neighboring beat timestamps; the song default is one beat per ON
+and OFF. Song BPM updates are rejected because time stretching is not implemented.
+
+The Brain maps a playhead sample using its own Bus dispatch/receipt bracket and
+reports its uncertainty. Stale/buffering or ambiguous samples report pending and
+fence unsent ON; seeking reanchors only future beats without catch-up.
+Fresh reads with frozen or implausibly slow progress also stay pending. Timing
+resumes only after a coherent advancing segment, with accumulated progress checked
+against elapsed time so each read cannot reset a jitter allowance. First-cycle
+ON+OFF ACKs establish participation, not hearing or physical alignment. End of
+analyzed beats detaches the phone without inventing a constant-BPM tail. Manual
+pause, actual EOF, access ending, disconnect and explicit stop clean the owned
+program. Phone OFF remains independent and can leave the song playing. Player
+EOF on owner disconnect plus a local monotonic expiry watchdog bounds playback
+even if the Brain cannot deliver cleanup. UNKNOWN start/edge is never replayed.
+
+The tracker estimates musical beats; it does not prove metrical level or
+optical/acoustic alignment. Source/playhead checks, human hearing and actual
+light-to-song phase acceptance remain distinct. Root/tester owns the released
+finite experiment and asks Jay only for its physical outcome afterward.
+
 Speech goes through stdin and playlist/volume through argv into constant
 AppleScript. No shell, user-generated AppleScript, hard-coded voice or account.
 

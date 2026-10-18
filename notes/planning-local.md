@@ -1,5 +1,33 @@
 # Tenant — local feature planning
 
+## Current freeze hold and demo steering
+
+Root's existing core_access_integration agent now owns additive central integration. Keep the photo production/test freeze stable; notes only unless a concrete necessary correction is first recorded for Root. No additional broad reruns, staging, commits, restarts or deployment. E2E/live remains paused.
+
+Jay rejects the band/album-cover idea. Creative multi-device exploration remains interesting, while reliability means the main demo should not depend on it. This is recorded in demo-ideas.md as product/demo selection guidance, with no request to build additional features.
+
+## Strategy capture — vision and customer hypotheses only
+
+Jay's customer candidates are hotels, hospitals, Airbnb/short-term-rental operators, shared spaces and event/demo teams. No single buyer or willingness to pay has been validated. These remain candidates for exploration rather than an accepted customer focus or evidence of demand.
+
+Jay sees Tenant as infrastructure for future scalable, multimodal AI coordination, with future-compatible capabilities and space integration. Preserve that thesis as vision; it does not establish an existing moat, demonstrated scalability or currently implemented model independence. Root owns the ongoing positioning/defensibility discussion and current decisions in jay.md. No new hotel/hospital/PMS/device or other integrations/features are authorized. This note-only capture leaves the frozen production/test files unchanged.
+
+## Final photo software handoff
+
+Photo backend and exact source freeze are ready for Root integration:93 photo components,7 stubbed wiring and52 access/persistence checks PASS; independent review clean on exact hashes. One broader native-terminal regression failure remains recorded for Root, so no whole integrated-suite PASS is claimed. Exact module/test/patch/requirements manifest and remaining UI/central/live gates: notes/photo-handoff.md and tests/evidence/2026-10-17-photo-software-freeze.json. Software tests allowed; E2E/live remains paused. No active output or cleanup; no staging/commits.
+
+## Current policy — software checks resumed; live gate held
+
+Jay permits implementation and software unit/component/isolated integration checks using fakes, temporary files and stubbed model/device transports. End-to-end/live trials, public UI/chat, actual models/camera/devices/outputs, deployed-service experiments, restarts and deployment remain PAUSED. Root holds the live gate. Earlier all-testing-paused sections below are historical and superseded by this policy. No staging/commits while sharing checkout.
+
+## Current photo implementation handoff — testing paused
+
+Jay opened this specific photo feature for parallel implementation, superseding the older planning-only/photo-gated passages below. New photo service, JPEG normalizer, scoped HTTP routes and explicit installer are implemented separately; exact UI contract and current progress: notes/photo-handoff.md. Central integration/native/device wiring is pending, all web/source-reference files remain read-only, and physical acceptance is not claimed.
+
+Jay has now paused ALL tests. No automated/live/UI/device runs, new test cases, retries, restarts or deployment until he resumes. Review/test agents notified; no test/output/guest or cleanup is active from this owner. Before pause: image15/API25/end-to-end4/service28 tests passed individually; earlier combined69 passed before3 final metadata cases, so a combined72 PASS is NOT claimed. Final review of the newest fences and final integrated validation remain pending. The narrow integration patch is now written at notes/proposed-photo-integration.patch after source-only adaptation to the metadata camera_ready hook; it remains unapplied and UNVALIDATED during the pause. No shared integration files were edited. No staging/commits.
+
+Accepted initiative preference from Jay via Root: use context judgment to choose a concrete useful suggestion or a simple capability notice; lean toward concrete suggestions for the demo. A suggested action waits for yes. Discovery grants neither effects nor speech. Earlier two-minute/two-per-guest numbers are unapproved tuning proposals, not accepted constants. Root owns central suggestion coordination; this adds no suggestion implementation to the photo task.
+
 Owner: local planning. Updated October 17, 2026, 19:58 PT.
 Read-only source inspected: HEAD `f228b39963958bc2911b13f8e933ae5aeb4d800d`, the five requested notes, registry, display publisher, native helper and architecture. No service, device, output, volume or web changes were made. This file is a proposal, not a shipped interface or an acceptance record.
 
@@ -114,10 +142,51 @@ Report each stage separately: source checks, discovery evidence, dispatch, sourc
 3. Replace forced E1/prerequisite-rehearsal language with: “Local tester initiates ready, authorized experiments automatically. Humans confirm only physical outcomes; no forced unbriefed rehearsal. Existing E1 criteria are an optional experience protocol when Jay chooses one.”
 4. Add: “Capability discovery, camera opt-in/roles and capture-to-viewer contracts are proposed in notes/planning-local.md; no implementation or physical acceptance. Retention follows accepted 19:17 direction: latest displayed photo remains after Leave and across new guests until replacement or host reset; new guests reset context/commands, and image bytes stay out of model history. Future host retention setting is deferred. Photo/perception/proactive gates remain closed.”
 
-## Independent design review
+## Direct feature discussion — October 17, 20:13 PT
+
+Jay endorses four connected directions: a room that keeps learning newly connected devices; AI coordination across them; internal suggestion generation with selective publication; and photo capture followed by an explicit request to show that photo on the Mac-connected projector. Record these as product direction. No integrations, effects, schedules, web edits or capability gates were activated by this discussion.
+
+### Growing room and coordination
+
+Device admission is incremental: an evidenced endpoint joins, keeps its identity, gains only actually available capabilities and exposes the host's role/location/permissions. The AI refreshes its usable inventory as that changes and can propose new combinations. No fixed demo device count or baked-in room template. New operations still require a discovered supported binding and current authority; joining alone triggers no light/music/camera action.
+
+For a coordination request, resolve the intended participating devices and supported actions from that inventory, maintain the current activity's context, then report each actual outcome. A device joining a beat is the existing example; showing a captured photo through the Mac's projector is another. Do not infer synchronization or all-device success from successful individual dispatches. Audio retains timing/music ownership.
+
+### Selective suggestions — proposed first version
+
+Use the model internally to generate an optional useful next question for the guest. A small deterministic filter decides whether to publish it. This is suggestion generation, distinct from autonomous physical rules. The model may return no suggestion; silence is a normal outcome.
+
+Candidate generation happens after a meaningful event (a newly usable capability or a completed guest turn/action), coalesced while a turn is active; no polling loop or new background automation is needed for the proposal. Supply minimal current text context, usable inventory and recent suggestion/dismissal identifiers. Keep image bytes and private device identifiers out of this prompt. The generator has no effect tools or host authority, and the internal prompt/result stays out of the visible conversation unless selected. Tie its result to the original guest/generation so it cannot leak to the next guest.
+
+Publish only if all these proposed criteria pass again at publication:
+
+- The same guest is still active; the suggestion is directly relevant to the current activity and names only available, guest-permitted, open-gate capabilities. Permission denial, UNKNOWN, unresolved failure and access ending suppress suggestions rather than inviting retries.
+- A useful change occurred; do not generate conversation filler. No camera-scene interpretation is assumed. “Want the phone light to join the beat?” can follow an observed running beat and available light. “Want this photo on the projector?” requires an accepted photo and verified permitted projection path.
+- No turn, confirmation question or earlier suggestion is awaiting an answer. Publish as one short text question after a natural pause; no unsolicited speech in this first version.
+- Avoid repeated or dismissed ideas. Proposed starting budget: at least two minutes between suggestions and at most two per guest, with a maximum of one pending suggestion. These are tuning proposals, not accepted product constants. “No suggestions” suppresses the rest of that guest session.
+
+A yes binds to the exact still-current proposed action; recheck authority/devices/targets before dispatch. A declined, stale, unavailable or expired suggestion produces no effect. Do not infer consent from silence. A general ongoing-voice opt-in does not itself authorize physical action. Acceptance checks later should cover suppression, guest replacement, deduplication, dismissal, stale yes and zero dispatch before explicit acceptance; no test or implementation was started here.
+
+### Photo → Mac → projector — explicit second request
+
+Desired journey: take the opted-in group photo, see the result on the Mac, then Jay asks “can you display it on the projector?” Resolve “it” to the same accepted photo ID/version; do not recapture or send image bytes into model history. Keeping a physical photo on screen across guest changes does not restore an old guest's conversation/queued requests or grant a new guest authority to redistribute it.
+
+Represent a physically connected projector as an evidenced Mac output relation with its observed display key and host-specified projector role/location. This is not an independent controllable projector endpoint unless distinct control/resource evidence exists. A display being plugged in establishes neither targetable fullscreen placement nor actual projection; discover those capabilities through existing tools/adapters and identify the correct output with the host where needed.
+
+Before dispatch, require current guest display permission, host allowance to present the retained photo on that output, exact live Mac/output binding and a supported display operation. Extend the authenticated viewer contract with the approved output target; changing output role/binding invalidates pending projection. Display the existing stored image through the Mac, without changing sound output/volume or opening unrelated desktop content. Projection permission does not imply permission to mirror the entire desktop or alter system display arrangement.
+
+If the Mac is already mirrored, the image may already be projected: acknowledge that truthfully. A visible second-step transition requires a supported separate output/viewer path (for example, an already-configured extended display); plan around actual available routing, not a fabricated projection action. If target selection is unavailable, explain it and offer the supported Mac display rather than claiming projector success or silently changing display settings.
+
+Track stored-photo evidence, Mac viewer render and target-output render separately. Only an actual human-observed projector image proves physical projection. The local tester owns any later authorized experiment; there is no new physical ask now. Latest displayed-photo retention remains until replacement/host reset; new guests reset context/commands, and image bytes stay out of model history. Projector connection/routing and photo/proactive implementation remain unverified/gated.
+
+Owen request addendum, ready for Root to route: show newly usable devices as the room grows; support at most one short contextual suggestion with accept/dismiss only after a backend publication decision; when photos/projection open, distinguish “received,” “shown on Mac” and the evidenced projector result. Keep the existing theme/table and no speculative device cards. Core supplies inventory, suggestion eligibility and exact photo/output/result bindings. No message was sent.
+
+## Independent design review — original base contract
 
 Read-only review identified three gaps: authenticate the exact viewer rather than trusting its supplied ID/public image URL; deduplicate capture request IDs before issuing tickets or dispatching the shutter; recheck host allowance and role revisions at commit. All three were incorporated above. The reviewer confirmed the endpoint/peripheral distinction, reconnect provenance, separate capture consent and truthful result stages. This is design review only, not implementation or physical acceptance.
 
 Follow-up independent read-only review of all three revised notes: clean, no remaining material design issues. Readback/format checks pass and all original demo candidate categories remain present. No source/runtime tests were needed for these note-only changes.
 
-Root retains acceptance, product decisions and routing. Planning edits only this file, demo-ideas.md and demo-alignment.md. Nothing in this plan opens a capability gate. Notes remain unstaged/uncommitted pending Root coordination.
+Root retains acceptance, product decisions and routing. Planning edits only this file, demo-ideas.md and demo-alignment.md. Nothing in this plan opens a capability gate. Planning stages or commits only when Root coordinates. The new feature-discussion addendum has not had an independent design review.
+
+Final source-only independent review during the testing pause found no material defects in the updated service, installer or unapplied integration patch. No code execution/tests were performed. Exact current source hashes and completed pre-pause component evidence are recorded in tests/evidence/2026-10-17-photo-backend.json; the manifest is explicitly NOT an executed final-source validation. Testing remains paused, central/UI integration and physical acceptance pending. No cleanup is active.

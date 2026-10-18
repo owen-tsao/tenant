@@ -23,6 +23,7 @@ from urllib.parse import quote
 
 import httpx
 from brain.state import PhotonBinding
+from brain.core.conversation_results import TerminalFailure, TerminalFailureFrames
 
 
 class PhotonError(Exception):
@@ -229,9 +230,11 @@ class PhotonChannel:
         self._page_query, self._page_token, self._page_tokens = None, None, set()
         self.healthy = True
 
-    def _log(self, status, guest_id=None):
-        self.core.log.append('photon', 'Room text-channel status was recorded.',
-                             guest_id=guest_id, photon_status=status)
+    def _log(self, status, guest_id=None, *, reply_kind=None):
+        audit = {'guest_id': guest_id, 'photon_status': status}
+        if reply_kind in ('completed_reply', 'terminal_failure'):
+            audit['reply_kind'] = reply_kind
+        self.core.log.append('photon', 'Room text-channel status was recorded.', **audit)
 
     def _live(self, row):
         return self.core.leases.current(row['guest_id'])
@@ -241,6 +244,21 @@ class PhotonChannel:
         return (receipt is not None and receipt.lease is lease
                 and self.core.leases.current(lease.guest_id) is lease
                 and self.core.agent.allows_reply(receipt))
+
+    def _can_terminal_failure(self, frames, lease):
+        if not isinstance(frames, TerminalFailureFrames):
+            return False
+        receipt = frames.terminal_failure
+        return (isinstance(receipt, TerminalFailure) and receipt.lease is lease
+                and receipt.guest_id == lease.guest_id
+                and self.core.leases.current(lease.guest_id) is lease
+                and frames == [{'type': 'assistant', 'text': receipt.text}]
+                and self.core.agent.allows_terminal_failure(receipt))
+
+    def _can_send_text(self, frames, lease):
+        # Failure feedback has its own authority. It never becomes a successful
+        # completion receipt or inherits speech/tool permission from this gate.
+        return self._can_reply(frames, lease) or self._can_terminal_failure(frames, lease)
 
     async def start(self):
         if self._task is not None:
@@ -444,7 +462,7 @@ class PhotonChannel:
                 return
             # Exactly the same object as webchat, bound to the fixed native chat.
             frames = await self.core.agent.turn(guest_id, message['content']['text'])
-            if not self._can_reply(frames, lease):
+            if not self._can_send_text(frames, lease):
                 self.store.outcome(message_id, 'PERMISSION')
                 return
             text = '\n'.join(frame['text'] for frame in frames
@@ -455,7 +473,7 @@ class PhotonChannel:
             # Mark before the send; cancellation/timeout after acceptance never resends.
             self.store.outcome(message_id, 'SENDING')
             # No await between live receipt check and starting this exact HTTP send.
-            if not self._can_reply(frames, lease):
+            if not self._can_send_text(frames, lease):
                 self.store.outcome(message_id, 'PERMISSION')
                 return
             await self.client.send(message['space']['id'], message['receivedBy']['id'], text,
@@ -463,7 +481,8 @@ class PhotonChannel:
             accepted = True
             self.core.published_reply(guest_id, frames, text)
             self.store.outcome(message_id, 'ACCEPTED')
-            self._log('ACCEPTED_NOT_DELIVERED', guest_id)
+            self._log('ACCEPTED_NOT_DELIVERED', guest_id,
+                      reply_kind='terminal_failure' if isinstance(frames, TerminalFailureFrames) else 'completed_reply')
             if getattr(self.core, 'speech', None) is not None and self._can_reply(frames, lease):
                 if hasattr(self.core.speech, 'schedule_reply'):
                     self.core.speech.schedule_reply(frames)

@@ -86,7 +86,8 @@ class Agent:
         devices = [d for d in self.registry.devices.values() if d.room_id == self.registry.room.id and d.online]
         descriptions = []
         for dev in devices:
-            caps = [cap for cap in dev.caps if '*' in lease.scopes or cap in lease.scopes]
+            caps = [cap for cap in dev.caps if self.registry.metadata.available(dev, cap)
+                    and ('*' in lease.scopes or cap in lease.scopes)]
             sentence = supported_sentence(dev, caps)
             if sentence:
                 descriptions.append(sentence)

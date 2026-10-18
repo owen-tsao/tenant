@@ -14,10 +14,10 @@ def inventory_for(registry, leases, lease):
             continue
         caps = []
         for cap in dev.caps.values():
-            if '*' in lease.scopes or cap.name in lease.scopes:
+            if registry.metadata.described(dev, cap.name) and ('*' in lease.scopes or cap.name in lease.scopes):
                 caps.append({'name': cap.name, 'args': cap.args, 'description': cap.description,
-                             'tool': f'{slug(dev.id)}__{slug(cap.name)}' if dev.online else None})
-        out.append({'id': dev.id, 'label': dev.label, 'online': dev.online,
+                             'tool': f'{slug(dev.id)}__{slug(cap.name)}' if registry.metadata.available(dev, cap.name) else None})
+        out.append({'id': dev.id, 'label': dev.label, 'online': registry.metadata.binding(dev.id) is dev,
                     'busy': dev.busy, 'caps': caps})
     return out
 
@@ -39,4 +39,4 @@ def alternatives_for(registry, lease, source_id, cap, args):
     return [dev for dev in registry.devices.values()
             if dev.id != source_id and dev.online and dev.room_id == registry.room.id
             and ('*' in lease.scopes or cap in lease.scopes)
-            and cap in dev.caps and Bus.valid_args(dev.caps[cap], args)]
+            and registry.metadata.available(dev, cap) and Bus.valid_args(dev.caps[cap], args)]

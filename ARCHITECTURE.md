@@ -47,6 +47,41 @@ Companion to `PLAN.md`. This is the build spec: components, data model, wire pro
 
 ## 2. Data model (in‑memory; `state.py`)
 
+### Selected recording timeline increment (Audio, October 17)
+
+The optional Mac song adapter advertises `song.prepare {program_id,song_id,expires_at_ms}`,
+`song.start {program_id}`, `song.status {program_id}`, `song.stop {program_id}` only
+when a host-prepared local recording and player are available. `song_id` identifies
+one exact canonical PCM cache with its SHA256, Daniel Caesar title/artist metadata,
+provenance and recording-derived beat timestamps in seconds. The selected official
+CYANIDE YouTube source is resolved by existing yt-dlp and decoded by FFmpeg into a
+private cache automatically; no manually downloaded file, account or purchase is
+required. Only this exact source is configured; no arbitrary catalog search,
+download, generated backing track or guessed BPM fallback is implied.
+Preparation never plays. Start/status return exact source identity, playback
+state and mpv's actual `audio-pts` in that same PCM timeline via private JSON IPC.
+The player visibly identifies Daniel Caesar / CYANIDE and preserves the Mac's
+current default output and volume. Stop is scoped
+to the owned program, and EOF, expiry and agent disconnect stop the child.
+
+Native `program-start` additionally accepts `{request_id,device_id,song_id}`;
+song IDs/labels are discovered in program inventory. The existing generated-beat
+shape remains distinct. Song BPM edits are unsupported; phone cadence changes
+interpolate the detected beat timestamps, preserving nonuniform timing. Existing
+phone claims, first-cycle receipts, independent phone OFF/detach and owned cleanup
+are reused. Raw song capabilities are not exposed as unowned native calls.
+
+The Brain brackets each live playhead read between its actual Bus dispatch and
+receipt, maps it to its own monotonic clock, and reports the bracket uncertainty.
+It does not compare clocks on two hosts. Stale, nonadvancing, implausibly slow or ambiguous samples suppress
+unsent phone ON and report pending; pause/seek/failure cannot replay old beats.
+Progress must remain coherent across reads, and recovery requires an observed
+advancing segment; per-read jitter tolerance cannot accumulate unbounded drift.
+Transport timing does not measure acoustic/optical offset. The selected recording
+and beat estimates require actual listening/phase acceptance before synchronization
+is claimed. No new registry, lease, channel, public frame or web field is required;
+Audio owns this optional driver/program/helper seam, Root deploys, Owen owns web.
+
 ```python
 @dataclass
 class Device:

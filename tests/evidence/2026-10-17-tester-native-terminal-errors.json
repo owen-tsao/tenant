@@ -1,0 +1,52 @@
+{
+  "frozen_at_utc": "2026-10-18T03:43:15.110691+00:00",
+  "state": "software-only frozen; not committed or deployed",
+  "base_head": "e36f3436b70abc7d3ef49dabd54cab802a68c83c",
+  "files_sha256": {
+    "agent/room_session.py": "d41c40dd231c5d8f50a052c47f4d2985c231723e299c1e908729fe59ad89ca95",
+    "brain/core/room_conversation.py": "92ecdf69ce938d41159e49950be4fdb9bc7c92e3b7d9c7d5f0d3569df7c60687",
+    "tests/test_native_terminal_events.py": "2c1dc62d47a3059e27362a96fc862329f86e8c0c598694ae877ea0236d9bb2c3"
+  },
+  "unchanged_webchat_sha256": "e6efed70d9c593fe0a0a79bde56a75a5f9f66843160c922c8641e4cc94fff2ae",
+  "validation": [
+    {
+      "command": ".venv/bin/python -m unittest discover -s tests -p test_native_terminal_events.py -v",
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.235,
+      "performed_by": "independent regression subagent"
+    },
+    {
+      "command": "PYTHONPATH=.:tests .venv/bin/python -m unittest tests.test_room_session tests.test_room_conversation tests.test_guest_view tests.test_conversation_speech tests.test_reply_voice_policy tests.test_reply_voice_helper",
+      "passed": 116,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 1.511,
+      "performed_by": "tester owner"
+    },
+    {
+      "command": "git diff --check -- agent/room_session.py brain/core/room_conversation.py tests/test_native_terminal_events.py",
+      "passed": true
+    }
+  ],
+  "independent_review": {
+    "agent": "native_terminal_review",
+    "actionable_findings": 0,
+    "reviewed_sha256": {
+      "agent/room_session.py": "d41c40dd231c5d8f50a052c47f4d2985c231723e299c1e908729fe59ad89ca95",
+      "brain/core/room_conversation.py": "92ecdf69ce938d41159e49950be4fdb9bc7c92e3b7d9c7d5f0d3569df7c60687",
+      "tests/test_native_terminal_events.py": "2c1dc62d47a3059e27362a96fc862329f86e8c0c598694ae877ea0236d9bb2c3"
+    },
+    "validation": "56 initial focused checks plus4 final delta checks; overlaps main coverage; not added to136 unique checks"
+  },
+  "live_tests_performed": false,
+  "deployment_performed": false,
+  "incident_cause": "Batch3 cause unproven; saved abort event followed tester Leave by94ms",
+  "limits": [
+    "Mac artifact creation/open/edit remains live-unverified",
+    "No quota or tool-permission cause inferred",
+    "Photon drops plain failure frames; separate owner proposal in notes/tester.md",
+    "All live/end-to-end testing remains paused; no deployment/restart performed"
+  ]
+}

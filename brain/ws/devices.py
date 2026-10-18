@@ -5,7 +5,7 @@ import time
 from fastapi import WebSocketDisconnect
 from brain.core.registry import DeviceAlreadyConnected
 
-async def device_socket(ws, config, registry, bus, heartbeat=5.0):
+async def device_socket(ws, config, registry, bus, heartbeat=5.0, *, photos=None):
     supplied = ws.query_params.get("t", "")
     if not config.device_token or not secrets.compare_digest(supplied, config.device_token):
         await ws.close(code=1008)
@@ -38,6 +38,13 @@ async def device_socket(ws, config, registry, bus, heartbeat=5.0):
             if not isinstance(frame, dict): raise ValueError("Invalid frame")
             if frame.get("type") == "pong": dev.last_seen = time.monotonic()
             elif frame.get("type") in ("ok", "err"): bus.receive(dev, frame)
+            elif frame.get("type") == "photo.consent" and photos is not None:
+                from brain.core.photos import PhotoError
+                try:
+                    result = photos.device_event(dev, frame)
+                except PhotoError as error:
+                    result = {"type": "photo.consent", "ok": False, "code": error.code, "message": error.message}
+                await ws.send_json(result)
             else: raise ValueError("Unexpected frame")
     except DeviceAlreadyConnected:
         with contextlib.suppress(Exception):
