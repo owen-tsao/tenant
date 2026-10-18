@@ -34,6 +34,8 @@ Tail `events.jsonl` with a persisted session-specific cursor. `agent-inbox.json`
 
 `capture_stopped`, changed session, lost scene authority, expired/revoked lease or room reset invalidate pending observations and effects before dispatch. Main supplies the precise receiver implementation only after the input gate passes. Lab source records and private transcripts remain on disk; don't commit or expose them through public pages.
 
+The lab now provides `reader.SessionReader(root, session_id).poll()` and `still_current(envelope)`. Main independently reran its 11 synthetic file checks successfully. `still_current` fences capture Stop/session replacement; it does **not** refresh a pinned observation's age. Main must separately recheck observation age at use after any queue/model delay, require a real `frame_ref` and consistent snapshot, and obtain new evidence or decline when stale. `observation_fresh` describes the poll-time snapshot only. Claim-before-return is at-most-once delivery: a crash after a durable claim may lose an observation, and is not evidence of guaranteed delivery or exactly-once physical action.
+
 ## Main conversation / effect behavior
 
 Main will use the existing `ConversationAgent` ownership and native-turn/steer machinery, plus separate application context for observation data. Normal guest input stays exact; OCR/ASR is untrusted source material and cannot grant arbitrary computer authority. The finite scene permit covers a brief question and fresh evidence presentation. It does not re-enable automatic narration for ordinary chat or authorize broader actions from overheard speech.
@@ -46,4 +48,4 @@ Use the lab's real session-bound `say` / `present-label` operations and inspect 
 
 ## Current status
 
-Prototype source and software evidence are reported by its owner; main inspected interfaces but has not independently run the app checks. Tester verified its old lock holder gracefully released/exited and the lock is free; main then released the live gate to Lighting for the input-only trial. Physical input, Speech permission/live ASR, agent integration, TV evidence presentation, speaker feedback and full-loop latency remain unaccepted. No capture, microphone, model invocation, speech or TV action was started by main during this handoff.
+The owner's 22 native checks and six synthetic OCR checks remain separately reported; main has not rerun those app checks. Main independently ran all 11 event-reader checks against synthetic temporary session files only. Lighting then verified its exact input-test lock holder released/exited and the original lock inode is free; its gate is waiting-for-user, with Start unclicked and no capture session created. Physical input, Speech permission/live ASR, agent integration, TV evidence presentation, speaker feedback and full-loop latency remain unaccepted. No capture, microphone, model invocation, speech or TV action was started by main during this handoff.

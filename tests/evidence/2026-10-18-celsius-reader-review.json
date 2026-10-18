@@ -1,0 +1,19 @@
+{
+  "time": "2026-10-18T06:15:47.766731-07:00",
+  "scope": "independent event reader synthetic-file checks only",
+  "result": "PASS",
+  "tests": 11,
+  "duration_seconds": 0.025,
+  "runner": "python3 -B -m unittest discover -s tests -p test_reader.py -q",
+  "source_sha256": {
+    "reader.py": "f09e82226f68537e1bcc14151da5eb6b8b9f1fffb006ba93474e161835c8702a",
+    "tests/test_reader.py": "e9816a9fc15d3da3f95fa9ea96dbae8d37b603069b62ff67901ac952e9b665f7"
+  },
+  "review": "No concrete blocker in scoped reader contract; main must separately recheck evidence age after model/queue delay. still_current only fences Stop/session invalidation; poll-time freshness is not current freshness. At-most-once claims may lose observations after crash; not exactly-once effects.",
+  "physical_effects": false,
+  "model_calls": false,
+  "live_state_accessed": false,
+  "native_or_ocr_suite_rerun": false,
+  "camera_microphone_status": "Lighting reports idle, Start unclicked, no current.json; waiting for existing user readiness answer.",
+  "lock_cleanup": "Lighting reports original owned session40487 released PID73796; process gone, nonblocking exclusive flock free, inode66986344 preserved; gate waiting-for-user."
+}
