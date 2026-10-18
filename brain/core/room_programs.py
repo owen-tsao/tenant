@@ -122,6 +122,21 @@ class RoomPrograms:
         program = self._light_owners.get(device_id)
         return program.id if program is not None else None
 
+    def retirement_blocked(self, device_id):
+        """A host cannot forget an active or incompletely settled program claim."""
+        if self.device_busy(device_id) is not None:
+            return True
+        for program in self.programs.values():
+            if device_id != program.audio.id and device_id not in program.lights:
+                continue
+            tasks = (*program.tasks, *program.detach_tasks.values(), *program.output_cleanup.values())
+            if (program.active or program.state != 'stopped' or not program.cleanup
+                    or any(value != 'confirmed' for value in program.cleanup.values())
+                    or any(not task.done() for task in tasks)
+                    or (program.cleanup_task is not None and not program.cleanup_task.done())):
+                return True
+        return False
+
     def inventory(self, grant):
         owner = ProgramOwner.from_grant(grant)
         if not self._allowed(owner):

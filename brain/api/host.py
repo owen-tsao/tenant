@@ -20,3 +20,11 @@ async def reset(request: Request):
     core = request.app.state.core
     core.require_host(request)
     return await core.reset()
+
+
+@router.post('/host/devices/retire')
+async def retire(request: Request):
+    core = request.app.state.core
+    core.require_host(request)
+    from brain.core.retirement import retire_devices
+    return retire_devices(core, await json_object(request))
