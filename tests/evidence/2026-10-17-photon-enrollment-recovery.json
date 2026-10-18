@@ -1,0 +1,44 @@
+{
+  "status": "BACKEND_RECOVERY_PASS_LIVE_CAUSE_NOT_YET_CONFIRMED",
+  "recorded_at": "2026-10-18T01:36:01.551015+00:00",
+  "base_commit": "228acf35a8bc79136d966e0b29d7a9950313fe8a",
+  "source_sha256": {
+    "brain/api/join.py": "c89997f6da9e084d0ec7e4cfc23a94a2800a2e83e28771432cc048eff65ca3f4",
+    "brain/channels/photon.py": "f2dbd70ace99fdc25f155bd8d624db9a22db2f90a20619e64a013ad8a86d981b",
+    "tests/test_photon.py": "52cdf0576d81b3cdd873f2a9b03fe3e889b1960aecbf78e30d92a9a8b68efc81"
+  },
+  "original_live_report": "User saw unavailable-text setup. Root observed enabled channel and one active binding, zero inbound claims. The exact original failure code was not recorded.",
+  "causal_local_reproduction": {
+    "input": "Second identical phone-only /join from the same browser with its valid original guest cookie.",
+    "before": "409 PHONE_IN_USE despite owning the exact active enrollment.",
+    "after": "200 with identical guest ID, credential, chat URL and assigned line; exact same lease and deadlines; no new allocation or native turn.",
+    "attribution_limit": "This proves a repeat/refresh defect, not that every live reported failure had this cause."
+  },
+  "acceptance": {
+    "focused_photon_tests": 44,
+    "all_python_tests": 303,
+    "node_tests": 12,
+    "failures": 0,
+    "skipped": 0,
+    "diff_check": "PASS",
+    "independent_review": "access_contract_review scoped PASS",
+    "security": [
+      "Exact bound guest cookie/token required for implicit recovery; phone possession alone or another guest cookie cannot recover.",
+      "Wrong explicit token never falls back to a valid cookie.",
+      "Expired/released lease cannot be renewed or recovered.",
+      "Active shared history and original deadlines are unchanged; native counter and allocations unchanged.",
+      "Unknown allocation intent remains unconfirmed and is not retried.",
+      "JOIN_REJECTED audit stores only fixed error code and HTTP status, no phone/token/body."
+    ]
+  },
+  "error_messages": "Specific safe messages distinguish invalid country-code number, active setup conflict, expired access and unconfirmed setup/service outcome.",
+  "remaining_gate": "Deploy once, reproduce phone enrollment with actual received message, confirm same native chat reply and phone delivery; sanitized rejection audit can identify any remaining real failure.",
+  "mutations_performed_by_worker": {
+    "live_allocations": 0,
+    "live_messages": 0,
+    "live_native_turns": 0,
+    "service_restarts": 0,
+    "env_edits": 0,
+    "web_edits": 0
+  }
+}

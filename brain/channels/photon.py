@@ -29,7 +29,17 @@ class PhotonError(Exception):
     """Safe public error: never includes a credential, phone or response body."""
     def __init__(self, code='UNAVAILABLE', status=503):
         self.code, self.status = code, status
-        super().__init__('Text-message access is unavailable; choose Chat here.')
+        messages = {
+            'INVALID_PHONE': 'Enter a mobile number with its country code, such as +1 for the US.',
+            'PHONE_IN_USE': 'This phone already has a room setup. Continue in the browser that started it, or choose Chat here.',
+            'ALREADY_BOUND': 'This room session is already linked to another phone. Continue there, or choose Chat here.',
+            'SETUP_UNCONFIRMED': 'The previous text setup is unconfirmed. Choose Chat here while the host checks it.',
+            'UNKNOWN': 'Text setup could not be confirmed. Choose Chat here while the host checks it.',
+            'GUEST_EXPIRED': 'This room access has ended. Scan the current room code to join again.',
+            'INVITATION_EXPIRED': 'This room invitation has changed. Scan the current room code to join again.',
+            'CAPACITY': 'Room texting is full right now. Choose Chat here.',
+        }
+        super().__init__(messages.get(code, 'Room texting is unavailable right now. Choose Chat here.'))
 
 
 def phone_number(value):
@@ -242,6 +252,16 @@ class PhotonChannel:
         self._worker = asyncio.create_task(self._consume())
         self._task = asyncio.create_task(self.run())
 
+    def bound_guest(self, handle):
+        """Return an identifier, never authority; the HTTP caller must verify it.
+
+        Used only to recover this browser's own repeat enrollment when the
+        unchanged phone form omits guest_id. A phone number alone grants nothing.
+        """
+        handle = phone_number(handle)
+        row = self.store.binding(self.store.fingerprint(handle))
+        return row['guest_id'] if row else None
+
     async def enroll(self, handle, *, guest_id=None, authorize=None):
         if not self.healthy or not self._ready or self._stopped:
             raise PhotonError('UNAVAILABLE')
@@ -255,6 +275,8 @@ class PhotonChannel:
             if guest_id and lease is None:
                 raise PhotonError('GUEST_EXPIRED', 403)
             if old:
+                if old['state'] != 'active':
+                    raise PhotonError('SETUP_UNCONFIRMED', 409)
                 if lease is None or old['guest_id'] != guest_id or old['state'] != 'active' or not self._live(old):
                     raise PhotonError('PHONE_IN_USE', 409)
                 return self._enrollment(lease, False, old['agent_number'])

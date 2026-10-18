@@ -572,6 +572,99 @@ class PhotonRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['guest_token'], guest['guest_token'])
 
+    def test_repeat_phone_only_join_recovers_same_enrollment_with_own_exact_cookie(self):
+        first = self.join(phone=PHONE).json()
+        lease = self.core.leases.leases[first['guest_id']]
+        original_deadlines = (lease.expires_at, lease.joining_until)
+        allocations = len(self.channel.client.allocated)
+        repeated = self.join(phone=PHONE)
+        self.assertEqual(repeated.status_code, 200)
+        self.assertEqual(repeated.json(), first)
+        self.assertEqual(len(self.core.leases.leases), 1)
+        self.assertEqual((lease.expires_at, lease.joining_until), original_deadlines)
+        self.assertEqual(len(self.channel.client.allocated), allocations)
+        self.assertEqual(self.native.counter, 0)
+
+    def test_repeat_phone_cookie_recovery_preserves_active_shared_context_without_new_native_turn(self):
+        first = self.join(phone=PHONE).json()
+        lease = self.core.leases.leases[first['guest_id']]
+        self.client.portal.call(self.core.agent.turn, lease.guest_id, 'Existing shared guest context.')
+        before = (lease.expires_at, lease.joining_until, self.native.counter, list(self.native.history))
+        recovered = self.join(phone=PHONE)
+        self.assertEqual(recovered.status_code, 200)
+        self.assertEqual(recovered.json(), first)
+        self.assertEqual((lease.expires_at, lease.joining_until, self.native.counter, self.native.history), before)
+        self.assertEqual(lease.state, 'active')
+        self.assertEqual(len(self.channel.client.allocated), 1)
+
+    def test_phone_only_recovery_rejects_other_browser_guest_cookie_and_wrong_token(self):
+        first = self.join(phone=PHONE).json()
+        self.client.cookies.clear()
+        # Neither a number alone nor another legitimate guest cookie owns the binding.
+        self.assertEqual(self.join(phone=PHONE).status_code, 409)
+        other = self.join().json()
+        self.assertNotEqual(other['guest_id'], first['guest_id'])
+        for fields in ({}, {'guest_token': 'wrong'}, {'guest_token': other['guest_token']}):
+            result = self.join(phone=PHONE, **fields)
+            self.assertEqual(result.status_code, 409)
+            self.assertEqual(result.json()['code'], 'PHONE_IN_USE')
+        self.assertEqual(len(self.channel.client.allocated), 1)
+        self.assertEqual(self.native.counter, 0)
+        # The exact matching original token can recover even without its cookie.
+        recovered = self.join(phone=PHONE, guest_token=first['guest_token'])
+        self.assertEqual(recovered.status_code, 200)
+        self.assertEqual(recovered.json(), first)
+
+    def test_bad_explicit_recovery_token_does_not_fall_back_to_valid_cookie(self):
+        first = self.join(phone=PHONE).json()
+        rejected = self.join(phone=PHONE, guest_token='wrong')
+        self.assertEqual(rejected.status_code, 409)
+        self.assertEqual(rejected.json()['code'], 'PHONE_IN_USE')
+        self.assertEqual(len(self.channel.client.allocated), 1)
+        self.assertTrue(self.core.authentic_token(first['guest_id'], first['guest_token']))
+
+    def test_expired_bound_cookie_cannot_recover_or_renew_its_lease(self):
+        first = self.join(phone=PHONE).json()
+        lease = self.core.leases.leases[first['guest_id']]
+        lease.joining_until = 0
+        expiry = lease.expires_at
+        rejected = self.join(phone=PHONE)
+        self.assertEqual(rejected.status_code, 403)
+        self.assertEqual(rejected.json()['code'], 'GUEST_EXPIRED')
+        self.assertEqual(len(self.channel.client.allocated), 1)
+        self.assertEqual(len(self.core.leases.leases), 1)
+        self.assertEqual(lease.expires_at, expiry)
+        self.assertEqual(lease.state, 'expired')
+        self.assertEqual(self.native.counter, 0)
+
+    def test_join_error_text_distinguishes_invalid_number_active_setup_and_unconfirmed_service(self):
+        invalid = self.join(phone='invalid')
+        self.assertEqual(invalid.status_code, 400)
+        self.assertEqual(invalid.json()['code'], 'INVALID_PHONE')
+        self.assertIn('country code', invalid.json()['error'])
+        self.channel.client.assign_error = PhotonError('UNKNOWN')
+        unknown = self.join(phone=PHONE)
+        self.assertEqual(unknown.json()['code'], 'UNKNOWN')
+        self.assertIn('could not be confirmed', unknown.json()['error'])
+        # An unresolved allocation intent remains distinct from an active setup.
+        unresolved = self.join(phone=PHONE)
+        self.assertEqual(unresolved.status_code, 409)
+        self.assertEqual(unresolved.json()['code'], 'SETUP_UNCONFIRMED')
+        self.assertIn('unconfirmed', unresolved.json()['error'])
+        self.assertEqual(len(self.channel.client.allocated), 1)
+
+    def test_join_error_audit_records_only_fixed_safe_code_and_status(self):
+        self.join(phone='synthetic-invalid-phone-private-value', guest_token='synthetic-private-token')
+        audit = self.core.log.audit_rows[-1]
+        self.assertEqual(audit['audit'], {'photon_status': 'JOIN_REJECTED',
+                                          'code': 'INVALID_PHONE', 'http_status': 400})
+        rendered = json.dumps(self.core.log.audit_rows)
+        self.assertNotIn('synthetic-invalid-phone-private-value', rendered)
+        self.assertNotIn('synthetic-private-token', rendered)
+        self.assertNotIn(PHONE, rendered)
+        self.assertEqual(self.native.counter, 0)
+        self.assertEqual(self.channel.client.allocated, [])
+
     def test_phone_join_never_bypasses_origin_or_current_invitation(self):
         before = len(self.core.leases.leases)
         for headers, code, expected in [({}, 'TEST', 403),
