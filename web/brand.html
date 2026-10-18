@@ -1,0 +1,53 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Tenant — brand renders</title>
+<!-- Renders the logo / thumbnail variants for Devpost and the video.
+     ?v=square  1024×1024  Devpost thumbnail (cropped square in the gallery)
+     ?v=wide    1920×1080  video title/end card, Devpost gallery image
+     ?v=mark    512×512    the mark alone, transparent-safe on plum
+     Screenshot with headless Chrome at the matching window size; see notes/brand.md. -->
+<link rel="stylesheet" href="tenant.css">
+<style>
+  @font-face { font-family: "Inter Tight"; src: url("fonts/InterTight-latin.woff2") format("woff2"); font-weight: 100 900; font-display: block; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); }
+  body { font-family: "Inter Tight", Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .frame { position: relative; width: 100vw; height: 100vh; display: grid; place-items: center; overflow: hidden; }
+  .motif { position: absolute; inset: 0; display: grid; place-items: center; color: var(--accent); opacity: .28; }
+  .motif svg { width: 118vmin; height: 118vmin; }
+  .copy { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0; transform: translateY(-2vmin); }
+  .mark { width: 9vmin; height: 9vmin; margin: 0 0 4vmin; }
+  .mark::before, .mark::after { width: 60%; height: 60%; }
+  .mark::after { left: 40%; top: 40%; }
+  .word { font-size: 26vmin; line-height: .84; letter-spacing: -.055em; font-weight: 800; margin-left: -.03em; }
+  .sub  { margin-top: 3.2vmin; font-size: 4.2vmin; letter-spacing: -.03em; font-weight: 700; color: var(--muted); }
+  .eyebrow { position: absolute; left: 5vmin; bottom: 4.6vmin; font: 500 2.1vmin/1 var(--mono); letter-spacing: .08em; color: var(--faint); text-transform: uppercase; }
+
+  body.wide .word { font-size: 24vmin; }
+  body.wide .sub { font-size: 4.4vmin; }
+  body.wide .motif svg { width: 150vmin; height: 150vmin; }
+  body.wide .motif { opacity: .22; }
+
+  body.mark-only .word, body.mark-only .sub, body.mark-only .eyebrow { display: none; }
+  body.mark-only .mark { width: 42vmin; height: 42vmin; margin: 0; }
+  body.mark-only .motif { display: none; }
+  body.mark-only .copy { transform: none; }
+</style>
+<body>
+  <div class="frame">
+    <div class="motif" id="motif"></div>
+    <div class="copy">
+      <div class="mark" aria-hidden="true"></div>
+      <div class="word">Tenant</div>
+      <div class="sub" id="sub">Borrow the room.</div>
+    </div>
+    <div class="eyebrow" id="eyebrow">DubHacks ’26</div>
+  </div>
+  <script src="shared.js"></script>
+  <script>
+    const v = new URLSearchParams(location.search).get("v") || "square";
+    document.body.classList.add(v === "wide" ? "wide" : v === "mark" ? "mark-only" : "square");
+    if (v === "wide") document.getElementById("sub").textContent = "Borrow the room. Leave, and it forgets you.";
+    document.getElementById("motif").innerHTML = Tenant.motif(56, 8, .03);
+    document.fonts.ready.then(() => document.documentElement.dataset.ready = "1");
+  </script>
+</body>
