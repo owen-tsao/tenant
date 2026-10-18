@@ -1,0 +1,107 @@
+{
+  "recorded_at_utc": "2026-10-18T05:11:03.706622+00:00",
+  "runtime_revision": "063dd01deae21f33a8ac2bd3c0dd4cf4e44fc017",
+  "scope": "Actual guest UI CYANIDE independent light-off, fresh playback status, separate stop; same original600s lease natural expiry",
+  "audit_baseline_bytes": 185184,
+  "guest_id": "8c6415ba-f167-474d-96d0-5f603b8f3a19",
+  "join_audit_t": 1792299587.258923,
+  "original_expiry_audit_derived_estimate": 1792300187.258923,
+  "deadline_precision": "join audit follows lease creation; estimate is not exact lease issuance clock",
+  "cases": {
+    "manual_continuation_stop": {
+      "status": "PASS",
+      "program_id": "p_41ddd0bc05e04efe8ccd962f9b33a1fc",
+      "song_id": "daniel-caesar-cyanide-42b58460277a",
+      "light_off_result_utc": "2026-10-18T05:01:06.735Z",
+      "post_off_status": {
+        "request_id": "cyanide-20261017-after-off-status-01",
+        "issued_utc": "2026-10-18T05:01:10.729Z",
+        "result_utc": "2026-10-18T05:01:10.840Z",
+        "state": "running",
+        "source": "selected_recording",
+        "song_clock_state": "ready",
+        "playhead_advancing": true,
+        "light_device_ids": []
+      },
+      "stop_result_utc": "2026-10-18T05:01:31.832Z",
+      "stop_reason": "requested_stop",
+      "cleanup": {
+        "phone": "confirmed",
+        "audio": "confirmed"
+      }
+    },
+    "original_lease_expiry": {
+      "status": "PASS",
+      "program_id": "p_57f7773c8b1d4903a4ad8aea20d73391",
+      "song_id": "daniel-caesar-cyanide-42b58460277a",
+      "request_t": 1792300137.228826,
+      "status_result_utc": "2026-10-18T05:09:21.077Z",
+      "pre_expiry_state": "running",
+      "source": "selected_recording",
+      "playhead_advancing": true,
+      "phone_first_on_off_ack": true,
+      "cleanup_t": 1792300187.3715892,
+      "cleanup_reason": "ACCESS_ENDED",
+      "cleanup": {
+        "audio": "confirmed",
+        "jay-visible-phone-oct17": "confirmed"
+      },
+      "manual_revoke": false,
+      "watchdog_fired": false,
+      "ui": "Access ended; Message and Send disabled; display nobody here/both devices ready",
+      "post_expiry_guest_or_device_cmd_rows_observed": 0,
+      "backend_submission_test": "NOT RUN: actual UI disables composer; no bypass or fabricated request",
+      "edge_count": 46,
+      "edge_ack_codes": [
+        "OK"
+      ],
+      "last_edge_audit_t": 1792300186.861877,
+      "delivery_metrics_ms": {
+        "dispatch_lateness_min": 0.049,
+        "dispatch_lateness_max": 1.647,
+        "ack_rtt_min": 14.79,
+        "ack_rtt_max": 334.209
+      }
+    }
+  },
+  "physical_statements": [
+    "Yes, that sequence matched",
+    "yes they both stopped, they were also slightly misaligned, like i felt the light was slightly slow"
+  ],
+  "manual_watchdog": {
+    "armed_t": 1792299610.534622,
+    "limit_seconds": 90,
+    "disarmed_t": 1792299696.995222,
+    "fired": false
+  },
+  "limits": [
+    "No measured optical/acoustic phase",
+    "Photo live UI absent: BLOCKED",
+    "No synthetic post-expiry submission or lease modification",
+    "Jay perceived slightly late phone flashes in final expiry run; physical synchronization remains unresolved, not calibrated or accepted as precise."
+  ],
+  "artifacts": [
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/guest-chat-batch5.txt",
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/cyanide-independent-stop-063dd01.jpg",
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/cyanide-before-original-expiry-063dd01.jpg",
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/cyanide-original-expiry-ended-063dd01.jpg"
+  ],
+  "expiry_watchdog": {
+    "armed_t": 1792300132.4352698,
+    "limit_seconds": 90,
+    "disarmed_t": 1792300198.2131991,
+    "fired": false
+  },
+  "cleanup": {
+    "phone": "confirmed",
+    "audio": "confirmed",
+    "physical_final": "Jay confirmed both stopped",
+    "guest": "naturally expired",
+    "gate": "Root/held",
+    "exclusive_lock": "released; lock holder printed LOCK_RELEASED"
+  },
+  "scope_limits": {
+    "broader_dynamic_request_composition": "UNTESTED: Jay requests music first, unexpected lights later, discover computer visuals/plugin, then projector; independent work may overlap and dependent steps sequence naturally",
+    "photo_live_ui": "BLOCKED: actual consent/capture/upload/viewer UI absent"
+  }
+}

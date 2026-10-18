@@ -52,9 +52,11 @@ Proactivity should serve a concrete purpose: notice a supported device is unavai
 
 ## What the current demo can substantiate
 
-At integrated revision `e4b8426`, the latest actual guest-UI run created, opened and conversationally revised a real Mac document. Jay also heard the selected Daniel Caesar recording and observed phone pulses aligning with it in one smoke test. That establishes a narrow working example, not measured synchronization accuracy or reliability. The independent light-stop/music-continues sequence was interrupted and remains unaccepted; final physical cleanup was confirmed. [Latest live evidence](../tests/evidence/2026-10-17-local-e2e-batch4.json).
+The actual guest-UI run on `e4b8426` created, opened and conversationally revised a real Mac document. On `063dd01`, the independent light-stop/music-continues sequence, fresh playback verification and separate music stop passed. The same guest's original 600-second access then expired naturally and both effects stopped; the fallback revoke never fired. Jay physically confirmed both sequences. [Mac and initial music evidence](../tests/evidence/2026-10-17-local-e2e-batch4.json), [stop and expiry evidence](../tests/evidence/2026-10-17-local-e2e-batch5.json).
 
-Photo capture still needs Owen’s actual consent/capture/viewer UI before physical acceptance. Projector output, production hospitality operation, general autonomous adaptation and arbitrary device compatibility are future claims. Use verified capabilities for the main sequence and keep creative coordination optional until its remaining acceptance is complete.
+These are narrow smoke passes. Jay perceived slightly late phone flashes in the expiry run, so precise synchronization and reliability remain unestablished. His fuller desired experience is music first, an unexpected later light request, discovery of an existing visual tool, then projection. That complete sequence needs separate acceptance; the narrower passes do not establish it.
+
+Photo capture still needs Owen’s actual consent/capture/viewer UI before physical acceptance. The Mac has built-in HDMI and Jay identified an HDMI input on the AAXA projector, but he currently lacks the HDMI cable; actual projection remains unperformed. Production hospitality operation, general autonomous adaptation and arbitrary device compatibility are future claims. Use verified capabilities for the main sequence and keep creative coordination optional until its remaining acceptance is complete.
 
 ## Points for Owen to add to the demo
 
