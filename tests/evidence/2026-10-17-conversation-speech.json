@@ -1,0 +1,92 @@
+{
+  "recorded_at": "2026-10-18T01:13:19.066994+00:00",
+  "status": "DEPLOYED_REVIEWED_COMBINED_PASS_PHYSICAL_ACCEPTANCE_PENDING",
+  "mode": "Automatic brief audio for genuine native conversation replies; text is delivered first.",
+  "scope": {
+    "modified": [
+      "brain/core/conversation_speech.py",
+      "brain/core/room_conversation.py (successful reply receipt and allows_reply only)",
+      "brain/core/integration.py (optional speech wiring)",
+      "brain/channels/webchat.py (post-text hook)",
+      "tests/test_conversation_speech.py"
+    ],
+    "web_changes": false,
+    "audio_driver_changes": false,
+    "new_model_or_voice_service": false,
+    "service_restart_performed": false,
+    "physical_output_performed": false
+  },
+  "read_only_live_inventory": {
+    "source": "local /ws/display with the existing public Origin",
+    "unique_online_say_bridge": {
+      "id": "laptop",
+      "label": "Room speaker"
+    }
+  },
+  "behavior": {
+    "selection": "Whole plain first line when at most 12 words and 100 characters; otherwise a short first sentence, or fixed on-screen fallback. This does not read long answers in full.",
+    "actual_greeting_regression": "Hey! What can I help you with? is preserved whole.",
+    "fallback": "I put the details in the chat.",
+    "authority": "Immutable internal successful native-turn receipt, exact lease identity, guest/controller generation; checked before queue and immediately before Bus send.",
+    "deduplication": "Native thread/turn ID consumed before any await, including skips, UNKNOWN and cancellation.",
+    "speaker": "Unique current-room online say bridge, or an explicitly configured ID; no post-selection substitution.",
+    "effects": "Only say; Mac default output and volume are untouched.",
+    "logging": "Fixed public sentence plus private correlation/status; no reply phrase or arbitrary bridge error text.",
+    "uncertainty": "ACKNOWLEDGED means bridge reported spoken playback; physical audibility still needs human confirmation. Already-started playback cannot be undone by revocation."
+  },
+  "verification": {
+    "focused_speech_tests": {
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0
+    },
+    "prior_full_discovery_before_final_presentation_refinement": {
+      "passed": 227,
+      "failed": 0,
+      "skipped": 0
+    },
+    "diff_check": "PASS",
+    "cases": [
+      "Genuine final text precedes audio; failed text send starts no audio.",
+      "Code, links, unmarked domains, private markers and long prose use a brief safe fallback.",
+      "No speaker, offline or ambiguous speaker sends nothing; later availability never replays a skipped turn.",
+      "Revoke, expiry, new controller and host reset while queued deny dispatch.",
+      "Connection replacement does not migrate queued speech.",
+      "Post-send timeout/disconnect/cancellation is UNKNOWN and never retried or substituted.",
+      "Reconnected native conversation returns a new genuine text reply despite unresolved prior audio.",
+      "Receipt is immutable, absent from JSON and invalidated by a new controller.",
+      "Only say is sent; no volume or output selection calls."
+    ],
+    "final_combined": {
+      "python_passed": 239,
+      "phone_protocol_passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "independent_review": "PASS_SCOPED_SOURCE_AND_HASHES"
+    }
+  },
+  "remaining": [
+    "Human confirmation of ordinary conversational speech through the deployed public phone path."
+  ],
+  "independent_review": {
+    "reviewer": "access_contract_review",
+    "result": "No blocking defect found in speech source review.",
+    "scope": "Exact lease/controller/generation and post-queue permission; fixed original speaker; once-only native turn; post-text audio cancellation; no volume/output changes."
+  },
+  "speech_owned_hashes": {
+    "brain/core/conversation_speech.py": "2acd5aeff82299890dbbc3ed166da58c04ed51be149de119721ce0d562329478",
+    "tests/test_conversation_speech.py": "f63b7890ddb302896d0c87776242a1282f7bed8fcabd7b66c089e3a18a90a044",
+    "brain/channels/webchat.py": "dbc8be2cbcb127299b3cd6fab01e816036c0198ebfcafe851fef8ffe52c56cc8",
+    "brain/core/integration.py": "4b99b5f146a987d2dce53aee2e9f276c919f984d2b274f70dccc968b94f6acae"
+  },
+  "source_revision": "c3ef922",
+  "deployment": {
+    "service_restarted": "brain_only",
+    "public_health": "PASS",
+    "room_code": "E39D",
+    "unique_online_say_bridge": "Room speaker",
+    "output_and_volume_changed": false,
+    "human_request": "Fresh phone guest, keyboard dictation in own words, report on-screen words and audible reply",
+    "human_result": "PENDING"
+  }
+}
