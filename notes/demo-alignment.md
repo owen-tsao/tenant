@@ -1,43 +1,50 @@
 # Tenant scope and channel alignment
 
-Root integration update: October17,19:17 PT. Owner: demo planning; reports below distinguish source checks from physical observations.
+Local planning update: October 17, 2026, 19:58 PT. Source inspected: `f228b39963958bc2911b13f8e933ae5aeb4d800d`. Evidence below is attributed to Root/notes; planning did not rerun source or live checks.
 
 ## Settled direction and ownership
 
-- Public QR guests speak naturally with Jay's same fixed native Tenant room conversation and signed-in tools. Web remains available; Photon is a second channel into that exact conversation.
-- Same-enrollment channels preserve context and original expiry. A new guest receives clean working context with no inherited queued commands. One native room chat remains the product decision.
-- A natural request may perform many supported actions across Mac and phone. No arbitrary action-count or blink-count ceiling. Actual authority, cancellation, deadlines and no replay after UNKNOWN remain required.
-- Preserve the Mac's selected default output and current volume.
-- Audio owns ongoing music, speech and timing; Lighting/core owns execution, authority and lifecycle. Owen owns ALL web files. Root integrates, publishes and schedules one physical test at a time. Planning owns experience evaluation and idea records.
+- Public QR guests speak naturally with Jay's one fixed native Tenant room conversation and signed-in tools. Web and Photon target that same conversation. Same-enrollment channels preserve context and original expiry; new guests get clean working context and no inherited queued commands.
+- Natural requests may compose supported actions across Mac and phone without arbitrary action/blink ceilings. Preserve Mac output and volume; UNKNOWN is never automatically replayed or substituted. Host reset and ordinary Leave remain distinct.
+- New capabilities come from observed MCP/adapter tools/resources. Persist stable device identity, available capabilities, connection state and field-level provenance (`detected` versus `host_specified`). Host supplies missing role/location/permissions. Do not turn Mac tools into invented independent peripherals; a Bluetooth speaker may simply be the Mac's current output.
+- Audio owns music/voice/timing; device/core owns identity, authorization, execution and lifecycle; Owen owns ALL web files. Root owns decisions, integration, shared acceptance and routing. Local tester exclusively owns live gate `f228b39` and initiates authorized experiments; humans confirm physical outcomes only. No competing physical asks, repeated human checklist or forced unbriefed rehearsal.
+- Core owns the bounded public display conversation projection and truthful TTL denominator. Native history is not itself a public transcript; device-discovery planning adds no transcript work.
+- Planning owns demo-ideas.md, demo-alignment.md and planning-local.md only. No staging/commits until Root coordinates; no service/device/output changes. Root retains jay.md and shared acceptance; tester/runtime/audio files stay with their owners.
 
 ## Evidence and current gates
 
-Stop incident update: later guest OFF failed while an unknown/stopped performance retained the phone claim. Host OFF acknowledged and Jay confirmed physically OFF; current room8157. An unrequested30→45BPM→stop was also observed. Actual expiry trial INTERRUPTED, notPASS. Source3348165 fullbeat/setup430Python+12Node is reviewed but not deployed; graceful stop/explicit OFF recovery and native intent guidance are under review. No live effects running. Keep the earlier30BPM smoke separate from this later failure.
-
-
-| Area | Evidence | Decision |
+| Area | Recorded evidence | Current implication |
 | --- | --- | --- |
-| Historical bounded core | Three physical guest runs, alternatives, actual600s expiry and two resets passed at6075a3a. | Retain as historical evidence; changed native/program paths need their own acceptance. |
-| Genuine native conversation | Natural phone request/reply, dictated input, heard automatic speech and native tool use observed. Same fixed native history verified. | Retain. Native app visual rendering remains unconfirmed. |
-| Multiple phone actions | Old one-action refusal removed. Newly enrolled visible phone produced five human-confirmed blinks; same trial's Mac speech FAILED before playback. | Phone smoke passes; combined trial does not. Retain earlier partial and no-flash failures. |
-| Mac speech | Real PCM render incompatibility fixed af6f8be; later live tempo answer acknowledged and heard. First longer narration still UNKNOWN. Reviewed4198998 uses remaining authorized playback time and is now deployed in00594fa; new physical test pending. | Deploy with reviewed program fix; retest meaningful narration. No output/volume changes. |
-| Beat plus conversation | Earlier90BPM beat plus spoken tempo answer heard. Later actual guest chose30BPM, and Jay confirmed beat, repeated phone pulses and explicit stop.60 transport edges over59s all ACKed. | One30BPM physical smoke passes; not60BPM proof or reliability. User reported slight misalignment; AV timing remains unmeasured. |
-| Phone joining beat | Original first ON UNKNOWN/166ms retained. Deployed fix later supported actual30BPM halfbeat pulses and explicit stop, human-confirmed;60 transport ACKs, max430.910ms. | Visible pulsing smoke passes. FullbeatON/fullbeatOFF adjustment is in review; physical synchronization remains unmeasured. |
-| Reset after failed program | Original0C4C reset remained aggregate-unconfirmed because two old phone enrollments were absent. Audited host-only retirement at00594fa preserved current devices; separate fresh reset to9162 obtained phone OFF/Mac pause ACKs and confirmed cleanup/context/programs. | Retain original failure and record successful later machine recovery separately. Jay attested both physical torches OFF before retirement. |
-| Photon | Credentials, actual enrollment and source45 focused checks pass; retry ownership fix deployed. | Actual native inbound, delivered Messages reply, linked-context continuity and audible result remain unverified. API202 is not delivery. |
-| UI and unbriefed journey | Owen's9c5e6fa pages integrated unchanged. Concrete setup/enrollment, native-mode copy, expiry, Photon fallback and phone false-ACK concerns sent to Owen. | Owen applies UI fixes; cold rehearsal remains blocked. No root web edits. |
-| Photo-to-screen | Jay chose room-phone capture to Mac and latest-photo retention after Leave until replacement/reset. Manual judges/team group-photo finale selected as an idea. | Design only. Lighting/core owns backend; Owen owns opt-in, phone capture and viewer. No capture implementation or physical acceptance yet. |
+| Historical bounded core | Three physical guest runs, alternatives, actual 600s expiry and two resets passed at6075a3a. | Historical bounded evidence; changed native/program paths do not inherit it. |
+| Native conversation | Natural phone request/reply, dictated input, heard speech and native tool use observed in one fixed history. | Retain scoped observations; native window visibility has no new acceptance. |
+| Multiple phone actions | Five visible blinks confirmed in a fresh-phone trial; SAME trial's Mac speech failed before playback. Earlier partial/no-flash trials remain. | Phone smoke only; preserve combined-trial failure. |
+| Mac speech | PCM fix af6f8be corrected a real render incompatibility; later tempo answer heard. First longer narration UNKNOWN, remaining-time fix4198998 deployed in00594fa. | Historical observations; do not infer long-answer or every-response audibility. |
+| Current voice policy | Handoff: deployed f228b39, independent484Python+12NodePASS. Latest Root report: actual native TEXT_DEFAULT with0sayPASS. | Text default. Current guest must explicitly opt in to exact available speaker for ongoing voice; opt-out cancels future policy; one-off say remains independent. Discovery never enables speech. |
+| Performance smoke | 90BPM beat plus spoken tempo answer heard. Later30BPM beat, phone pulses and explicit stop human-confirmed;60ACKed transport edges over59s. | One bounded30BPM smoke; slight misalignment reported, no physical synchronization claim. |
+| Phone timing | Original firstON UNKNOWN/166ms; later pulses/stop physically confirmed; configurable cadence source implemented. | Transport/source evidence does not establish optical/acoustic alignment or2s fullbeat states. Audio owns evaluation. |
+| Stop failure and repair | Later guestOFF conflicted with retained program claim; unrequested30→45BPM→stop also observed. HostOFF ACKed, physically confirmed. At0b4a1ec native phoneOFF with beatcontinuing, then separate beatstop physicallyPASS. | Preserve failure and repair separately; no repeated stop trial requested by planning. |
+| Program expiry | Earlier actual expiry run interrupted by reset after522.635s; follow-up was not started. Source checks pass. | Current physical expiry UNVERIFIED. Never call the interrupted run PASS. |
+| Reset recovery | Original0C4C aggregate cleanup unconfirmed; later audited retirement plus separate reset9162 confirmed current phoneOFF/Macpause/context/program cleanup. Later8157 recovery phone physicallyOFF. | Original failures remain; retirement itself is not cleanup. No new lifecycle pass from this planning update. |
+| Photon | Credentials, enrollment and source checks recorded; same-browser recovery fix included in8f1b7ee. | Actual native inbound/delivered reply/linked-context evidence not supplied here; API202 is not delivery. |
+| UI/experience | Owen pages integrated unchanged; later conversation copy requires core projection. | No forced cold rehearsal. E1 is an optional evaluation design, not an instruction to start effects. |
+| Device discovery | Existing registry uses enrolled id/caps/liveness; native helper exposes current inventory. New evidence-backed reconciliation/dashboard contract proposed in planning-local.md. | Proposal only, not discovery/implementation acceptance. No new integration spree. |
+| Photo finale | Team+judges group at whiteboard, manually framed enrolled room phone → actual new still on Mac. Full minimal consent/source/viewer/upload/result/reset proposal in planning-local.md. | Implementation and physical acceptance CLOSED. Retention settled: latest displayed photo remains after Leave/new guests until replacement or host reset; future setting deferred. |
 
-## Immediate test order
+## Ready handoffs, not new live-test instructions
 
-1. Source gate PASSED and00594fa deployed:407Python+12Node, independent engine/glue/recovery review. Half-period pulses, first-cycle pending/following receipt and4198998 speech budget are live.
-2. Root uses a fresh real guest:60BPM beat, natural follow-up while it runs, then add the visible phone. Receipt must stay pending until first ON and OFF acknowledge. Ask Jay whether the phone actually pulses and the audio continues.
-3. Measure physical audio/light timing with an adequate recording before saying synchronized; separately test adjustment, explicit stop, Leave/expiry/reset and queued old work. Unknown effects are not automatically replayed.
-4. Run Photon actual inbound/delivery and SAME-enrollment context card, native visibility and an unbriefed rehearsal. No competing human questions from owner chats.
-5. Once baseline is solid, Jay/Root choose whether to open the photo implementation gate for the finale. Proactive rules, perception and guest-supplied agents remain deferred.
+1. Device/core: reconcile discovered provider/resource evidence into persistent identities and exact current bindings; ask the host only for missing facts; retain host provenance and authority boundaries. Use existing registry/state seams. Implement no speculative peripheral integrations.
+2. Root → Owen: the concise request in planning-local.md covers optional role/location/connection/capability/provenance additions in the existing room table. Keep current styling and plain visible language; backend supplies truth. No planning web edits or direct messages.
+3. Photos remain gated. Before opening: Root updates architecture sketches to the accepted retention policy; core/Owen agree the authenticated selected viewer, device-bound upload-ticket and matching viewer-receipt seams. Camera OS permission/torch readiness never equals photo opt-in. Proposed model separates captured, stored and displayed, blocks late work and versions reset/clear. Public display listeners do not receive private photo URLs/bytes.
+4. Shared acceptance amendments are proposed verbatim in planning-local.md for Root. demo-testing.md is unchanged; its older counts/forced E1 language are not current commands. The local tester owns actual experiments and physical questions.
 
-## Preserved ideas
+## Accepted retention and remaining gate
 
-See demo-ideas.md: progressive room music, phone joining an ongoing activity, optional existing projector visual, group-photo finale and interactive demos/marketing/live talks. Generated rhythm understanding and projector output have not been established. Jay/Owen choose the final presentation from tested behavior; a backend count or clean rehearsal is not reliability evidence.
+**Photo retention — settled:** Root confirms Jay’s accepted 19:17 direction: keep the latest displayed photo after Leave until replacement or host reset. Expiry/revoke and a new guest do not automatically clear the physical displayed photo. New guests reset agent working context and pending commands; keep image bytes out of model history. Host-configurable retention is future work. No further Jay question or retention decision blocker remains. Root must supersede the old architecture ten-minute TTL during implementation. Pending captures/tickets still die with authority; they cannot replace the retained photo after access ends.
 
-Latest deployed source:00594fa including reviewed pulse, speech-budget and audited retirement fixes. Fresh room9162;30BPM physical smoke passed. Real expiry and the next fullbeat-cadence check remain open. Evidence: tests/evidence/2026-10-17-native-multi-action.json and tests/evidence/2026-10-17-live-room-program.json. Prior failures are retained.
+**Gate opening:** photo/perception/proactive features remain closed. Music is authorized and belongs to Audio; physical synchronization and expiry limits stay explicit. No approval or question is being sent to Jay by planning.
+
+## Preserved idea stock
+
+All demo candidates remain in demo-ideas.md: impromptu vocal beat → ongoing computer sound → phone light joins → optional already-available projector visual; useful computer/room conversation; bounded room controls and access ending; explicit alternatives when a device disappears; light plus short speech; deferred join-welcome rules, camera/perception and guest-supplied agents; interactive demos, marketing and live talks; final team+judges whiteboard photo from room phone appearing on Mac. A rehearsal, clean test count or tool inventory cannot prove unfinished pieces.
+
+Source evidence references retained: tests/evidence/2026-10-17-native-multi-action.json, 2026-10-17-live-room-program.json, 2026-10-17-room-performance-30bpm.json, 2026-10-17-performance-stop-incident.json and 2026-10-17-stop-recovery-live.json. These records remain with Root; no new physical evidence was produced here.

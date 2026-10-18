@@ -1,7 +1,7 @@
 # Tenant demo ideas
 
-Owner: demo planning. Updated October17,18:43 PT.
-Base inspected: main b748ca15a3bdaf4fabf2c88388d78e02ba151594.
+Owner: local demo planning. Updated October 17, 2026, 19:58 PT.
+Source inspected: f228b39963958bc2911b13f8e933ae5aeb4d800d. Planning-only additions; shared acceptance remains Root's record.
 
 ## Product direction
 
@@ -10,6 +10,10 @@ Public invitation -> temporary guest -> Jay's genuine native Tenant room convers
 Coordinated music is explicitly AUTHORIZED. Acceptance is still BLOCKED. One natural request may perform many steps across Mac and phone; no arbitrary one-action or three-blink ceiling.
 
 Audio owns music/timing. Lighting owns execution/permissions. Root owns integration/live checks. Planning owns experience evaluation. Owen owns ALL web files and presentation.
+
+Latest direction: discover newer capabilities from actual MCP/adapter evidence, let the host supply missing role/location/permissions, and progressively show distinct evidenced devices on the dashboard. Keep stable identity through reconnect, current capability availability, connection state and detected-versus-host-specified provenance. One Mac endpoint does not establish separate controllable speakers/projectors. See planning-local.md for the minimal proposed contract and concise Owen request; no new integrations or UI edits are requested here.
+
+Root reports f228b39 voice deployed with independent 484 Python + 12 Node PASS and actual native default-silent TEXT_DEFAULT/zero say PASS. Text is default; ongoing voice needs current-guest opt-in to the exact available speaker; one-off say is independent. The local tester owns live experiments; no competing physical asks, forced unbriefed rehearsal or repeated human checklists.
 
 ## Single prioritized list
 
@@ -28,9 +32,9 @@ What is proven: genuine web conversation, keyboard dictation and automatic Mac s
 
 What is proven in one later live trial: a requested 90 BPM beat continued while the same guest asked its tempo and heard the spoken answer. Jay also saw five blinks on a newly enrolled, visible phone in a separate trial. That trial's Mac speech failed before playback; do not call the whole trial passed.
 
-Latest physical result: Jay naturally requested30BPM and confirmed heard beat, repeated visible phone pulses and explicit stop.60 edges acknowledged over59s. The actual pattern was1second ON/1second OFF; his next preference is one full beat ON then one full beat OFF (2seconds each at30BPM), and he noticed slight misalignment. Audio owns that narrow adjustment.
+Historical physical result: Jay naturally requested30BPM and confirmed heard beat, repeated visible phone pulses and explicit stop.60 edges acknowledged over59s. The actual pattern was1second ON/1second OFF; his next preference is one full beat ON then one full beat OFF (2seconds each at30BPM), and he noticed slight misalignment. Later guest OFF failed while a performance retained its claim; preserve that incident. After repair at0b4a1ec, Jay confirmed native phoneOFF while beatcontinued, then a separate beatstop. Current program expiry remains physicallyUNVERIFIED; the earlier trial wasINTERRUPTED. Audio owns timing; planning starts no further effects.
 
-What is NOT proven: rhythm interpretation/generation, physical synchronization, the next fullbeat-cadence adjustment, laptop visual or projector. The first phone-to-beat attachment failed with an UNKNOWN first ON command: its 166 ms deadline was shorter than a measured 197 ms raw phone acknowledgement. The program stopped without replay. Audio/core owners are testing a 60 BPM baseline with 500 ms ON/OFF intervals and a receipt that stays pending until the first ON and OFF acknowledge. Source tests and acknowledgements do not prove optical/acoustic timing.
+What is NOT proven: rhythm interpretation/generation, physical synchronization, fullbeat physical timing, laptop visual or projector. The first phone-to-beat attachment failed with an UNKNOWN first ON command: its 166 ms deadline was shorter than a measured 197 ms raw phone acknowledgement. The program stopped without replay. First ON/OFF receipts and configurable cadence have source checks; acknowledgements do not prove optical/acoustic timing. The timing screen below is an optional owner protocol, not a new live-test instruction or release requirement added by planning.
 
 Smallest timing screen, run by Audio/Root after integrated source review:
 1. Separately check the supplied rhythm against the heard beat. Prepared music does not establish generated-rhythm understanding.
@@ -67,13 +71,13 @@ Strong historical bounded evidence at6075a3a, not automatic acceptance of the ch
 | Show access ending | Leave/expiry denies further commands; host reset restores explicit defaults. | Historical core PASS; new conversation/program lifecycle checks remain open. |
 | Light plus short speech | One natural request coordinates an explicit light state and spoken response. | Alternative within authorized coordination, not an additional project. |
 | Join-triggered welcome | “Whenever someone joins, flash green and say welcome.” | Feature7 CLOSED; one rule/guest, bounded triggers/cooldown, dispatch authority required. |
-| Photo -> screen | Enrolled room phone takes one still and displays it on the Mac. Keep the latest image after Leave until replacement or host reset. | Feature5 implementation CLOSED; reviewed design and finale below, physical acceptance unperformed. Future host retention setting deferred. |
+| Photo -> screen | Enrolled room phone takes one opted-in still and displays it on the Mac. Accepted: keep the latest displayed photo after Leave and across new guests until replacement or host reset; clear new-guest context/commands and keep image bytes out of model history. | Feature5 implementation CLOSED; capture-to-viewer design in planning-local.md, physical acceptance unperformed. Future host retention setting deferred. |
 | Camera/perception interaction | Contributed camera supports room behavior. | Outside increment; no tracking/video/musical-chairs adjudication. |
 | Guest's own coding agent | Guest brings another agent. | Deferred; current system uses Jay's signed-in agent. |
 
 ## Selection
 
-Evaluate the authorized performance using E1 in demo-testing.md, then Jay/Owen choose the final presentation from this ordered list. Keep every candidate; do not present unfinished elements as working.
+Jay/Owen choose the final presentation from this ordered list using scoped evidence. E1 in demo-testing.md remains an optional experience protocol if Jay chooses it; it must not force an unbriefed rehearsal. The local tester initiates authorized experiments automatically; humans confirm physical outcomes only. Keep every candidate; do not present unfinished elements as working.
 
 Photo, perception, proactive rules and guest-supplied agents remain CLOSED. Coordinated music implementation is OPEN, physical acceptance BLOCKED. Backend counts do not prove a demonstration.
 
@@ -87,8 +91,8 @@ The room performance is one example of this broader product direction. Preserve 
 
 Jay's finale idea: at the very end, place the enrolled room phone facing the group near the whiteboard/front of the demo area. Invite the judges to gather with the team, frame everyone manually, then ask the same Tenant agent to take the group photo. Display the actual captured image on the Mac.
 
-This uses the existing room-phone -> Mac photo direction, with no person detection or new camera integration. The operator explicitly enables photo capture; the group poses knowingly. A brief visible countdown is a proposed staging detail. Keep the photo displayed until replacement or host reset, per Jay's preference; configurable retention is future work.
+This uses the existing room-phone -> Mac photo direction, with no person detection or new camera integration. The operator explicitly enables photo capture separately from torch/OS camera permission, assigns the capture-source role and manually frames the group; the group poses knowingly. A brief visible countdown is a proposed staging detail. Accepted Jay 19:17 policy, confirmed by Root: keep the latest displayed photo after Leave until replacement or host reset. New guests reset agent context and pending commands, without automatically clearing the physical displayed photo; image bytes stay out of model history. Configurable host retention stays deferred; no decision blocker or further Jay question remains.
 
 Status: finale idea/design only. Capture/upload/viewer are not implemented or physically accepted yet; rehearse the exact phone placement and framing before promising this ending.
 
-Ownership: Lighting/core owns the capture authorization, upload and lifecycle backend; Owen owns phone opt-in, camera framing/capture indication and the Mac viewer. Root integrates and conducts the physical test. The final test is one natural request producing the correct new group photo on the Mac, followed by Leave retaining it and host reset clearing it without a late reappearance.
+Ownership: Lighting/core owns capture authorization, bounded device-bound upload and lifecycle backend; Owen owns phone opt-in, camera framing/capture indication and the Mac viewer. Root integrates; local tester initiates any authorized final experiment, with human confirmation only of physical results. Acceptance separates captured/stored/viewer-rendered from the actual correct new group photo visible on the Mac, then verifies the accepted retention through Leave/new guests and host reset clearing without late reappearance. Complete minimal proposed roles/consent/ticket/version/receipt contract and readiness checks: planning-local.md. No gate is opened by this plan.
