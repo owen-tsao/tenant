@@ -1,0 +1,27 @@
+{
+  "time": "2026-10-18T06:05:21.243696-07:00",
+  "scope": "read-only OS device metadata; no permission request/capture",
+  "camera": {
+    "name": "MacBook Pro Camera",
+    "in_use_by_another_application": false
+  },
+  "built_in_microphone": {
+    "name": "MacBook Pro Microphone",
+    "device_is_running_somewhere": 0
+  },
+  "default_microphone": {
+    "name": "Bose NC 700 HP",
+    "device_is_running_somewhere": 0
+  },
+  "ownership": {
+    "camera_microphone_isolated_input": "Tenant \u2014 Lighting & Device Runtime (Local)",
+    "same_room_event_bridge": "Tenant \u2014 Access & Device Adaptation",
+    "tv": "main drawing album, not released"
+  },
+  "limits": [
+    "Metadata availability only; not a capture/Speech permission/ASR pass",
+    "Prototype must explicitly choose built-in mic instead of current default",
+    "No model bridge accepted",
+    "No private transcript/images published"
+  ]
+}
