@@ -1,0 +1,855 @@
+{
+  "recorded_at": "2026-10-18T02:28:03.086602+00:00",
+  "source_revision": "00594fa",
+  "room_code": "9162",
+  "status": "PHYSICAL_SMOKE_PASS_AT_30_BPM_ALIGNMENT_UNMEASURED",
+  "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+  "native_thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+  "native_turn_ids": [
+    "01a14cd2-2bb3-7190-88b0-dedbab056d16",
+    "01a14cd2-c26c-72f0-a86d-f90a81f024eb",
+    "01a14cd3-b985-7682-9044-16f3a99e7b82"
+  ],
+  "actual_request": "Can you start like a very slow like 30 BPM and make like the light like the flashlight have a connected pulse that kind of aligns with this 30 BPM beat",
+  "actual_reply": "The 30 BPM beat is running, and the flashlight acknowledged its first connected pulse: one second on, one second off. Exact physical sync is unverified.",
+  "actual_stop_feedback": "Ok you can stop now it\u2019s like it\u2019s slightly slightly misaligned, but I like like one beat and one beat the the light on and one is the light off",
+  "human_confirmation": {
+    "question": "For the room 9162 run you just tried: did you hear the beat, see repeated flashlight pulses, and have both stop when asked?",
+    "answer": "Yes \u2014 beat, pulses, and stop all worked"
+  },
+  "actual_cadence": {
+    "audio_bpm": 30,
+    "on_beats": 0.5,
+    "off_beats": 0.5,
+    "on_ms": 1000,
+    "off_ms": 1000,
+    "note": "The requested root test was60BPM, but the human naturally chose30BPM. This is not a60BPM physical pass."
+  },
+  "transport": {
+    "edge_count": 60,
+    "ack_failures": 0,
+    "span_seconds": 59.0,
+    "ack_rtt_ms": {
+      "median": 97.822,
+      "maximum": 430.91
+    },
+    "dispatch_vs_target_ms": {
+      "minimum": -0.155,
+      "maximum": 1.856
+    },
+    "limit": "Dispatch and ACK metrics are software/transport measurements, not optical or acoustic onset."
+  },
+  "stop_receipt": [
+    {
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "reason": "requested_stop",
+      "cleanup": {
+        "audio": "confirmed",
+        "jay-visible-phone-oct17": "confirmed"
+      }
+    }
+  ],
+  "phone_edges": [
+    {
+      "t": 1792290253.117017,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334572590.956,
+      "bus_call_monotonic_ms": 334572591.75,
+      "ack_monotonic_ms": 334573022.825,
+      "dispatch_monotonic_ms": 334572591.915,
+      "ack_code": "OK",
+      "req": "r_89177bbeb36b445fba1a0d4767beb415"
+    },
+    {
+      "t": 1792290253.841356,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334573590.956,
+      "bus_call_monotonic_ms": 334573590.893,
+      "ack_monotonic_ms": 334573747.185,
+      "dispatch_monotonic_ms": 334573591.05,
+      "ack_code": "OK",
+      "req": "r_c9bce2075527435388645d642599b8f9"
+    },
+    {
+      "t": 1792290254.7288718,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334574590.956,
+      "bus_call_monotonic_ms": 334574591.541,
+      "ack_monotonic_ms": 334574634.692,
+      "dispatch_monotonic_ms": 334574591.718,
+      "ack_code": "OK",
+      "req": "r_3426a6889f114968afd96b72b06ad3a6"
+    },
+    {
+      "t": 1792290255.7669902,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334575590.956,
+      "bus_call_monotonic_ms": 334575592.107,
+      "ack_monotonic_ms": 334575672.816,
+      "dispatch_monotonic_ms": 334575592.128,
+      "ack_code": "OK",
+      "req": "r_4ad2ecd92c0a4201a0dc33f574aee31f"
+    },
+    {
+      "t": 1792290256.7232692,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334576590.956,
+      "bus_call_monotonic_ms": 334576590.76,
+      "ack_monotonic_ms": 334576629.088,
+      "dispatch_monotonic_ms": 334576590.801,
+      "ack_code": "OK",
+      "req": "r_cdbe6ca6c31a44a5a0b2986178a14905"
+    },
+    {
+      "t": 1792290257.783454,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334577590.956,
+      "bus_call_monotonic_ms": 334577591.592,
+      "ack_monotonic_ms": 334577689.258,
+      "dispatch_monotonic_ms": 334577591.705,
+      "ack_code": "OK",
+      "req": "r_4ae45f657b5e419f964a872302657650"
+    },
+    {
+      "t": 1792290258.807008,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334578590.956,
+      "bus_call_monotonic_ms": 334578592.499,
+      "ack_monotonic_ms": 334578712.805,
+      "dispatch_monotonic_ms": 334578592.812,
+      "ack_code": "OK",
+      "req": "r_6930ff083d934c3ea8cba6877268eab4"
+    },
+    {
+      "t": 1792290259.7603672,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334579590.956,
+      "bus_call_monotonic_ms": 334579592.004,
+      "ack_monotonic_ms": 334579666.16,
+      "dispatch_monotonic_ms": 334579592.176,
+      "ack_code": "OK",
+      "req": "r_5426eb62eff24cf7a2f4656cbed656e7"
+    },
+    {
+      "t": 1792290260.7302241,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334580590.956,
+      "bus_call_monotonic_ms": 334580591.802,
+      "ack_monotonic_ms": 334580635.997,
+      "dispatch_monotonic_ms": 334580591.925,
+      "ack_code": "OK",
+      "req": "r_d449e4009f544a4c9ed8e21b83ed9d2f"
+    },
+    {
+      "t": 1792290261.900295,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334581590.956,
+      "bus_call_monotonic_ms": 334581592.501,
+      "ack_monotonic_ms": 334581806.083,
+      "dispatch_monotonic_ms": 334581592.561,
+      "ack_code": "OK",
+      "req": "r_2b05a502acca41ff82dc36ad18fb4668"
+    },
+    {
+      "t": 1792290262.801447,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334582590.956,
+      "bus_call_monotonic_ms": 334582592.294,
+      "ack_monotonic_ms": 334582707.235,
+      "dispatch_monotonic_ms": 334582592.405,
+      "ack_code": "OK",
+      "req": "r_229e45d16c5b4edaa69b2ef25ad637bd"
+    },
+    {
+      "t": 1792290263.929771,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334583590.956,
+      "bus_call_monotonic_ms": 334583591.493,
+      "ack_monotonic_ms": 334583835.544,
+      "dispatch_monotonic_ms": 334583591.643,
+      "ack_code": "OK",
+      "req": "r_28a81026464b466d8a8bc76d93249116"
+    },
+    {
+      "t": 1792290264.805143,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334584590.956,
+      "bus_call_monotonic_ms": 334584591.805,
+      "ack_monotonic_ms": 334584710.914,
+      "dispatch_monotonic_ms": 334584591.992,
+      "ack_code": "OK",
+      "req": "r_c4a3c5074f114e789c99d383da738b95"
+    },
+    {
+      "t": 1792290265.849946,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334585590.956,
+      "bus_call_monotonic_ms": 334585591.068,
+      "ack_monotonic_ms": 334585755.705,
+      "dispatch_monotonic_ms": 334585591.171,
+      "ack_code": "OK",
+      "req": "r_3c4ecff900d143a889d353ca277658c6"
+    },
+    {
+      "t": 1792290266.727745,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334586590.956,
+      "bus_call_monotonic_ms": 334586591.728,
+      "ack_monotonic_ms": 334586633.502,
+      "dispatch_monotonic_ms": 334586591.826,
+      "ack_code": "OK",
+      "req": "r_98a1e4c5024a4b24a02671e8ee96be60"
+    },
+    {
+      "t": 1792290267.952246,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334587590.956,
+      "bus_call_monotonic_ms": 334587592.449,
+      "ack_monotonic_ms": 334587857.976,
+      "dispatch_monotonic_ms": 334587592.511,
+      "ack_code": "OK",
+      "req": "r_f2b7bedfb5084a9792cb5a2b1d80860c"
+    },
+    {
+      "t": 1792290268.733516,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334588590.956,
+      "bus_call_monotonic_ms": 334588591.767,
+      "ack_monotonic_ms": 334588639.258,
+      "dispatch_monotonic_ms": 334588591.905,
+      "ack_code": "OK",
+      "req": "r_f34082d5c3264231825a8612deca9f1a"
+    },
+    {
+      "t": 1792290269.723501,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334589590.956,
+      "bus_call_monotonic_ms": 334589591.599,
+      "ack_monotonic_ms": 334589629.247,
+      "dispatch_monotonic_ms": 334589591.81,
+      "ack_code": "OK",
+      "req": "r_701c9440f6a745619b47dbab8bfb9ab9"
+    },
+    {
+      "t": 1792290270.726891,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334590590.956,
+      "bus_call_monotonic_ms": 334590592.227,
+      "ack_monotonic_ms": 334590632.628,
+      "dispatch_monotonic_ms": 334590592.388,
+      "ack_code": "OK",
+      "req": "r_dce9d38f1a74446bb10bcbe71337c9a9"
+    },
+    {
+      "t": 1792290271.870144,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334591590.956,
+      "bus_call_monotonic_ms": 334591592.166,
+      "ack_monotonic_ms": 334591775.864,
+      "dispatch_monotonic_ms": 334591592.308,
+      "ack_code": "OK",
+      "req": "r_02bd8e53843c495c979fe7c5056bb321"
+    },
+    {
+      "t": 1792290272.8815129,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334592590.956,
+      "bus_call_monotonic_ms": 334592592.096,
+      "ack_monotonic_ms": 334592787.207,
+      "dispatch_monotonic_ms": 334592592.242,
+      "ack_code": "OK",
+      "req": "r_a6ee24707d404280bad1f51aa209b230"
+    },
+    {
+      "t": 1792290273.760784,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334593590.956,
+      "bus_call_monotonic_ms": 334593592.334,
+      "ack_monotonic_ms": 334593666.506,
+      "dispatch_monotonic_ms": 334593592.54,
+      "ack_code": "OK",
+      "req": "r_beb49843e1b54b2ab205ad85d511776b"
+    },
+    {
+      "t": 1792290274.891906,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334594590.956,
+      "bus_call_monotonic_ms": 334594591.78,
+      "ack_monotonic_ms": 334594797.618,
+      "dispatch_monotonic_ms": 334594592.096,
+      "ack_code": "OK",
+      "req": "r_df1cb4749cbd4dfaa5b58de40d44910b"
+    },
+    {
+      "t": 1792290275.811726,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334595590.956,
+      "bus_call_monotonic_ms": 334595592.208,
+      "ack_monotonic_ms": 334595717.415,
+      "dispatch_monotonic_ms": 334595592.353,
+      "ack_code": "OK",
+      "req": "r_a1c9197e2bc1439ea027682b89c133b6"
+    },
+    {
+      "t": 1792290276.720696,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334596590.956,
+      "bus_call_monotonic_ms": 334596592.139,
+      "ack_monotonic_ms": 334596626.403,
+      "dispatch_monotonic_ms": 334596592.246,
+      "ack_code": "OK",
+      "req": "r_cf2f99f513f84af3b6723ac81ee9336e"
+    },
+    {
+      "t": 1792290277.937664,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334597590.956,
+      "bus_call_monotonic_ms": 334597591.732,
+      "ack_monotonic_ms": 334597843.362,
+      "dispatch_monotonic_ms": 334597591.879,
+      "ack_code": "OK",
+      "req": "r_2d0e5abe42774dc388a752715ec901f2"
+    },
+    {
+      "t": 1792290278.801551,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334598590.956,
+      "bus_call_monotonic_ms": 334598592.428,
+      "ack_monotonic_ms": 334598707.245,
+      "dispatch_monotonic_ms": 334598592.605,
+      "ack_code": "OK",
+      "req": "r_5205e9e13c474219aa36c21730ba2c99"
+    },
+    {
+      "t": 1792290279.767065,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334599590.956,
+      "bus_call_monotonic_ms": 334599591.959,
+      "ack_monotonic_ms": 334599672.736,
+      "dispatch_monotonic_ms": 334599592.072,
+      "ack_code": "OK",
+      "req": "r_2ecb4aef626e41b48b2dde681cf9b568"
+    },
+    {
+      "t": 1792290280.7323961,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334600590.956,
+      "bus_call_monotonic_ms": 334600591.73,
+      "ack_monotonic_ms": 334600638.086,
+      "dispatch_monotonic_ms": 334600591.819,
+      "ack_code": "OK",
+      "req": "r_e14315ae718d47b3a41a1d74a7eefe87"
+    },
+    {
+      "t": 1792290281.7209868,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334601590.956,
+      "bus_call_monotonic_ms": 334601591.833,
+      "ack_monotonic_ms": 334601626.675,
+      "dispatch_monotonic_ms": 334601591.876,
+      "ack_code": "OK",
+      "req": "r_cad0814e25fc44fbb2fc753f3fba7deb"
+    },
+    {
+      "t": 1792290282.7979,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334602590.956,
+      "bus_call_monotonic_ms": 334602591.75,
+      "ack_monotonic_ms": 334602703.574,
+      "dispatch_monotonic_ms": 334602591.827,
+      "ack_code": "OK",
+      "req": "r_a4a44e5091584c898cf8482afd513e2a"
+    },
+    {
+      "t": 1792290283.762123,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334603590.956,
+      "bus_call_monotonic_ms": 334603592.457,
+      "ack_monotonic_ms": 334603667.788,
+      "dispatch_monotonic_ms": 334603592.574,
+      "ack_code": "OK",
+      "req": "r_169ae7b42e6340fcb2c17379aac509dc"
+    },
+    {
+      "t": 1792290284.778336,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334604590.956,
+      "bus_call_monotonic_ms": 334604592.342,
+      "ack_monotonic_ms": 334604684.006,
+      "dispatch_monotonic_ms": 334604592.411,
+      "ack_code": "OK",
+      "req": "r_c720f96a0f89451ab9f5376f0465dbdb"
+    },
+    {
+      "t": 1792290285.8442318,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334605590.956,
+      "bus_call_monotonic_ms": 334605591.452,
+      "ack_monotonic_ms": 334605749.89,
+      "dispatch_monotonic_ms": 334605591.538,
+      "ack_code": "OK",
+      "req": "r_3be5cd2cf02f431eab2e5f4b3ec79e2f"
+    },
+    {
+      "t": 1792290286.823499,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334606590.956,
+      "bus_call_monotonic_ms": 334606592.069,
+      "ack_monotonic_ms": 334606729.128,
+      "dispatch_monotonic_ms": 334606592.222,
+      "ack_code": "OK",
+      "req": "r_2b184953669343088e1c3b39cacddb92"
+    },
+    {
+      "t": 1792290287.767168,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334607590.956,
+      "bus_call_monotonic_ms": 334607591.947,
+      "ack_monotonic_ms": 334607672.81,
+      "dispatch_monotonic_ms": 334607592.12,
+      "ack_code": "OK",
+      "req": "r_c5cbfc0273a6420a996aa7577b1445de"
+    },
+    {
+      "t": 1792290288.741032,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334608590.956,
+      "bus_call_monotonic_ms": 334608591.611,
+      "ack_monotonic_ms": 334608646.685,
+      "dispatch_monotonic_ms": 334608591.672,
+      "ack_code": "OK",
+      "req": "r_915ea8fafd244999b44ce97113211686"
+    },
+    {
+      "t": 1792290289.838133,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334609590.956,
+      "bus_call_monotonic_ms": 334609591.779,
+      "ack_monotonic_ms": 334609743.768,
+      "dispatch_monotonic_ms": 334609591.857,
+      "ack_code": "OK",
+      "req": "r_3b6ad1f79fd6492eab7d80390d94a695"
+    },
+    {
+      "t": 1792290290.8185978,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334610590.956,
+      "bus_call_monotonic_ms": 334610592.66,
+      "ack_monotonic_ms": 334610724.218,
+      "dispatch_monotonic_ms": 334610592.743,
+      "ack_code": "OK",
+      "req": "r_524dbc633cdf471eb54297c915c4ada7"
+    },
+    {
+      "t": 1792290291.7527559,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334611590.956,
+      "bus_call_monotonic_ms": 334611592.516,
+      "ack_monotonic_ms": 334611658.373,
+      "dispatch_monotonic_ms": 334611592.635,
+      "ack_code": "OK",
+      "req": "r_88cfd4a509714179bb60f13f205579e4"
+    },
+    {
+      "t": 1792290292.7238588,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334612590.956,
+      "bus_call_monotonic_ms": 334612592.289,
+      "ack_monotonic_ms": 334612629.482,
+      "dispatch_monotonic_ms": 334612592.44,
+      "ack_code": "OK",
+      "req": "r_af98df16c02f4da19081886b39289f01"
+    },
+    {
+      "t": 1792290293.84448,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334613590.956,
+      "bus_call_monotonic_ms": 334613591.52,
+      "ack_monotonic_ms": 334613750.073,
+      "dispatch_monotonic_ms": 334613591.613,
+      "ack_code": "OK",
+      "req": "r_69c44f13e74c4dce98dae77b81f56679"
+    },
+    {
+      "t": 1792290294.884321,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334614590.956,
+      "bus_call_monotonic_ms": 334614591.586,
+      "ack_monotonic_ms": 334614789.906,
+      "dispatch_monotonic_ms": 334614591.671,
+      "ack_code": "OK",
+      "req": "r_d735cf2cfc3341828532b5cdb9030539"
+    },
+    {
+      "t": 1792290295.935744,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334615590.956,
+      "bus_call_monotonic_ms": 334615592.104,
+      "ack_monotonic_ms": 334615841.335,
+      "dispatch_monotonic_ms": 334615592.242,
+      "ack_code": "OK",
+      "req": "r_8988998496974dad8ed9893af311731b"
+    },
+    {
+      "t": 1792290296.783683,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334616590.956,
+      "bus_call_monotonic_ms": 334616591.036,
+      "ack_monotonic_ms": 334616689.267,
+      "dispatch_monotonic_ms": 334616591.176,
+      "ack_code": "OK",
+      "req": "r_b319a5067b1045abb1547feea08aeb76"
+    },
+    {
+      "t": 1792290297.737937,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334617590.956,
+      "bus_call_monotonic_ms": 334617591.581,
+      "ack_monotonic_ms": 334617643.536,
+      "dispatch_monotonic_ms": 334617591.646,
+      "ack_code": "OK",
+      "req": "r_84aa60784bd04b5cb397abb5c71d8320"
+    },
+    {
+      "t": 1792290298.8791502,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334618590.956,
+      "bus_call_monotonic_ms": 334618591.722,
+      "ack_monotonic_ms": 334618784.737,
+      "dispatch_monotonic_ms": 334618591.915,
+      "ack_code": "OK",
+      "req": "r_2b28c7ed40734216926abfc605eff91c"
+    },
+    {
+      "t": 1792290299.764631,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334619590.956,
+      "bus_call_monotonic_ms": 334619592.204,
+      "ack_monotonic_ms": 334619670.212,
+      "dispatch_monotonic_ms": 334619592.516,
+      "ack_code": "OK",
+      "req": "r_77ec7e4ddebc457588134ee5c1d42d74"
+    },
+    {
+      "t": 1792290300.733291,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334620590.956,
+      "bus_call_monotonic_ms": 334620592.036,
+      "ack_monotonic_ms": 334620638.873,
+      "dispatch_monotonic_ms": 334620592.119,
+      "ack_code": "OK",
+      "req": "r_538e498590344573bb888e6353b4a3bd"
+    },
+    {
+      "t": 1792290301.837288,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334621590.956,
+      "bus_call_monotonic_ms": 334621592.647,
+      "ack_monotonic_ms": 334621742.871,
+      "dispatch_monotonic_ms": 334621592.793,
+      "ack_code": "OK",
+      "req": "r_7e80ad1a19ba4c4081615c9fe91a6539"
+    },
+    {
+      "t": 1792290302.801314,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334622590.956,
+      "bus_call_monotonic_ms": 334622592.512,
+      "ack_monotonic_ms": 334622706.888,
+      "dispatch_monotonic_ms": 334622592.687,
+      "ack_code": "OK",
+      "req": "r_8aa36dbb5914469f8a81ea8b76529077"
+    },
+    {
+      "t": 1792290303.771143,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334623590.956,
+      "bus_call_monotonic_ms": 334623592.578,
+      "ack_monotonic_ms": 334623676.702,
+      "dispatch_monotonic_ms": 334623592.717,
+      "ack_code": "OK",
+      "req": "r_0382206dd03541e89dd4fcb1d254bbb4"
+    },
+    {
+      "t": 1792290304.7337449,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334624590.956,
+      "bus_call_monotonic_ms": 334624590.819,
+      "ack_monotonic_ms": 334624639.309,
+      "dispatch_monotonic_ms": 334624590.924,
+      "ack_code": "OK",
+      "req": "r_cc53720be3e040deb3cf2d082713e1dd"
+    },
+    {
+      "t": 1792290305.947208,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334625590.956,
+      "bus_call_monotonic_ms": 334625591.903,
+      "ack_monotonic_ms": 334625852.741,
+      "dispatch_monotonic_ms": 334625592.005,
+      "ack_code": "OK",
+      "req": "r_7fc784b7856d4614b98d999693fd9186"
+    },
+    {
+      "t": 1792290306.836051,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334626590.956,
+      "bus_call_monotonic_ms": 334626591.726,
+      "ack_monotonic_ms": 334626741.58,
+      "dispatch_monotonic_ms": 334626591.901,
+      "ack_code": "OK",
+      "req": "r_f1af433d003d4ebf92cae1af039a6baa"
+    },
+    {
+      "t": 1792290307.8147042,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334627590.956,
+      "bus_call_monotonic_ms": 334627591.248,
+      "ack_monotonic_ms": 334627720.232,
+      "dispatch_monotonic_ms": 334627591.353,
+      "ack_code": "OK",
+      "req": "r_be49b99ed6814d87beda3b960bbb1370"
+    },
+    {
+      "t": 1792290308.732268,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334628590.956,
+      "bus_call_monotonic_ms": 334628592.155,
+      "ack_monotonic_ms": 334628637.733,
+      "dispatch_monotonic_ms": 334628592.23,
+      "ack_code": "OK",
+      "req": "r_48443e7dcab5474b89878b30408c4e5e"
+    },
+    {
+      "t": 1792290309.733566,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334629590.956,
+      "bus_call_monotonic_ms": 334629591.325,
+      "ack_monotonic_ms": 334629639.107,
+      "dispatch_monotonic_ms": 334629591.428,
+      "ack_code": "OK",
+      "req": "r_598c6108fffd4d13823f7a3b9c6e35b2"
+    },
+    {
+      "t": 1792290310.723511,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": true,
+      "target_monotonic_ms": 334630590.956,
+      "bus_call_monotonic_ms": 334630591.724,
+      "ack_monotonic_ms": 334630629.032,
+      "dispatch_monotonic_ms": 334630591.804,
+      "ack_code": "OK",
+      "req": "r_1341a1ce68a34c0d820f125f9d6a6870"
+    },
+    {
+      "t": 1792290311.76686,
+      "program_id": "p_1bec1d5b181f408d82b14e0ba259a707",
+      "device_id": "jay-visible-phone-oct17",
+      "on": false,
+      "target_monotonic_ms": 334631590.956,
+      "bus_call_monotonic_ms": 334631591.689,
+      "ack_monotonic_ms": 334631672.383,
+      "dispatch_monotonic_ms": 334631591.844,
+      "ack_code": "OK",
+      "req": "r_b678ce460c9e408494d426c0b6c7ab4e"
+    }
+  ],
+  "turn_events": [
+    {
+      "t": 1792290204.60639,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14cd2-2bb3-7190-88b0-dedbab056d16"
+      }
+    },
+    {
+      "t": 1792290206.426024,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14cd2-2bb3-7190-88b0-dedbab056d16"
+      }
+    },
+    {
+      "t": 1792290211.7510002,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14cd2-2bb3-7190-88b0-dedbab056d16",
+        "audio_status": "ACKNOWLEDGED",
+        "device_id": "laptop",
+        "req": "r_91ce2d0f9556404a84d5c186d68a20fa"
+      }
+    },
+    {
+      "t": 1792290243.198924,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14cd2-c26c-72f0-a86d-f90a81f024eb"
+      }
+    },
+    {
+      "t": 1792290255.284706,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14cd2-c26c-72f0-a86d-f90a81f024eb"
+      }
+    },
+    {
+      "t": 1792290266.965458,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14cd2-c26c-72f0-a86d-f90a81f024eb",
+        "audio_status": "ACKNOWLEDGED",
+        "device_id": "laptop",
+        "req": "r_93503bde2a7b4212a5f897b2908d3fe2"
+      }
+    },
+    {
+      "t": 1792290306.462236,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14cd3-b985-7682-9044-16f3a99e7b82"
+      }
+    },
+    {
+      "t": 1792290314.409903,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14cd3-b985-7682-9044-16f3a99e7b82"
+      }
+    },
+    {
+      "t": 1792290323.1477172,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14cd3-b985-7682-9044-16f3a99e7b82",
+        "audio_status": "ACKNOWLEDGED",
+        "device_id": "laptop",
+        "req": "r_5b43f430ee77487681db48ad641afa88"
+      }
+    }
+  ],
+  "decisions": [
+    "Retain slow30BPM beat/pulse/explicit-stop as a one-run physical smoke, not reliability.",
+    "Audio owner adds simplest scalar for one full beat ON/full beat OFF; no new pattern language.",
+    "Physical alignment remains unmeasured and user reported slight misalignment.",
+    "Three current narration attempts ACKed; do not substitute transport ACK for a separate human audibility result.",
+    "Next source deployment waits current real lease expiry check."
+  ]
+}

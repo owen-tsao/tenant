@@ -28,7 +28,9 @@ What is proven: genuine web conversation, keyboard dictation and automatic Mac s
 
 What is proven in one later live trial: a requested 90 BPM beat continued while the same guest asked its tempo and heard the spoken answer. Jay also saw five blinks on a newly enrolled, visible phone in a separate trial. That trial's Mac speech failed before playback; do not call the whole trial passed.
 
-What is NOT proven: rhythm interpretation/generation, physical synchronization, adjustment/stop on the final revision, laptop visual or projector. The first phone-to-beat attachment failed with an UNKNOWN first ON command: its 166 ms deadline was shorter than a measured 197 ms raw phone acknowledgement. The program stopped without replay. Audio/core owners are testing a 60 BPM baseline with 500 ms ON/OFF intervals and a receipt that stays pending until the first ON and OFF acknowledge. Source tests and acknowledgements do not prove optical/acoustic timing.
+Latest physical result: Jay naturally requested30BPM and confirmed heard beat, repeated visible phone pulses and explicit stop.60 edges acknowledged over59s. The actual pattern was1second ON/1second OFF; his next preference is one full beat ON then one full beat OFF (2seconds each at30BPM), and he noticed slight misalignment. Audio owns that narrow adjustment.
+
+What is NOT proven: rhythm interpretation/generation, physical synchronization, the next fullbeat-cadence adjustment, laptop visual or projector. The first phone-to-beat attachment failed with an UNKNOWN first ON command: its 166 ms deadline was shorter than a measured 197 ms raw phone acknowledgement. The program stopped without replay. Audio/core owners are testing a 60 BPM baseline with 500 ms ON/OFF intervals and a receipt that stays pending until the first ON and OFF acknowledge. Source tests and acknowledgements do not prove optical/acoustic timing.
 
 Smallest timing screen, run by Audio/Root after integrated source review:
 1. Separately check the supplied rhythm against the heard beat. Prepared music does not establish generated-rhythm understanding.
