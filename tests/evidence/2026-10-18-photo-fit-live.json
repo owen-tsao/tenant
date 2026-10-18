@@ -1,0 +1,48 @@
+{
+  "status": "fresh_mac_photo_flow_physically_accepted",
+  "checked_at": "2026-10-18T17:58:35.061486+00:00",
+  "installed_fit_binary_sha256": "93ab452c69a415322528db38257ed469c11798f678c9e3f03e2be175e70b5e26",
+  "software_checks": {
+    "native_lab_python": 45,
+    "native_pure": 18,
+    "repo_photo_adapter_app": 25
+  },
+  "actual_app_run": {
+    "natural_group_request": "preparation passed on Mac display1",
+    "negative_reply": "Not just yet, give us a moment.",
+    "negative_result": "Tenant waited; phase remained waiting_for_yes; no new saved photo",
+    "natural_ready_reply": "Oh yeah, no problem. I\u2019m ready now.",
+    "capture_result": "UNKNOWN",
+    "private_failure": "Cannot identify the single-picture control",
+    "failure_location": "Before native countdown and shutter calls",
+    "jpeg_count_before": 2,
+    "jpeg_count_after": 2,
+    "old_capture_retried": false,
+    "test_guest_left": true,
+    "warm_camera_stopped": true
+  },
+  "remaining": "No broad reliability claim. Precise failure reporting queued for the next coherent Brain refresh; native fit/control correction is live. iPad physical visibility not separately confirmed.",
+  "followup": {
+    "binary_sha256": "28dead9d40c827b736cac3fb76e4610badf485b64e2eacf4292804992947e164",
+    "native_pure_checks": 26,
+    "fresh_photo_id_used": true,
+    "old_id_replayed": false,
+    "one_prepare_connection_drop_before_native_action": true,
+    "continued_same_guest_then_ready": true,
+    "result_phase": "displayed",
+    "pinned_display_id": 1,
+    "saved_jpeg_count": 3,
+    "single_new_jpeg": true,
+    "result_window_verified": true,
+    "result_screen_id": 1,
+    "result_on_screen": true,
+    "physical_confirmation": "Jay: Yes \u2014 countdown and photo both appeared"
+  },
+  "ipad_redisplay": {
+    "new_capture": false,
+    "display_id": 5,
+    "screen": "Sidecar Display (AirPlay)",
+    "window_verified": true,
+    "physical_visibility_confirmed": false
+  }
+}

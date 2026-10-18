@@ -95,6 +95,7 @@ class DemoPhotos:
         self.messages = {}
         self.eligible = {}
         self.unconfirmed_preparations = set()
+        self.preparation_failures = {}
         self.lock = asyncio.Lock()
 
     def invalidate(self):
@@ -102,6 +103,7 @@ class DemoPhotos:
         self.messages.clear()
         self.eligible.clear()
         self.unconfirmed_preparations.clear()
+        self.preparation_failures.clear()
 
     def _matches(self, grant):
         pending = self.pending
@@ -167,10 +169,12 @@ class DemoPhotos:
         self.messages.pop(grant.token, None)
         self.eligible.pop(grant.token, None)
         self.unconfirmed_preparations.discard(grant.token)
+        self.preparation_failures.pop(grant.token, None)
 
     def final_reply(self, grant, text):
         if grant.token in self.unconfirmed_preparations:
-            return "I couldn't prepare the camera. No countdown was started; readiness is not confirmed."
+            return self.preparation_failures.get(grant.token,
+                "I couldn't prepare the camera. No countdown was started; readiness is not confirmed.")
         return text
 
     def inventory(self, grant):
@@ -241,6 +245,22 @@ class DemoPhotos:
                 self.unconfirmed_preparations.add(grant.token)
                 options = {'display_id': payload['display_id']} if 'display_id' in payload else {}
                 result = await self.runner('prepare', authorized=authorized, **options)
+                if (authorized() and result.get('ok') is False
+                        and result.get('code') == 'PHOTO_PREPARE_FAILED'
+                        and result.get('status') == 'unsent'
+                        and result.get('countdown_started') is False
+                        and result.get('shutter_requested') is False):
+                    # Only an explicit pre-shutter failure can be reported as
+                    # unsent; timeouts and incomplete receipts stay UNKNOWN.
+                    stage = result.get('stage')
+                    message = ('Photo Booth could not be fitted to the selected display. '
+                               if stage in ('placement', 'geometry', 'fit') else
+                               'The camera could not be prepared. '
+                               if stage in ('warmup', 'camera') else
+                               'Photo setup failed. ')
+                    message += 'No countdown was started and no photo was taken.'
+                    self.preparation_failures[grant.token] = message
+                    return denied('PHOTO_PREPARE_FAILED', message)
                 if (not authorized() or result.get('ok') is not True
                         or result.get('phase') != 'waiting_for_yes'
                         or not isinstance(result.get('id'), str)

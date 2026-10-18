@@ -87,6 +87,32 @@ class DemoPhotoTests(unittest.IsolatedAsyncioTestCase):
         self.photos.finish(grant)
         self.assertEqual(self.photos.unconfirmed_preparations, set())
 
+    async def test_precise_pre_shutter_failure_is_preserved_without_private_diagnostics(self):
+        async def failed(*_args, **_kwargs):
+            return {'ok': False, 'code': 'PHOTO_PREPARE_FAILED', 'status': 'unsent',
+                    'countdown_started': False, 'shutter_requested': False,
+                    'stage': 'placement', 'error': '/private/diagnostic/path'}
+        self.photos.runner = failed
+        grant = self.turn('Please set up our group photo on this Mac.')
+        result = await self.photos.dispatch(grant, 'demo-photo-prepare', {}, authorized=self.allowed(grant))
+        self.assertEqual(result['code'], 'PHOTO_PREPARE_FAILED')
+        self.assertEqual(result['status'], 'unsent')
+        self.assertIn('fitted', result['message'])
+        self.assertEqual(self.photos.final_reply(grant, 'Are you ready?'), result['message'])
+        self.assertNotIn('/private/', str(result))
+        self.assertIsNone(self.photos.pending)
+        self.photos.finish(grant)
+        self.assertEqual(self.photos.preparation_failures, {})
+
+    async def test_partial_pre_shutter_failure_marker_remains_unknown(self):
+        async def failed(*_args, **_kwargs):
+            return {'ok': False, 'code': 'PHOTO_PREPARE_FAILED', 'status': 'unsent',
+                    'countdown_started': False, 'stage': 'placement'}
+        self.photos.runner = failed
+        grant = self.turn('Take a photo.')
+        result = await self.photos.dispatch(grant, 'demo-photo-prepare', {}, authorized=self.allowed(grant))
+        self.assertEqual(result['code'], 'UNKNOWN')
+
     async def test_same_guest_later_ready_consumes_exact_id_once(self):
         grant, identity = await self.prepare()
         self.publish_prompt(grant)
