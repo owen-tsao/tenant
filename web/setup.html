@@ -11,7 +11,7 @@
 <main class="setup" id="setup">
   <header class="topbar">
     <div class="room"><span class="mark" aria-hidden="true"></span><span class="eyebrow">Tenant</span><span class="title">Set up a room</span></div>
-    <div></div>
+    <a class="btn navlink" id="nav-display" href="display.html">Room screen</a>
     <nav class="rail" aria-label="Setup progress">
       <div class="tile" data-step="1" data-state="active"><span>1</span></div>
       <div class="link" data-done="0"></div>
@@ -58,11 +58,15 @@
           <section class="step" id="step-2" hidden>
             <h1>Add the devices that live here.</h1>
             <p>On each phone or laptop that belongs to this room, open the link and tap Join. They show up below as they connect.</p>
-            <div class="devlink">
+            <div class="field">
+              <input class="input" id="devtoken" type="password" placeholder="Device token (from the room's .env)" autocomplete="off" aria-label="Device token">
+              <div class="hint">Devices prove they belong here with this token. It travels inside the link below and nowhere else.</div>
+            </div>
+            <div class="devlink" id="devlink" hidden>
               <div class="qr" id="devlink-qr"></div>
               <div>
                 <div class="url" id="devlink-url">…</div>
-                <div class="how">Open it on the device itself. Keep the device plugged in and unlocked.</div>
+                <div class="how">Scan from the device itself, tap Join. Each scan is for one device; the link renews after each one connects.</div>
               </div>
             </div>
             <div class="devlist">
@@ -182,12 +186,24 @@
   }
   $("print").addEventListener("click", () => window.print());
   $("open-display").href = `display.html${suffix}`;
+  $("nav-display").href = `display.html${suffix}`;
 
   // ---- connect: the same state frames the display uses ----
   $("motif-main").innerHTML = T.motif(56, 8, .03);
-  const devHost = location.origin + (location.pathname.includes("/web/") ? location.pathname.split("/web/")[0] + "/web" : "");
-  $("devlink-url").textContent = `${location.host}/d/new`;
-  $("devlink-qr").innerHTML = T.qrSvg(`${devHost}/d/new`);
+  // Device link: /d/{fresh id}?room=CODE&t=TOKEN — Jay's device page reads both and strips the token from history.
+  // The id is minted here and rotated once that device shows up, so one QR never serves two phones.
+  let linkId = Math.random().toString(36).slice(2, 10);
+  $("devtoken").value = localStorage.getItem("tenant.device_token") || "";
+  function renderLink() {
+    const tok = $("devtoken").value.trim();
+    localStorage.setItem("tenant.device_token", tok);
+    $("devlink").hidden = !tok;
+    if (!tok) return;
+    const url = `${location.origin}/d/${linkId}?room=${encodeURIComponent(room.code)}&t=${encodeURIComponent(tok)}`;
+    $("devlink-url").textContent = `${location.host}/d/${linkId}`;
+    $("devlink-qr").innerHTML = T.qrSvg(url);
+  }
+  $("devtoken").addEventListener("input", renderLink);
 
   T.connectDisplay((state) => {
     room.code = state.room.code;
@@ -198,11 +214,14 @@
         const tick = () => { if (step < 2) return setTimeout(tick, 300); if (all.length) { devices.push(all.shift()); renderDevices(); setTimeout(tick, 1600); } };
         tick(); }
     } else { devices = state.devices; renderDevices(); }
+    if (devices.some((d) => d.id === linkId)) linkId = Math.random().toString(36).slice(2, 10);
+    renderLink();
     if (step === 3) renderCard();
   });
 
   // ?step=2|3 (mock only) jumps ahead with a sample name, for screenshots and the deck.
   const jump = T.MOCK ? +(new URLSearchParams(location.search).get("step") || 1) : 1;
+  if (T.MOCK && !$("devtoken").value) $("devtoken").value = "demo-device-token";
   if (jump > 1 && !room.label) { room.label = $("label").value.trim() || "Room 212"; $("label").value = room.label; }
   go(Math.min(3, Math.max(1, jump)));
 })();
