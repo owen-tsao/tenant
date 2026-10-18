@@ -1,0 +1,20 @@
+{
+  "guest_id": "g_mock",
+  "expires_in": 540,
+  "script": [
+    { "after": 400,  "type": "assistant", "text": "You're in Room 7F3A. I can turn on a light, play music, take a photo, or speak. What would you like?" },
+    { "after": 2200, "type": "user",      "text": "turn on a light" },
+    { "after": 900,  "type": "action",    "text": "Owen's phone — flashlight on" },
+    { "after": 500,  "type": "assistant", "text": "Light's on — Owen's phone." },
+    { "after": 2600, "type": "user",      "text": "play something calm" },
+    { "after": 1100, "type": "action",    "text": "Room speaker — playing Calm" },
+    { "after": 400,  "type": "assistant", "text": "Playing Calm on the room speaker." },
+    { "after": 2600, "type": "user",      "text": "what's in this room?" },
+    { "after": 900,  "type": "assistant", "text": "Two phones that can light up, flash, speak and take photos; a speaker and screen; a tablet that's offline right now." },
+    { "after": 2600, "type": "user",      "text": "leave" },
+    { "after": 700,  "type": "assistant", "text": "Goodbye. Your access to Room 7F3A has ended." },
+    { "after": 2000, "type": "denied" },
+    { "after": 1500, "type": "user",      "text": "turn off the light" },
+    { "after": 600,  "type": "assistant", "text": "You're no longer in Room 7F3A. Scan the room code to join again." }
+  ]
+}

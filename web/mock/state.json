@@ -1,0 +1,57 @@
+{
+  "type": "state",
+  "room": {
+    "code": "7F3A",
+    "label": "Room 7F3A",
+    "join_url": "https://tenant.example/j/7F3A",
+    "epoch": 3
+  },
+  "devices": [
+    {
+      "id": "owen-phone",
+      "label": "Owen's phone",
+      "caps": ["light", "flash", "speak", "sound", "camera.capture", "show"],
+      "online": true,
+      "busy": false
+    },
+    {
+      "id": "jay-phone",
+      "label": "Jay's phone",
+      "caps": ["light", "flash", "speak", "sound", "camera.capture", "show"],
+      "online": true,
+      "busy": false
+    },
+    {
+      "id": "laptop",
+      "label": "Room speaker & screen",
+      "caps": ["music.play", "music.pause", "volume", "say", "slides.next"],
+      "online": true,
+      "busy": false
+    },
+    {
+      "id": "tablet",
+      "label": "Tablet by the window",
+      "caps": ["show", "speak"],
+      "online": false,
+      "busy": false
+    }
+  ],
+  "guests": [
+    {
+      "guest_id": "g_1",
+      "display_name": "Guest 1",
+      "channel": "photon",
+      "expires_in": 412,
+      "scopes": ["*"],
+      "last_text": "turn on a light"
+    }
+  ],
+  "log": [
+    { "t": 1760742061.2, "kind": "ok",         "text": "Owen's phone turned its flashlight on." },
+    { "t": 1760742059.8, "kind": "do",         "text": "Guest 1 asked for a light." },
+    { "t": 1760742031.0, "kind": "guest.join", "text": "Guest 1 joined by text." },
+    { "t": 1760741900.5, "kind": "denied",     "text": "Someone who had left asked to turn off the light. The room said no." },
+    { "t": 1760741880.1, "kind": "err",        "text": "The tablet didn't answer in time." },
+    { "t": 1760741700.0, "kind": "cmd",        "text": "The room was reset. New code: 7F3A." }
+  ]
+}

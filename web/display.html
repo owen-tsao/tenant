@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tenant — Room</title>
+<link rel="stylesheet" href="tenant.css">
+</head>
+<body>
+<main class="stage" id="stage" aria-live="polite">
+  <section class="stage-left">
+    <div class="eyebrow">Scan to talk to this room</div>
+    <div class="room-code mono" id="code">····</div>
+    <div class="qr" id="qr" aria-label="QR code to join this room"></div>
+    <div class="qr-url mono" id="url"></div>
+    <p class="statement" id="statement">Connecting…</p>
+    <div id="guests"></div>
+  </section>
+
+  <section class="stage-right">
+    <div class="eyebrow">In this room</div>
+    <ul class="devices" id="devices"></ul>
+
+    <div class="ledger-wrap">
+      <div class="eyebrow">What has happened</div>
+      <div class="ledger" id="ledger"></div>
+    </div>
+
+    <div class="stage-foot">
+      <span id="foot-left">Tenant</span>
+      <span class="mono" id="clock"></span>
+    </div>
+  </section>
+</main>
+
+<script src="shared.js"></script>
+<script>
+(function () {
+  const T = window.Tenant;
+  const $ = (id) => document.getElementById(id);
+  let lastLogKey = null, host = null, lastState = null;
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  function renderQR(url) {
+    const el = $("qr");
+    if (el.dataset.url === url) return;
+    el.dataset.url = url;
+    // If a QR library has been vendored (window.qrcode from qrcode-generator), use it; otherwise a placeholder tile.
+    if (window.qrcode) {
+      const q = window.qrcode(0, "M"); q.addData(url); q.make();
+      el.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+      return;
+    }
+    // Placeholder: deterministic hash-pattern so it reads as "a QR goes here" without lying about scannability.
+    let h = 2166136261; for (const ch of url) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+    const n = 21, cells = [];
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const finder = (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7);
+      let on;
+      if (finder) { const fx = x < 7 ? x : x - (n - 7), fy = y < 7 ? y : y - (n - 7); on = fx === 0 || fx === 6 || fy === 0 || fy === 6 || (fx >= 2 && fx <= 4 && fy >= 2 && fy <= 4); }
+      else { h = (h ^ (x * 73856093) ^ (y * 19349663)) >>> 0; h = Math.imul(h, 2654435761) >>> 0; on = (h >>> 13) & 1; }
+      if (on) cells.push(`<rect x="${x}" y="${y}" width="1" height="1"/>`);
+    }
+    el.innerHTML = `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" fill="#000">${cells.join("")}</svg>`;
+  }
+
+  function render(s) {
+    lastState = s;
+    $("code").textContent = s.room.code;
+    $("url").textContent = s.room.join_url.replace(/^https?:\/\//, "");
+    renderQR(s.room.join_url);
+
+    // devices — hairline list
+    $("devices").innerHTML = s.devices.map(d => `
+      <li class="device ${d.online ? "" : "offline"} ${d.busy ? "busy" : ""}">
+        <span class="dot ${d.online ? (d.busy ? "live" : "") : "off"}"></span>
+        <span><div class="label">${esc(d.label)}</div>
+        <div class="caps">${d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i).join(" · ")}</div></span>
+        <span class="faint mono" style="font-size:12px">${d.online ? (d.busy ? "working" : "") : "offline"}</span>
+      </li>`).join("");
+
+    // guests — the amber block(s)
+    const g = s.guests || [];
+    $("guests").innerHTML = g.map(x => `
+      <div class="guest-block" data-id="${esc(x.guest_id)}">
+        <span class="who">${esc(x.display_name)} is here</span>
+        <span class="left">${T.fmtClock(x.expires_in)}</span>
+        <span class="how">${x.channel === "photon" ? "by text message" : "from the web"}${x.last_text ? ` · last asked “${esc(x.last_text)}”` : ""}</span>
+      </div>`).join("");
+
+    // statement — one sentence of state
+    const online = s.devices.filter(d => d.online).length;
+    let st;
+    if (!online) st = "Nothing is connected to this room yet.";
+    else if (!g.length) st = `${online} device${online === 1 ? "" : "s"} ready. Nobody is here right now.`;
+    else if (g.length === 1) st = `${g[0].display_name} can use ${online} device${online === 1 ? "" : "s"} for the next ${Math.ceil(g[0].expires_in / 60)} min.`;
+    else st = `${g.length} guests are sharing this room.`;
+    $("statement").textContent = st;
+
+    // ledger — newest first, newest row lands once
+    const log = (s.log || []).slice(0, 40);
+    const key = log.length ? `${log[0].t}|${log[0].text}` : null;
+    const fresh = key && key !== lastLogKey && lastLogKey !== null;
+    lastLogKey = key;
+    $("ledger").innerHTML = log.map((r, i) => `
+      <div class="row k-${esc(r.kind)} ${i === 0 && fresh ? "fresh" : ""}">
+        <span class="t">${T.fmtTime(r.t)}</span><span class="text">${esc(r.text)}</span>
+      </div>`).join("");
+
+    $("foot-left").textContent = `${s.room.label}${T.MOCK ? " · mock" : ""}`;
+  }
+
+  // clock
+  setInterval(() => { $("clock").textContent = T.fmtTime(Date.now() / 1000); }, 1000);
+
+  // host keys: R held 1 s = reset; X = revoke the first guest
+  let rTimer = null;
+  window.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+    if (e.key === "r" || e.key === "R") {
+      rTimer = setTimeout(() => { host && host.host("host.reset"); rTimer = null; }, 1000);
+    }
+    if ((e.key === "x" || e.key === "X") && lastState && lastState.guests[0]) {
+      host && host.host("host.revoke", { guest_id: lastState.guests[0].guest_id });
+    }
+    if (e.key === "t" && e.shiftKey) { // Shift+T: set host token once
+      const t = prompt("Host token"); if (t) localStorage.setItem("tenant.host_token", t.trim());
+    }
+  });
+  window.addEventListener("keyup", (e) => { if ((e.key === "r" || e.key === "R") && rTimer) { clearTimeout(rTimer); rTimer = null; } });
+
+  T.connectDisplay(render).then(h => { host = h; });
+})();
+</script>
+</body>
+</html>
