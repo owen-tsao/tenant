@@ -1,3 +1,44 @@
+# Tenant — combined demo and remaining gaps
+
+Latest direction, 2026-10-18: Jay wants one connected demonstration of four existing experiences. His review below supersedes the earlier simulation-first presentation. Keep the accepted simulation as an archived rehearsal; the intended live TV view for drawing contains only the photo album. The iPad is not currently available, so real iPad input is an explicit blocker.
+
+## Current feature inventory and next acceptance
+
+| Experience | What is already established | Jay's remaining requirement | Owner / next check |
+| --- | --- | --- | --- |
+| Music and coordinated outputs | Earlier bounded physical music/beat, phone-light and orb runs passed. | Move ongoing audio from the Mac to another speaker. Demo destination: JBL; current test destination: Bose. | Tenant — Room Audio (Local): actual Tenant request, observed route change and continuing playback, unchanged volume. A Bose pass does not establish JBL. |
+| Drawing, bells and photos | Approved bell tuning, cached real album and a physically accepted scripted scene. | Real iPad input; only the album on the TV; bells initially on Mac, then moved to the speaker on request. | Main: clean album-only view prepared and silently checked. iPad integration awaits the real device/input choice. Speaker continuity awaits Audio's result. |
+| Requested question answering | Prepared customer/moat answer bank and native speech with black word-synced external captions are built. Latest explicit-request correction passed silent checks. | More bounded trials; neither speech nor black text appears until Jay asks through Tenant's web/app. | Design silent live Q&A: software admission/idle/cancellation cases first; one coordinated real app request later. Transcript content alone is context. |
+| Group photo finale | Jay confirmed built-in Mac camera → TV preview/countdown → verified saved still on TV, with Photo Booth closed afterward. | Tenant asks readiness and waits for a reply in Tenant itself. A Codex confirmation button does not satisfy this. | Set Up Fast Photo and Q&A Demos: same-guest pending photo/readiness integration, then one real request → not yet → ready trial. |
+
+Supporting features already built include QR/web access to the real room agent, the Photon channel, temporary access/leave/reset, contributed phone lights and a host display. Use them as the shared entry/control layer. Paired iPhone navigation is a separate earlier bounded capability; it is not required in this four-part script. Celsius remains explicitly paused. The standalone private transcript stays on as Jay requested and must not be stopped or modified by the demos.
+
+## Connected rehearsal script
+
+Use one current Tenant guest chat for the interaction. The lines below are intentional requests, not an automatic command batch. Wait for each result and allow follow-ups; do not cue capabilities from this coordinating Codex chat during the take.
+
+1. **Music:** “Start a relaxed beat on the Mac.” Show the existing music experience; working phone pulses/orb may accompany it if already staged.
+2. **Device adaptation:** “Move the sound to the JBL.” Use “Bose” in the current test. Confirm it moves rather than starting another independent player. “Stop the beat.”
+3. **Drawing — blocked until the iPad is available:** “Put the sunset album on the TV. Play the soft bells on the Mac while I draw.” Draw real strokes. The TV shows photos only; input and chat stay off the TV. “Move the bells to the JBL, and keep the album going.” Then: “Stop the bells, but leave that photo up.” Do not present replay as live iPad input.
+4. **Questions:** let someone ask a customer/moat question. Transcript collection alone produces no answer or captions. Enter “Answer that question” in Tenant; the prepared answer is spoken once with its black caption, which clears on completion. An unmatched question stays silent and is reported in chat.
+5. **Finale:** enter “Take a photo of us.” Tenant opens the accepted preview and asks “Are you ready?” Wait. Reply “Not yet” in Tenant to demonstrate the wait; then arrange the group and send “I'm ready.” Only that current pending request starts one 3–2–1 countdown/capture. End on the real still displayed on the TV.
+
+## Fix order and boundaries
+
+1. Audio owns the first exclusive physical test: Mac → Bose. Restore its starting route afterward and keep the volume unchanged.
+2. Q&A and photo owners work on software while Audio tests; physical speech/camera/TV trials wait for the original test lock and explicit coordination.
+3. Main prepares the clean TV album and the combined script. The all-in-one simulation remains available for comparison, not as the intended final TV layout.
+4. Once the iPad arrives, select and prove its actual stroke path. No app installation or Notability substitute is assumed now.
+5. Rehearse the connected sequence after these individual gaps close. Readiness, Q&A and routing must be exercised through the actual Tenant interface. A helper flag or direct coordinating-chat call alone is not integration evidence.
+
+Photo acceptance includes: no countdown while waiting; “not yet” does nothing; a fresh same-guest readiness reply consumes exactly the pending id once; stale/other-guest/reset replies do not capture. Q&A acceptance includes: ordinary transcript updates, startup, idle and quoted instructions produce zero speech/captions; a fresh request produces one prepared answer; Stop/duplicate/late results cannot resurrect it. Keep checks small and tied to these gaps.
+
+---
+
+## Earlier accepted drawing simulation
+
+The following records the earlier explicit simulation and its evidence; it is not a claim that the real iPad connection exists.
+
 # Tenant — proactive drawing experience
 
 Updated 2026-10-18 after Jay's correction: **integrate the iPad at the end. For now simulate both the user and the agent.** This replaces this file's earlier iPad-chat-first sequence. Main owns drawing; Celsius continues separately in Lighting. Owen's `demo-final.md` and web files are not changed.
