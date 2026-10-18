@@ -1,0 +1,149 @@
+{
+  "case": "Actual paired iPhone installed-app action via existing Mirroring",
+  "result": "PASS",
+  "revision": "3433c25bf7f98193cf9155e8ae7a3b81e12c762e",
+  "guest_id": "0b74982f-981a-4e21-a057-91aca7e7881f",
+  "channel": "actual web guest, not Photon",
+  "creation_audit_at": 1792309993.753752,
+  "original_creation_plus600_deadline_estimate": 1792310593.753752,
+  "artificial_300_guard": false,
+  "ttl_renewal": false,
+  "human_prerequisites_already_confirmed": [
+    "Correct paired target",
+    "Phone camera released",
+    "Phone locked",
+    "Mirroring setup approved"
+  ],
+  "requests": [
+    {
+      "input": "Use iPhone Mirroring for my paired iPhone. I confirmed it is the correct phone, released its camera, and locked it. Make one Connect attempt from the current ended session. If it connects, look through the apps actually installed on that iPhone, choose one harmless app at random, and do one small reversible visible action. Tell me which app and what you did. If it fails, report the exact fresh OS message and stop without retrying. Do not install or build anything or change accounts, networking, or permissions. Leave the music untouched.",
+      "reply": "iPhone Mirroring already showed a live phone screen, with no Connect button or OS error. I made no connection attempt or phone-app changes and left music untouched.",
+      "native_final": "2026-10-18T07:54:16.737Z",
+      "result": "Connection actually live, zero newConnect; appgoal incomplete onfirstturn"
+    },
+    {
+      "input": "It is already connected, so go ahead: look at the installed iPhone apps, choose one harmless app at random, and perform one small reversible visible action. Tell me the app and result. Avoid private conversations and do not send any messages. Keep music untouched.",
+      "reply": "Randomly chose Clock and opened it to its Alarms screen\u2014a reversible navigation action. No alarms were changed, no messages sent, and music was untouched.",
+      "native_final": "2026-10-18T07:56:04.199Z",
+      "result": "Actual installed iPhone Clock opened to Alarms"
+    }
+  ],
+  "native_action_evidence": [
+    {
+      "at": "2026-10-18T07:55:26.834Z",
+      "action": "Home shortcut in existing iPhone Mirroring; actual installedappscreen observed"
+    },
+    {
+      "at": "2026-10-18T07:55:35.560Z",
+      "action": "Math.random selection among actually visible benign Clock/Stocks/AppStore; selectedClock; clickobservedicon"
+    },
+    {
+      "at": "2026-10-18T07:55:38.774Z",
+      "action": "Reacquired existingapp after window/UI transition and observed freshscreen"
+    },
+    {
+      "at": "2026-10-18T07:55:44.566Z",
+      "action": "ClickobservedClockicon"
+    },
+    {
+      "at": "2026-10-18T07:55:49.260Z",
+      "action": "iPhoneSpotlight shortcut"
+    },
+    {
+      "at": "2026-10-18T07:55:52.000Z",
+      "action": "TypeClock"
+    },
+    {
+      "at": "2026-10-18T07:55:55.161Z",
+      "action": "Return/open observedClock result and inspectactualphonescreen"
+    }
+  ],
+  "independent_parent_verification": {
+    "initial_live_phone": "Actual mirrored phonecontent confirmed privately by screenshot; didnot publishprivateconversation",
+    "final_app": "Actual iPhoneClock, Alarms heading and selectedAlarms tab; no Macappstandin",
+    "scope_of_action": "Opening app/Alarms is visible reversible navigation; no alarm-edit/toggle/message control in observednativeactions",
+    "private_screenshot": "Stored only in testerwork/iphone-clock-verified.png0600; fullphonehome/alarms notpublished",
+    "parent_controls": "No phoneapp interaction, setup, Connect, shortcut or contentprep on agent behalf. Read-only appstate/screenshots after nativeidle."
+  },
+  "cleanup": {
+    "normal_leave": true,
+    "guest_ui": "Accessended/composerdisabled",
+    "mirroring_closed": "Parent cleanup used observedMac iPhoneMirroringmenuQuit only afterproof andnormalLeave; freshpgrep verifies mainprocessnotrunning",
+    "mirroring_main_process_running_after_cleanup": false,
+    "phone_clock_state": "Requested harmlessnavigationresult retained; no alarm modifications",
+    "spotify_audio": "Untouched, default route/volume unchanged",
+    "phone_camera_phase": "Separate laterphase only; no captureduringMirroring"
+  },
+  "events": [
+    {
+      "t": 1792309993.753752,
+      "kind": "guest.join",
+      "audit": {}
+    },
+    {
+      "t": 1792310016.255641,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14e00-78fb-70d2-9c6d-85b1831c8063",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 1
+      }
+    },
+    {
+      "t": 1792310056.7526321,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14e00-78fb-70d2-9c6d-85b1831c8063",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 1
+      }
+    },
+    {
+      "t": 1792310056.754842,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14e00-78fb-70d2-9c6d-85b1831c8063",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 1
+      }
+    },
+    {
+      "t": 1792310123.487631,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14e02-1bc8-7511-9881-747dbf6dd01d",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 1
+      }
+    },
+    {
+      "t": 1792310164.250539,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14e02-1bc8-7511-9881-747dbf6dd01d",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 1
+      }
+    },
+    {
+      "t": 1792310164.2517881,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14e02-1bc8-7511-9881-747dbf6dd01d",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 1
+      }
+    },
+    {
+      "t": 1792310241.213202,
+      "kind": "guest.leave",
+      "audit": {}
+    }
+  ],
+  "limitations": [
+    "This is onepaired-iPhoneMirroring proof, not arbitrary QRguest iOS app control",
+    "Mac-app priorPASS remainsseparate extraevidence",
+    "Fresh connectionneededzeroConnect becauseOSsetup alreadycompleted; do not claim one successfulnewConnect call",
+    "Camera capture not tested in this case"
+  ]
+}

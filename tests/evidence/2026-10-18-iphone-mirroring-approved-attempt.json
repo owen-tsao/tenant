@@ -1,0 +1,208 @@
+{
+  "case": "Human reauthorizes paired iPhone Mirroring after QR-only reversal",
+  "status": "NOT COMPLETED: OS connection gates, then artificial300s testguard revokedguest",
+  "revision": "e294e66f9319c239cd452797d25e7552416a94a6",
+  "guest_id": "aaedcc3f-a3a8-4f58-82f9-51e3f9a77a01",
+  "channel": "webUI",
+  "human_authorization": "ok lets do iphone mirroring; latest reversal preserved separately from prior QR-only case",
+  "input": "Use the existing iPhone Mirroring connection for my paired iPhone. Look through the apps actually installed on that iPhone, choose a harmless one at random, and perform one small reversible visible action in it. Tell me which app and what you actually did. Do not install or build anything. If system setup needs me, tell me the exact current prompt.",
+  "turns": [
+    {
+      "input": "initial goal",
+      "native_actions": [
+        "cua.getState",
+        "getApp com.apple.ScreenContinuity",
+        "observed Continue once"
+      ],
+      "native_final_at": "2026-10-18T07:38:36.098Z",
+      "result": "Unlock paired iPhone / full iPhone access from Mac when connected; no appaction"
+    },
+    {
+      "human_step": "done i approved",
+      "forwarded_same_guest": "I approved it. Continue with the iPhone app test.",
+      "native_actions": [
+        "fresh AX/screenshot",
+        "DontAllow optional notificationforwarding",
+        "observed Connect"
+      ],
+      "native_final_at": "2026-10-18T07:39:57.814Z",
+      "result": "iPhone Camera in Use. iPhone Mirroring will connect when iPhone camera is no longer in use. No appaction"
+    },
+    {
+      "human_step": "Done \u2014 camera released and iPhone locked.",
+      "forwarded_same_guest": "I released the camera and locked the iPhone. Continue.",
+      "native_actions": [
+        "freshAX/screenshot",
+        "observed Connect once",
+        "readstate,wait5s,readstate"
+      ],
+      "native_final_at": "2026-10-18T07:42:46.961Z",
+      "result": "iPhone in Use. Lock your iPhone to connect. iPhone Mirroring will connect when iPhone is no longer in use. No appaction"
+    }
+  ],
+  "final_independent_os_state": "Timed Out. iPhone Mirroring timed out due to iPhone use while connecting. Connect button.",
+  "private_phone_home_published": false,
+  "apps_observed": false,
+  "app_chosen": false,
+  "app_action_performed": false,
+  "parent_actions": "Actual guestUI forwarding of genuine relayed human steps; read-only existing Mirroring AX/screenshot. No Mirroringsetup/control on agent behalf.",
+  "settings": {
+    "optional_notifications": "Native choseDontAllow; no broad notificationgrant",
+    "auto_auth_changed": false,
+    "accounts_wifi_bluetooth_changed": false,
+    "credentials_handled": false
+  },
+  "scope_preserved": [
+    "No install/build/source/UI/adapter changes",
+    "Camera/viewer patch undeployed during case",
+    "Spotify/defaultaudio untouched",
+    "No parentphonecamera release/disconnect; actualhuman didexistingphoneDisconnect and release camera"
+  ],
+  "watchdog": {
+    "armed_at": 1792309084.997151,
+    "original_limit": 300,
+    "fired_at": 1792309385.022775,
+    "http_status": 200,
+    "revoked": true,
+    "disarm_attempt_returned": "Already fired; cannot claim disarmed",
+    "later_root_scope_update": "Root instructed disarm BEFORE fire and use original creation+600 only; arrived/toolhandled after guard had fired. Metadata max600 updated but no TTLmutation/newguest/validcontinuation performed."
+  },
+  "cleanup": {
+    "normal_leave": false,
+    "guest_final_ui": "Accessended/composerdisabled byhosttestguard",
+    "phone_app_effect": "none",
+    "mirroring_window": "No live phoneconnection. TimedOut/Connect OSwindow remains; no parentretry/settingundo or blindclose, preserve actualhumanapprovedsetup.",
+    "spotify_preserved": true
+  },
+  "events": [
+    {
+      "t": 1792309076.5416892,
+      "kind": "guest.join",
+      "audit": {}
+    },
+    {
+      "t": 1792309096.070281,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14df2-6e7b-74d0-aefd-84c6297f2d64",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 13
+      }
+    },
+    {
+      "t": 1792309116.120563,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14df2-6e7b-74d0-aefd-84c6297f2d64",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 13
+      }
+    },
+    {
+      "t": 1792309116.12173,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14df2-6e7b-74d0-aefd-84c6297f2d64",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 13
+      }
+    },
+    {
+      "t": 1792309175.823936,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14df3-a5fd-74d2-b884-9a38674508af",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 13
+      }
+    },
+    {
+      "t": 1792309197.832923,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14df3-a5fd-74d2-b884-9a38674508af",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 13
+      }
+    },
+    {
+      "t": 1792309197.835159,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14df3-a5fd-74d2-b884-9a38674508af",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 13
+      }
+    },
+    {
+      "t": 1792309343.3978071,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14df6-3489-7361-8fe9-7dfd34d9569b",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 13
+      }
+    },
+    {
+      "t": 1792309367.0066419,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14df6-3489-7361-8fe9-7dfd34d9569b",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 13
+      }
+    },
+    {
+      "t": 1792309367.007825,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14df6-3489-7361-8fe9-7dfd34d9569b",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 13
+      }
+    },
+    {
+      "t": 1792309385.0222132,
+      "kind": "guest.leave",
+      "audit": {}
+    }
+  ],
+  "next_required": "Fresh explicit authorized testguest if continuing; observe actual pairedphone lock/connection, no stalecredentialcontinuation. No repeat setupapproval unless actualdifferentOSgate.",
+  "target_identity_diagnosis": {
+    "selected_name_recovered": true,
+    "private_handoff": ".venv/tenant-runtime/iphone-mirroring-target-private.json (0600, ignored)",
+    "public_name": "[configured paired iPhone]",
+    "physical_match_room_light_phone": "CONFIRMED by direct human answer relayed Root: selectedMirroringtarget is exactphone releasedfromTenantcameraandlocked",
+    "source": "Already observed actualOSUnlockprompt/nativefinal",
+    "new_ui_or_connect_attempt": false,
+    "read_only_reinspection": {
+      "recorded_at": 1792309925.703597,
+      "current_os_text": "iPhone in Use. iPhone Mirroring ended due to iPhone use.",
+      "visible_control": "Connect",
+      "mac_wifi_power_on": true,
+      "mac_bluetooth_power_on": true,
+      "active_connect_retry_attempted": false,
+      "current_phone_locked_state": "Not established by this ended-session UI",
+      "unified_log": {
+        "bounded_last_minutes": 5,
+        "record_count": 4921,
+        "unlock_related_event_at_PT": "2026-10-18 00:49:17.547192-0700",
+        "phone_in_use_category_at_PT": "2026-10-18 00:49:17.550181-0700",
+        "error_at_PT": "2026-10-18 00:49:35.110684-0700",
+        "error_codes": [
+          {
+            "domain": "com.apple.wifip2pd",
+            "code": 5
+          },
+          {
+            "domain": "NSPOSIXErrorDomain",
+            "code": 16,
+            "local_errno_description": "Resource busy"
+          }
+        ],
+        "limit": "Category matching/low-level codes do not identify current phone lockstate or unique connection-failure cause. Generic timeout keyword count not interpreted as70failedconnectattempts."
+      },
+      "smallest_next_step": "One observed Connect under fresh valid agent authority after already-confirmed correct phone is left idle; no repeated setup/lockapproval question, no network/account/permission change. If new OSgate appears, report it precisely."
+    }
+  }
+}
