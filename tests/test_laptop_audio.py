@@ -155,10 +155,28 @@ class DispatchTests(unittest.TestCase):
             result = d.dispatch('say', {'text': text}, timeout=15)
         self.assertEqual(self.runner.calls[0][1]['input'], text)
         self.assertEqual(self.runner.calls[0][1]['timeout'], 15)
-        self.assertEqual(self.runner.calls[1][1]['timeout'], 6)
+        self.assertEqual(self.runner.calls[1][1]['timeout'], 14.65)
         self.assertEqual(result['rendered_duration_ms'], 5000)
         self.assertTrue(result['spoken'])
         self.assertFalse(result['audible_verified'])
+
+    def test_playback_can_use_remaining_deadline_for_overhead_beyond_nominal_plus_one(self):
+        calls = []
+        def runner(argv, **options):
+            calls.append((argv, options))
+            if argv[0] == '/usr/bin/say':
+                synthetic_speech(argv[2], duration=5)
+            elif options['timeout'] < 8:
+                # A simulated loaded player takes eight seconds for a five-
+                # second clip. This fits the real deadline but not duration+1.
+                raise subprocess.TimeoutExpired('afplay', options['timeout'])
+            return subprocess.CompletedProcess(argv, 0, '', '')
+        with patch('agent.laptop.time.monotonic', side_effect=[0, .1]):
+            result = self.make(runner).dispatch('say', {'text': 'An ordinary spoken reply.'}, timeout=15)
+        self.assertTrue(result['spoken'])
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1][1]['timeout'], 14.65)
+        self.assertLess(calls[1][1]['timeout'], 15 - .1)
 
     def test_actual_macos_pcm_render_is_duration_checked_with_explicit_format_flags(self):
         # Captured using render-only say on the room Mac; the default AIFF-C
@@ -175,11 +193,12 @@ class DispatchTests(unittest.TestCase):
             else:
                 self.assertEqual(argv[0], '/usr/bin/afplay')
             return subprocess.CompletedProcess(argv, 0, '', '')
-        result = self.make(runner).dispatch('say', {'text': 'Tenant can coordinate'}, timeout=15)
+        with patch('agent.laptop.time.monotonic', side_effect=[0, .1]):
+            result = self.make(runner).dispatch('say', {'text': 'Tenant can coordinate'}, timeout=15)
         self.assertEqual(fixture.read_bytes()[8:12], b'AIFF')
         self.assertEqual(result['rendered_duration_ms'], 1139)
         self.assertEqual([argv[0] for argv, _options in calls], ['/usr/bin/say', '/usr/bin/afplay'])
-        self.assertAlmostEqual(calls[1][1]['timeout'], 1.138548752834467 + 1)
+        self.assertEqual(calls[1][1]['timeout'], 14.65)
         self.assertFalse(result['audible_verified'])
         self.assertFalse(Path(calls[0][0][2]).parent.exists())
 

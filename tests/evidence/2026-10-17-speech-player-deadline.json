@@ -1,0 +1,93 @@
+{
+  "recorded_at": "2026-10-18T02:07:50.426831+00:00",
+  "status": "PASS_RENDER_ONLY_AND_OFFLINE_PHYSICAL_RECHECK_PENDING",
+  "scope": {
+    "source": [
+      "agent/laptop.py",
+      "tests/test_laptop_audio.py"
+    ],
+    "no_other_source_edits": true
+  },
+  "live_trigger": {
+    "source": "Root-correlated genuine native final and following automatic speech audit.",
+    "deployed_revision": "af6f8be",
+    "public_final": "The 90 BPM beat is running on the Mac and will keep playing while we talk.",
+    "native_final_at": 1792289126.333,
+    "speech_unknown_at": 1792289132.439,
+    "elapsed_ms": 6106,
+    "outcome": "UNKNOWN retained; not automatically replayed.",
+    "followup": "A later distinct shorter reply acknowledged in 3.069 seconds; this does not resolve the original UNKNOWN."
+  },
+  "measured_render_only": {
+    "real_os_command": "/usr/bin/say -o private speech.aiff --file-format=AIFF --data-format=BEI16, exact public final via stdin",
+    "render_returncode": 0,
+    "render_seconds": 1.1580872909980826,
+    "compression": "NONE",
+    "sample_rate": 22050,
+    "frames": 86374,
+    "clip_seconds": 3.91718820861678,
+    "remaining_of_15_second_budget_after_render": 13.841912709001917,
+    "old_player_timeout_seconds": 4.91718820861678,
+    "render_plus_old_player_timeout_seconds": 6.075275499614863,
+    "prefit_required_seconds": 5.16718820861678,
+    "prefit_pass": true,
+    "new_player_timeout_seconds_for_this_render": 13.591912709001917,
+    "inference": "The 6.075-second render-plus-player-cap total is consistent with the live 6.106-second UNKNOWN. This does not establish the precise OS startup/completion overhead or physical audibility.",
+    "physical_playback_executed": false
+  },
+  "decision": {
+    "minimal_change": "Retain actual-duration preflight plus one-second startup allowance and 250ms acknowledgment margin. After it passes, give afplay the actual authenticated remaining deadline minus the acknowledgment margin, instead of capping it at nominal clip duration plus one second.",
+    "bounds": "No lease or server deadline extension; no repeat, substitution, word-count cap, output setting, volume setting or beat operation.",
+    "retained_failures": "A clip that cannot fit is still refused before playback. Once playback starts, a real deadline timeout is UNKNOWN and never automatically replayed."
+  },
+  "verification": {
+    "command": ".venv/bin/python -m unittest tests.test_laptop_audio tests.test_conversation_speech -q",
+    "passed": 64,
+    "failed": 0,
+    "skipped": 0,
+    "new_case": "A synthetic five-second clip and simulated eight-second player overhead succeeds with a 14.65-second remaining deadline; the former duration-plus-one cap fails this same regression. No time is slept and no OS player is run.",
+    "retained_cases": [
+      "Insufficient clip budget prevents playback.",
+      "Render failure and malformed/empty audio prevent playback.",
+      "Playback timeout is UNKNOWN without retry.",
+      "Actual Mac PCM fixture duration and explicit format flags still pass.",
+      "Auto reply remains once-only, after text delivery and bounded by current lease."
+    ],
+    "source_sha256": {
+      "agent/laptop.py": "d5d58ba1192163d63f94ad8aba13c36f7f8f8fd00b2b3d7d0c05b966330b8446",
+      "tests/test_laptop_audio.py": "2050abce8a69f7d8034268007a159b981adb0f58ed3292068813a98f3847c33a"
+    }
+  },
+  "effects": {
+    "render_only_os_call": true,
+    "afplay_calls": false,
+    "device_bus_calls": false,
+    "model_calls": false,
+    "running_beat_modified": false,
+    "runtime_restart": false,
+    "web_edits": false,
+    "volume_or_output_changes": false
+  },
+  "independent_review": {
+    "reviewer": "speech_request_regression",
+    "result": "PASS: actual-duration admission still precedes playback; runtime budget uses only remaining authenticated action time minus the existing ACK margin; playback UNKNOWN/no retry remains unchanged.",
+    "deployment_note": "Audio process restart stops its currently owned generated beat; coordinator must capture pending observation first and test fresh requested playback after rollout."
+  },
+  "remaining": [
+    "Root owns audio-only deployment when appropriate and a fresh unambiguous physical speech observation; previous UNKNOWN must not be replayed automatically."
+  ],
+  "final_regression": {
+    "python": {
+      "passed": 386,
+      "failed": 0,
+      "skipped": 0
+    },
+    "node": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "diff_check": "PASS",
+    "physical_playback": "NOT_PERFORMED by this loop; live acceptance remains root-owned."
+  }
+}

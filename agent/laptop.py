@@ -181,13 +181,13 @@ class AudioDispatcher:
                 except (OSError, EOFError, aifc.Error, ValueError, ZeroDivisionError):
                     raise AudioError('FAILED', 'Speech duration could not be verified; no audio started.') from None
                 remaining = expires_at - time.monotonic()
-                # Reserve one second for player startup/completion and a small
-                # acknowledgment margin. These are engineering allowances;
-                # audible timing still requires a real-device measurement.
-                playback_budget = duration + 1.0
-                if playback_budget + .25 > remaining:
+                # Require room for the nominal clip, startup and acknowledgment
+                # before playback. Once started, let the player use the actual
+                # remaining authenticated deadline: nominal file duration does
+                # not bound OS startup/completion overhead under load.
+                if duration + 1.0 + .25 > remaining:
                     raise AudioError('FAILED', 'The rendered speech does not fit the remaining deadline; no audio started.')
-                self._run(["/usr/bin/afplay", audio], playback_budget)
+                self._run(["/usr/bin/afplay", audio], remaining - .25)
             return {"spoken": True, "audible_verified": False,
                     "rendered_duration_ms": round(duration * 1000)}
         if args:
