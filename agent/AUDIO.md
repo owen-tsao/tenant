@@ -190,3 +190,42 @@ short phrase while music plays, reconnect without repeated playback/speech, and
 a missing/empty playlist produces an honest omission/error. Guest chat → tool →
 Brain → Mac remains dependent on the coordinator's access flow and lighting
 runtime; none of the simulated tests establishes that end-to-end physical path.
+
+
+## Prepared ambient TV window
+
+`python -m agent.prepare_visual --manifest .venv/song-assets/cyanide/song.json`
+prepares a silent1280×720/30fps MP4 using the existing recording and beat map.
+FFmpeg supplies the moving background; numpy/Pillow draw the circular spectrum
+from the actual PCM samples and ring pulses from the analyzed beat markers.
+It creates a proposed `song-with-visual.json`, leaving the live manifest unchanged.
+It needs the already-installed FFmpeg, numpy and Pillow; no microphone,
+loopback audio driver, browser capture, account or media download is involved.
+
+The optional `visual` manifest object contains path,sha256,source_sha256,width,
+height,fps,duration_seconds,description. Both assets are checksum-verified at
+load and again before preparing a player; visual source identity and duration
+must match the canonical recording. Missing or changed optional assets reject
+that configured recording rather than claiming its visuals are available.
+The original manifest without `visual` preserves audio-only behavior.
+
+For this prepared host setup, the visual loads as an external video track in
+THE SAME owned mpv process as the canonical WAV, with explicit canonical audio
+and external-video selection and audio-driven A/V synchronization. It opens a
+NORMAL window on screen1 with1600×900 geometry, never native fullscreen, and
+preserves the default output and volume (Jay requests20%). The existing
+program-stop, access cleanup and host reset close that player, so its music and
+visual window share cleanup. No second player or independent visual clock.
+The prepared scene is advertised in song.prepare's description, which the
+existing native-agent inventory exposes as the song label; no new Brain route,
+MCP server, dashboard/UI edit or general media integration is needed.
+
+Prompt: “Play the prepared Cyanide track with its circular visuals on the TV.”
+Stop: “Stop the music and visuals.” This is one cached track/preset; arbitrary
+Spotify/browser audio or arbitrary vibe-video selection is not established.
+Analyzed beat markers are estimates; a small software A/V offset is not a
+physical audio/display synchronization measurement.
+
+Primary references: [mpv external files and tracks](https://mpv.io/manual/stable/#options-external-files),
+[mpv video synchronization](https://mpv.io/manual/stable/#options-video-sync),
+[FFmpeg gradients](https://ffmpeg.org/ffmpeg-filters.html#gradients).

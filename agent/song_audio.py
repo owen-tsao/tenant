@@ -46,17 +46,70 @@ def validate_map(data):
     return data
 
 
+def validate_visual(recording):
+    """Validate optional host-prepared video metadata; never open a player.
+
+    Container silence/PTS and visible TV placement are verified by the host's
+    preparation check. Checksums bind those reviewed bytes to this recording.
+    Public timing validation deliberately remains independent of private paths.
+    """
+    if 'visual' not in recording:
+        return None
+    visual = recording['visual']
+    fields = {'path', 'sha256', 'source_sha256', 'width', 'height', 'fps',
+              'duration_seconds', 'description'}
+    valid_hash = lambda value: (isinstance(value, str) and len(value) == 64
+                                and all(c in '0123456789abcdef' for c in value))
+    if (not isinstance(visual, dict) or set(visual) != fields
+            or not isinstance(visual['path'], str) or not visual['path']
+            or not Path(visual['path']).is_absolute() or Path(visual['path']).suffix.lower() != '.mp4'
+            or not valid_hash(visual['sha256']) or not valid_hash(visual['source_sha256'])
+            or visual['source_sha256'] != recording['sha256']
+            or any(type(visual[key]) is not int or not 64 <= visual[key] <= 4096
+                   or visual[key] % 2 for key in ('width', 'height'))
+            or not finite(visual['fps']) or not 1 <= visual['fps'] <= 60
+            or not finite(visual['duration_seconds']) or visual['duration_seconds'] <= 0
+            or abs(visual['duration_seconds'] - recording['duration_seconds']) > 1 / visual['fps'] + 1e-6
+            or not isinstance(visual['description'], str) or not visual['description'].strip()
+            or not 1 <= len(visual['description']) <= 160
+            or not visual['description'].isprintable()
+            or any(c in visual['description'] for c in ('/', '\\'))
+            or 'file:' in visual['description'].lower()):
+        raise SongError('INVALID', 'The prepared visual metadata does not match the selected recording.')
+    return visual
+
+
+def _verify_visual_file(recording):
+    visual = validate_visual(recording)
+    if visual is None:
+        return None
+    try:
+        path = Path(visual['path']).resolve(strict=True)
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != visual['sha256']:
+            raise ValueError
+    except (OSError, ValueError):
+        raise SongError('INVALID', 'The prepared visual file is missing or changed; no player was opened.') from None
+    return dict(visual, path=str(path))
+
+
 def load_recording(manifest):
     data = validate_map(json.loads(Path(manifest).read_text()))
     path = Path(data['audio_path']).resolve(strict=True)
     if hashlib.sha256(path.read_bytes()).hexdigest() != data['sha256']:
         raise SongError('INVALID', 'The analyzed recording changed; no playback was started.')
-    return dict(data, audio_path=str(path))
+    result = dict(data, audio_path=str(path))
+    visual = _verify_visual_file(result)
+    if visual is not None:
+        result['visual'] = visual
+    return result
 
 
 def capabilities(recording):
     identifier = {'type': 'string', 'maxLength': 80}
     label = recording['artist'] + ' — ' + recording['title']
+    visual = recording.get('visual')
+    if visual:
+        label += '; prepared ambient beat-ring video: ' + visual['description']
     return {
         'song.prepare': {'description': 'Prepare selected real recording: ' + label + '; never plays.',
             'args': {'program_id': identifier, 'song_id': {**identifier, 'enum': [recording['song_id']]},
@@ -75,10 +128,14 @@ class MpvPlayer:
         self.buffer, self.counter = b'', 0
         self.lock = threading.RLock()
         self.path = recording['audio_path']
+        self.visual_path = recording.get('visual', {}).get('path')
         try:
             # No mixer, device, output-volume, normalization or user config edits.
+            visual_args = (['--audio-display=embedded-first', '--external-file=' + self.visual_path,
+                '--aid=1', '--vid=1', '--video-sync=audio', '--fullscreen=no',
+                '--screen=1', '--geometry=1600x900+160+70'] if self.visual_path else ['--audio-display=no'])
             self.process = popen([binary, '--no-config', '--pause=yes', '--idle=no',
-                '--terminal=no', '--force-window=yes', '--audio-display=no',
+                '--terminal=no', '--force-window=yes', *visual_args,
                 '--keep-open=yes', '--loop-file=no', '--input-ipc-client=fd://' + str(child.fileno()),
                 '--title=' + recording['artist'] + ' — ' + recording['title'],
                 '--osd-level=3', '--osd-msg1=' + recording['artist'] + ' — ' + recording['title'],
@@ -129,6 +186,23 @@ class MpvPlayer:
             raise SongError('FAILED', 'The selected recording or playback speed changed.')
         if any(values[name] is None for name in values):
             return {'state': 'loading', 'position_seconds': 0, 'rate': 1}
+        if getattr(self, 'visual_path', None):
+            tracks = self.command(['get_property', 'track-list'], deadline)
+            if tracks is None or tracks == []:
+                return {'state': 'loading', 'position_seconds': 0, 'rate': 1}
+            if not isinstance(tracks, list) or any(not isinstance(track, dict) for track in tracks):
+                raise SongError('FAILED', 'The owned visual track selection could not be verified.')
+            audio = [track for track in tracks if track.get('type') == 'audio']
+            video = [track for track in tracks if track.get('type') == 'video']
+            if (len(audio) != 1 or audio[0].get('external') is True
+                    or audio[0].get('id') != 1 or audio[0].get('selected') is not True
+                    or len(video) != 1 or video[0].get('id') != 1
+                    or video[0].get('external') is not True
+                    or video[0].get('external-filename') != self.visual_path
+                    or video[0].get('image') is True):
+                raise SongError('FAILED', 'The canonical audio or prepared silent visual track changed.')
+            if video[0].get('selected') is not True:
+                return {'state': 'loading', 'position_seconds': 0, 'rate': 1}
         # audio-pts updates at audio cadence and includes mpv's audio-driver delay.
         # Before playback it may be unavailable, so prepared-state time-pos is enough.
         if not values['pause'] and not values['eof-reached']:
@@ -192,8 +266,11 @@ class SongAudio:
         return capabilities(self.recording) if self.recording else {}
 
     def _public(self, recording):
-        return {key: recording[key] for key in ('song_id', 'artist', 'title', 'sha256',
-                                               'duration_seconds', 'beat_seconds', 'analysis')}
+        result = {key: recording[key] for key in ('song_id', 'artist', 'title', 'sha256',
+                                                'duration_seconds', 'beat_seconds', 'analysis')}
+        if 'visual' in recording:
+            result['visual'] = {key: value for key, value in recording['visual'].items() if key != 'path'}
+        return result
 
     def dispatch(self, cap, args, timeout=4):
         spec = self.capabilities().get(cap)
@@ -220,6 +297,7 @@ class SongAudio:
                 # Recheck the exact bytes immediately before opening the player.
                 if hashlib.sha256(Path(job.recording['audio_path']).read_bytes()).hexdigest() != job.recording['sha256']:
                     raise SongError('INVALID', 'The selected recording changed.')
+                _verify_visual_file(job.recording)
                 with job.lock:
                     if job.cancelled.is_set() or job.stopped or self.clock() >= min(deadline, job.expires):
                         raise SongError('PERMISSION', 'Preparation was cancelled before the player opened.')
