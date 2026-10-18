@@ -45,7 +45,7 @@
 
           <form class="step" id="step-1">
             <h1>What should this room be called?</h1>
-            <p>It's the name the room uses when it talks. "Light's on in Room 212."</p>
+            <p>The name the room uses when it talks: "Light's on in Room 212."</p>
             <div class="field">
               <input class="input" id="label" placeholder="Room 212, Table 4, the living room…" autocomplete="off" maxlength="40" aria-label="Room name">
             </div>
@@ -56,10 +56,8 @@
 
           <section class="step" id="step-2" hidden>
             <h1>Add the devices that live here.</h1>
-            <p>On each phone or laptop that belongs to this room, open the link and tap Join. They show up below as they connect.</p>
             <div class="field">
               <input class="input" id="devtoken" type="password" placeholder="Device token (from the room's .env)" autocomplete="off" aria-label="Device token">
-              <div class="hint">Devices prove they belong here with this token. It travels inside the link below and nowhere else.</div>
             </div>
             <div class="devlink" id="devlink" hidden>
               <div class="qr" id="devlink-qr"></div>
@@ -84,12 +82,12 @@
 
           <section class="step" id="step-3" hidden>
             <h1 id="ready-title">The room is ready.</h1>
-            <p>Print the card and leave it where guests will see it. Anyone who scans it can use these devices for ten minutes, and nothing they do outlives their visit.</p>
+            <p>Print the card and leave it where guests will see it.</p>
             <div class="ready">
               <div class="line"><span class="k">Room</span><span id="ready-label">—</span></div>
               <div class="line"><span class="k">Code</span><span class="mono" id="ready-code">—</span></div>
               <div class="line"><span class="k">Devices</span><span id="ready-devices">—</span></div>
-              <div class="line"><span class="k">Guests get</span><span>10 minutes each. They can leave any time; you can reset the room any time.</span></div>
+              <div class="line"><span class="k">Guests get</span><span>10 minutes each; you can reset the room any time.</span></div>
             </div>
             <div class="actions">
               <button class="btn" type="button" id="print">Print the card</button>

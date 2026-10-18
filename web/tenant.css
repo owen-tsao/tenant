@@ -425,7 +425,7 @@ body.device .dev-room { font-family: var(--mono); font-size: 12px; color: #5f5f6
 .step.enter { animation: step-in 360ms cubic-bezier(.2,.8,.2,1) both; }
 @keyframes step-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0% 0); } }
 .step h1 { font-size: 32px; line-height: 1.15; letter-spacing: -.03em; font-weight: 500; margin: var(--s2) 0 0; }
-.step p { color: var(--muted); font-size: 15px; margin: 0; max-width: 46ch; }
+.step p { color: var(--muted); font-size: 15px; margin: 0; }   /* one line under the heading; copy is kept short enough for the 560px step */
 .step .actions { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s3); padding-top: var(--s2); }
 .step .actions .btn { width: 100%; min-width: 0; }
 .step .field { display: grid; gap: var(--s2); }
