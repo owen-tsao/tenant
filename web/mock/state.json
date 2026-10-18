@@ -46,7 +46,12 @@
       "expires_in": 412,
       "lease_total": 600,
       "scopes": ["*"],
-      "last_text": "turn on a light"
+      "last_text": "turn on a light",
+      "transcript": [
+        { "role": "room",  "t": 1760742031.4, "text": "You're in Room 7F3A. I can turn on a light, play music, take a photo, or speak. What would you like?" },
+        { "role": "guest", "t": 1760742059.8, "text": "turn on a light" },
+        { "role": "room",  "t": 1760742061.4, "text": "Light's on — Owen's phone." }
+      ]
     }
   ],
   "log": [

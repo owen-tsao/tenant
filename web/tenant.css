@@ -120,19 +120,37 @@ a { color: inherit; }
    plum squares (inverse of everywhere else so the block stays the loud thing). */
 .guest-block {
   background: var(--accent); color: var(--bg); border-radius: var(--r);
-  padding: var(--s5) var(--s5) var(--s4); display: flex; flex-direction: column; gap: var(--s1);
+  padding: var(--s5) var(--s5) var(--s4); display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto 1fr; column-gap: var(--s4);
   overflow: hidden; flex: 1; min-height: 0;
 }
 .guest-block.paint { animation: paint 180ms ease-out both; }
-.guest-block .who { font-weight: 600; font-size: 17px; }
-.guest-block .how { font-size: 13px; color: rgba(26,21,35,.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.guest-block .lease { flex: 1; min-height: 0; position: relative; display: flex; align-items: center; justify-content: center; margin-top: var(--s3); }
+.guest-block .who { font-weight: 600; font-size: 17px; grid-column: 1; }
+.guest-block .how { font-size: 13px; color: rgba(26,21,35,.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; grid-column: 1; margin-top: var(--s1); }
+.guest-block .lease { grid-column: 2; grid-row: 1 / -1; align-self: center; position: relative; display: flex; align-items: center; justify-content: center; }
 .guest-block .ring { color: var(--bg); display: flex; align-items: center; justify-content: center; }
 .guest-block .ring svg { display: block; }
 .guest-block .left { position: absolute; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 44px; font-weight: 600; line-height: 1; letter-spacing: -.03em; }
 /* someone left: the block inverts to ink for six seconds */
 .guest-block.gone { background: var(--fg); color: var(--bg); flex: none; padding: var(--s4) var(--s5); animation: paint 180ms ease-out both; }
 @keyframes paint { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+/* with a guest present the block takes ~34% of the column (set in px by the page); the thread gets the rest */
+.stack:not([hidden]) { flex: 0 0 34%; }
+
+/* the conversation — what the guest said and what the room answered, readable from 2 m */
+.convo { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: var(--s3); border-top: 1px solid var(--line); transition: opacity 600ms ease; }
+.convo.fading { opacity: 0; }
+.convo > .eyebrow { flex: none; padding: var(--s4) 0 var(--s3); line-height: 16px; }
+.thread-wrap { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; }
+.thread-wrap::-webkit-scrollbar { display: none; }
+.convo .thread { flex: none; overflow: visible; display: flex; flex-direction: column; gap: var(--s3); padding: 0 0 var(--s1); }
+.convo .bubble { display: flex; flex-direction: column; gap: var(--s1); max-width: 86%; }
+.convo .bubble.me { align-self: flex-end; align-items: flex-end; }
+.convo .bubble.room { align-self: flex-start; align-items: flex-start; }
+.region.guest .convo .msg { max-width: 100%; font-size: 15px; line-height: 1.4; padding: 10px 14px; }
+.convo .when { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 11px; color: var(--faint); padding: 0 var(--s1); }
+.convo .bubble.rise { animation: bubble-rise 280ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes bubble-rise { from { clip-path: inset(100% 0 0 0); transform: translateY(30%); } to { clip-path: inset(0 0 0 0); transform: none; } }
+.convo .waiting { display: flex; align-items: center; gap: var(--s4); color: var(--faint); padding: var(--s3) 0; }
 
 /* right: devices over ledger */
 .region-col { display: flex; flex-direction: column; min-height: 0; }
@@ -216,7 +234,7 @@ a { color: inherit; }
 @keyframes settle { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .guest-block.paint, .guest-block.gone, .hl.rise .hl-text, .hl.rise .hl-t, .ev.settle, .inst.acting .inst-glyph rect { animation: fade 240ms ease-out both !important; }
+  .guest-block.paint, .guest-block.gone, .hl.rise .hl-text, .hl.rise .hl-t, .ev.settle, .inst.acting .inst-glyph rect, .convo .bubble.rise { animation: fade 240ms ease-out both !important; }
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 }
 

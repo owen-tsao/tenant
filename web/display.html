@@ -21,6 +21,13 @@
       <div class="region-body">
         <div id="guests" class="stack" hidden></div>
         <div id="left" class="guest-block gone" hidden><span class="who" id="left-text"></span></div>
+        <div id="convo" class="convo" hidden>
+          <div class="eyebrow">Conversation</div>
+          <div class="thread-wrap" id="thread-wrap">
+            <div class="thread" id="thread"></div>
+            <div class="waiting" id="thread-empty" hidden><span class="pix" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>Waiting for their first message…</span></div>
+          </div>
+        </div>
         <div id="empty" class="empty" hidden>
           <div class="motif" id="motif" style="color: var(--accent)"></div>
           <div class="line">Nobody is here right now.</div>
@@ -123,19 +130,43 @@
     }
     g.forEach(x => liveGuests.set(x.guest_id, x.display_name));
 
-    const body = $("guests").parentElement, rw = body.clientWidth - 2 * 24 - 32, rh = body.clientHeight - 16 - 24 - 16 - 20 - 20 - 12 - 24;
-    const n = Math.max(36, Math.min(96, Math.floor(Math.min(rw, rh) / 6)));
+    const body = $("guests").parentElement;
+    const blockH = Math.round(body.clientHeight * .34);                 // the block takes ~34% of the column; the thread gets the rest
+    const ringPx = blockH - 24 - 16, rw = body.clientWidth - 2 * 24 - 150;  // ring fills the block's height, name sits to its left
+    const n = Math.max(24, Math.min(96, Math.floor(Math.min(rw, ringPx) / 6)));
+    $("guests").style.flex = `0 0 ${blockH}px`;
     $("guests").innerHTML = g.map(x => {
-      const total = x.lease_total || 600, frac = Math.max(0, Math.min(1, x.expires_in / total));
+      const total = x.lease_total || (s.room && s.room.lease_total) || 600, frac = Math.max(0, Math.min(1, x.expires_in / total));
       return `
       <div class="guest-block ${seenGuests.has(x.guest_id) ? "" : "paint"}" data-id="${esc(x.guest_id)}">
         <span class="who">${esc(x.display_name)} is here</span>
-        <span class="how">${x.channel === "photon" ? "by text message" : "from the web"}${x.last_text ? ` · last asked “${esc(x.last_text)}”` : ""}</span>
+        <span class="how">${x.channel === "photon" ? "by text message" : "from the web"}</span>
         <div class="lease"><div class="ring">${T.ring(frac, n)}</div><span class="left">${T.fmtClock(x.expires_in)}</span></div>
       </div>`; }).join("");
     g.forEach(x => seenGuests.add(x.guest_id));
     $("guests").hidden = !g.length;
+    // the conversation stays while the inverted "left" block shows, fading out with it
+    $("convo").hidden = !g.length && $("left").hidden;
+    $("convo").classList.toggle("fading", !g.length);
     $("empty").hidden = !!g.length || !$("left").hidden;
+    if (g.length) renderThread(g[0]);
+  }
+
+  // The guest's conversation: guests[].transcript from the Brain; if it is missing, one bubble from last_text.
+  const seenMsgs = new Set(); let threadPrimed = false;
+  function renderThread(x) {
+    let msgs = Array.isArray(x.transcript) ? x.transcript.slice(-10) : (x.last_text ? [{ role: "guest", text: x.last_text, t: null }] : []);
+    const thread = $("thread"), wrap = $("thread-wrap");
+    const atBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 40;
+    thread.innerHTML = msgs.map(m => {
+      const k = `${x.guest_id}|${m.t}|${m.role}|${m.text}`, fresh = threadPrimed && !seenMsgs.has(k); seenMsgs.add(k);
+      return `<div class="bubble ${m.role === "guest" ? "me" : "room"} ${fresh ? "rise" : ""}">
+        <div class="msg ${m.role === "guest" ? "me" : "room"}">${esc(m.text)}</div>${m.t ? `<span class="when">${T.fmtTime(m.t)}</span>` : ""}
+      </div>`;
+    }).join("");
+    threadPrimed = true;
+    $("thread-empty").hidden = msgs.length > 0;
+    if (atBottom || msgs.length <= 2) wrap.scrollTop = wrap.scrollHeight;
   }
 
   // Headline + rail. The newest event is the headline; the one before it shrinks into the rail.
