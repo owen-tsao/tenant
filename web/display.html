@@ -9,26 +9,36 @@
 <body>
 <main class="stage" id="stage" aria-live="polite">
   <section class="stage-left">
-    <div class="eyebrow">Scan to talk to this room</div>
-    <div class="room-code mono" id="code">····</div>
-    <div class="qr" id="qr" aria-label="QR code to join this room"></div>
-    <div class="qr-url mono" id="url"></div>
-    <p class="statement" id="statement">Connecting…</p>
-    <div id="guests"></div>
+    <div>
+      <div class="eyebrow">Scan to talk to this room</div>
+      <div class="room-code mono" id="code">····</div>
+    </div>
+    <div>
+      <div class="qr" id="qr" aria-label="QR code to join this room"></div>
+      <div class="qr-url" id="url"></div>
+    </div>
+    <div class="bottom">
+      <p class="statement" id="statement">Connecting…</p>
+      <div id="guests" class="stack"></div>
+    </div>
   </section>
 
   <section class="stage-right">
-    <div class="eyebrow">In this room</div>
-    <ul class="devices" id="devices"></ul>
-
-    <div class="ledger-wrap">
-      <div class="eyebrow">What has happened</div>
-      <div class="ledger" id="ledger"></div>
+    <div class="surface devices">
+      <div class="surface-head"><span class="eyebrow">In this room</span><span class="faint" id="dev-count"></span></div>
+      <div class="surface-body">
+        <table class="grid">
+          <colgroup><col class="c-dev"><col class="c-can"><col class="c-state"><col class="c-last"></colgroup>
+          <thead><tr><th>Device</th><th>Can do</th><th>State</th><th>Last action</th></tr></thead>
+          <tbody id="devices"></tbody>
+        </table>
+        <div class="quiet" id="dev-empty" hidden>Nothing has joined this room yet.</div>
+      </div>
     </div>
 
-    <div class="stage-foot">
-      <span id="foot-left">Tenant</span>
-      <span class="mono" id="clock"></span>
+    <div class="surface ledger">
+      <div class="surface-head"><span class="eyebrow">What has happened</span><span class="mono" id="clock"></span></div>
+      <div class="surface-body" id="ledger"></div>
     </div>
   </section>
 </main>
@@ -38,7 +48,7 @@
 (function () {
   const T = window.Tenant;
   const $ = (id) => document.getElementById(id);
-  let lastLogKey = null, host = null, lastState = null;
+  let lastLogKey = null, host = null, lastState = null; const seenGuests = new Set();
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
@@ -71,26 +81,40 @@
     $("url").textContent = s.room.join_url.replace(/^https?:\/\//, "");
     renderQR(s.room.join_url);
 
-    // devices — hairline list
-    $("devices").innerHTML = s.devices.map(d => `
-      <li class="device ${d.online ? "" : "offline"} ${d.busy ? "busy" : ""}">
-        <span class="dot ${d.online ? (d.busy ? "live" : "") : "off"}"></span>
-        <span><div class="label">${esc(d.label)}</div>
-        <div class="caps">${d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i).join(" · ")}</div></span>
-        <span class="faint mono" style="font-size:12px">${d.online ? (d.busy ? "working" : "") : "offline"}</span>
-      </li>`).join("");
+    // devices — hairline table: Device · Can do · State · Last action
+    const log = (s.log || []).slice(0, 40);
+    const lastFor = (d) => {
+      if (d.last_action) return d.last_action;
+      const r = log.find(x => x.text.includes(d.label));
+      return r ? r.text : "Nothing yet";
+    };
+    const stateOf = (d) => !d.online ? ["off", "offline"] : d.busy ? ["live", "working"] : ["", "ready"];
+    $("devices").innerHTML = s.devices.map(d => {
+      const [cls, word] = stateOf(d);
+      const can = d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i).join(", ");
+      return `<tr class="${d.online ? "" : "offline"} ${d.busy ? "busy" : ""}">
+        <td class="c-dev">${esc(d.label)}</td>
+        <td class="c-can" title="${esc(can)}">${esc(can)}</td>
+        <td class="c-state"><span class="state ${cls}"><span class="dot ${cls}"></span>${word}</span></td>
+        <td class="c-last" title="${esc(lastFor(d))}">${esc(lastFor(d))}</td>
+      </tr>`;
+    }).join("");
+    $("dev-empty").hidden = s.devices.length > 0;
+    const online = s.devices.filter(d => d.online).length;
+    $("dev-count").textContent = s.devices.length ? `${online} of ${s.devices.length} ready` : "";
 
     // guests — the amber block(s)
     const g = s.guests || [];
+    // paint the block in only the first time a guest appears; re-renders must not restart the wipe
     $("guests").innerHTML = g.map(x => `
-      <div class="guest-block" data-id="${esc(x.guest_id)}">
+      <div class="guest-block ${seenGuests.has(x.guest_id) ? "" : "paint"}" data-id="${esc(x.guest_id)}">
         <span class="who">${esc(x.display_name)} is here</span>
         <span class="left">${T.fmtClock(x.expires_in)}</span>
         <span class="how">${x.channel === "photon" ? "by text message" : "from the web"}${x.last_text ? ` · last asked “${esc(x.last_text)}”` : ""}</span>
       </div>`).join("");
+    g.forEach(x => seenGuests.add(x.guest_id));
 
     // statement — one sentence of state
-    const online = s.devices.filter(d => d.online).length;
     let st;
     if (!online) st = "Nothing is connected to this room yet.";
     else if (!g.length) st = `${online} device${online === 1 ? "" : "s"} ready. Nobody is here right now.`;
@@ -98,21 +122,18 @@
     else st = `${g.length} guests are sharing this room.`;
     $("statement").textContent = st;
 
-    // ledger — newest first, newest row lands once
-    const log = (s.log || []).slice(0, 40);
+    // ledger — newest first, newest row lands once; empty shows one quiet line
     const key = log.length ? `${log[0].t}|${log[0].text}` : null;
     const fresh = key && key !== lastLogKey && lastLogKey !== null;
     lastLogKey = key;
-    $("ledger").innerHTML = log.map((r, i) => `
+    $("ledger").innerHTML = log.length ? log.map((r, i) => `
       <div class="row k-${esc(r.kind)} ${i === 0 && fresh ? "fresh" : ""}">
-        <span class="t">${T.fmtTime(r.t)}</span><span class="text">${esc(r.text)}</span>
-      </div>`).join("");
-
-    $("foot-left").textContent = `${s.room.label}${T.MOCK ? " · mock" : ""}`;
+        <span class="t">${T.fmtTime(r.t)}</span><span class="text" title="${esc(r.text)}">${esc(r.text)}</span>
+      </div>`).join("") : `<div class="quiet">Nothing has happened yet.</div>`;
   }
 
   // clock
-  setInterval(() => { $("clock").textContent = T.fmtTime(Date.now() / 1000); }, 1000);
+  const tick = () => { $("clock").textContent = T.fmtTime(Date.now() / 1000); }; tick(); setInterval(tick, 1000);
 
   // host keys: R held 1 s = reset; X = revoke the first guest
   let rTimer = null;

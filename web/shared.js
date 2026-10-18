@@ -77,6 +77,7 @@
       onState(state);
     }, 1000);
     setInterval(() => {
+      if (!state.guests.length) return; // nobody here — nothing happens
       const [kind, text] = extra[i++ % extra.length];
       const dev = state.devices[i % 2];
       dev.busy = kind === "do";
