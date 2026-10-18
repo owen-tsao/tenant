@@ -4,6 +4,8 @@
  * the newest ledger row. Denied = inverted ink. Errors = words, no colour.
  * Two line weights only: --line inside a region, --line-2 between regions.
  */
+/* Inter Tight (OFL, shipped with the deck) is used only for the giant dotted wordmark on setup. */
+@font-face { font-family: "Inter Tight"; src: url("fonts/InterTight-latin.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
 :root {
   --bg: #1a1523;
   --surface: #211b2c;
@@ -100,7 +102,7 @@ a { color: inherit; }
 .topbar-right { display: flex; align-items: center; justify-content: flex-end; gap: var(--s4); }
 .btn.btn-small { width: auto; min-height: 32px; height: 32px; padding: 0 var(--s4); font-size: 13px; }
 
-.regions { flex: 1; min-height: 0; display: grid; grid-template-columns: 36fr 64fr; }
+.regions { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 36fr) minmax(0, 64fr); } /* minmax(0,…): six nowrap device tiles must shrink, not push the column off-screen */
 .region { display: flex; flex-direction: column; min-height: 0; position: relative; }
 .region > .eyebrow { flex: none; padding: var(--s4) var(--s4) var(--s3); line-height: 16px; }
 .region-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; }
@@ -153,7 +155,7 @@ a { color: inherit; }
 .convo .waiting { display: flex; align-items: center; gap: var(--s4); color: var(--faint); padding: var(--s3) 0; }
 
 /* right: devices over ledger */
-.region-col { display: flex; flex-direction: column; min-height: 0; }
+.region-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 .region.devices { flex: 0 0 40%; border-bottom: 1px solid var(--line-2); }
 .region.ledger { flex: 1; }
 .region .corner { position: absolute; top: var(--s4); right: var(--s4); height: 16px; display: flex; align-items: center; gap: var(--s3); font-size: 12px; color: var(--faint); }
@@ -161,10 +163,13 @@ a { color: inherit; }
 .segs i { display: block; width: 14px; height: 100%; background: var(--line-2); }
 .segs i.ready { background: rgba(244,238,247,.6); }
 .segs i.live { background: var(--accent); }
+/* "taking a photo…" — the viewer has a still on the way; small pixels so it sits in the 16px corner */
+#photo-pending .pix { grid-template-columns: repeat(3, 4px); gap: 2px; }
+#photo-pending .pix i { width: 4px; height: 4px; background: var(--accent); }
 
 /* devices — instrument tiles. Equal width, hairline-separated regions (not cards). */
 .region.devices .region-body { display: flex; flex-direction: column; overflow: hidden; }
-.insts { flex: 1; min-height: 0; display: flex; border-top: 1px solid var(--line); }
+.insts { flex: 1; min-height: 0; min-width: 0; display: flex; border-top: 1px solid var(--line); }
 .inst {
   flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;
   padding: var(--s4); border-right: 1px solid var(--line); position: relative; overflow: hidden;
@@ -263,21 +268,44 @@ table.grid tr.busy .c-can, table.grid tr.busy .c-last { color: var(--fg); }
 }
 
 /* =========================================================
-   JOIN — minimal single column
+   JOIN — the page a scanned QR lands on. Phones (where it will be seen):
+   brand line, the dotted globe in the band, headline, copy, two actions,
+   stacked. Laptops: split hero, globe left, words right (see media query). 
    ========================================================= */
 .join {
-  min-height: 100dvh; display: flex; flex-direction: column; justify-content: center;
-  padding: max(var(--s7), env(safe-area-inset-top)) var(--s5) max(var(--s7), env(safe-area-inset-bottom));
-  max-width: 420px; margin: 0 auto; gap: var(--s4);
+  min-height: 100dvh; display: flex; flex-direction: column;
+  padding: max(var(--s5), env(safe-area-inset-top)) var(--s5) max(var(--s6), env(safe-area-inset-bottom));
+  max-width: 1200px; margin: 0 auto; gap: var(--s4);
 }
-.join h1 { font-size: 32px; line-height: 1.15; letter-spacing: -.03em; font-weight: 500; margin: var(--s2) 0 0; }
-.join p { color: var(--muted); margin: 0 0 var(--s4); font-size: 15px; }
+.join-nav { flex: none; display: flex; justify-content: space-between; align-items: center; height: 24px; }
+.join-nav .brand { display: inline-flex; align-items: center; gap: var(--s2); font-weight: 500; font-size: 14px; }
+.join-stage { flex: 1 1 auto; min-height: 220px; display: flex; align-items: center; justify-content: center; position: relative; }
+.join-stage .orb { display: block; }
+.join-content { flex: none; display: grid; gap: var(--s5); }
+.join h1 { font-size: 34px; line-height: 1.05; letter-spacing: -.035em; font-weight: 500; margin: var(--s3) 0 0; text-wrap: balance; }
+.join h1 em { font-style: normal; color: var(--accent); }
+.join p { color: var(--muted); margin: 0 0 var(--s4); font-size: 15px; line-height: 1.5; text-wrap: pretty; }
 .join .alt { display: grid; gap: var(--s3); }
 .join .reveal { display: none; gap: var(--s3); }
 .join .reveal.open { display: grid; }
 .join .note { font-size: 13px; color: var(--faint); margin-top: var(--s2); }
 .join .err { font-size: 13px; color: var(--muted); border-left: 2px solid var(--fg); padding-left: var(--s3); }
 .join .number { font-family: var(--mono); font-size: 20px; letter-spacing: -.01em; }
+/* Laptop and up: split hero. Brand line across the top, the globe fills the
+   left half, eyebrow → headline → copy → actions stack in the right half,
+   both centred on the same vertical line. Phones keep the stacked layout. */
+@media (min-width: 760px) {
+  .join {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr);
+    column-gap: var(--s7); row-gap: var(--s5); align-items: center;
+    padding: var(--s6) var(--s7);
+  }
+  .join-nav { grid-column: 1 / -1; }
+  .join-stage { grid-row: 2; grid-column: 1; align-self: stretch; min-height: 420px; }
+  .join-content { grid-row: 2; grid-column: 2; max-width: 440px; gap: var(--s5); }
+  .join h1 { font-size: clamp(40px, 4vw, 56px); }
+  .join .alt { grid-template-columns: 1fr 1fr; }
+}
 
 /* =========================================================
    GUEST — a text thread. Fixed 56px header; one status line under it
@@ -319,6 +347,8 @@ table.controls td { white-space: normal; height: auto; padding: 10px var(--s4); 
 .chips:not([hidden]) + .compose { padding-top: var(--s3); }
 .compose .btn { width: auto; min-width: 48px; padding: 0 var(--s4); }
 .typing { display: inline-flex; gap: 4px; align-items: center; height: 14px; }
+.msg.thinking { padding: 6px 10px; line-height: 0; }
+.msg.thinking .think { display: block; width: 28px; height: 28px; }
 .typing i { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
 .typing i:nth-child(2) { animation-delay: .2s; } .typing i:nth-child(3) { animation-delay: .4s; }
 @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
@@ -353,10 +383,10 @@ body.device .dev-room { font-family: var(--mono); font-size: 12px; color: #5f5f6
 .setup { height: 100dvh; display: flex; flex-direction: column; }
 .setup .topbar { grid-template-columns: 1fr auto 1fr; }
 .setup .topbar .title { font-size: 15px; font-weight: 500; }
-.topbar .navlink { width: auto; min-height: 32px; padding: 0 var(--s4); font-size: 13px; justify-self: center; }
+.topbar .navlink { width: auto; min-height: 32px; padding: 0 var(--s4); font-size: 13px; justify-self: end; }
 
-/* rail: 28px tiles, number -> check when done, connectors fill with scaleX */
-.rail { display: flex; align-items: center; gap: var(--s2); justify-self: end; }
+/* rail: 28px tiles, number -> check when done, connectors fill with scaleX. Centred in the setup top bar. */
+.rail { display: flex; align-items: center; gap: var(--s2); justify-self: center; }
 .rail .tile {
   width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center;
   font: 500 12px/1 var(--mono); font-variant-numeric: tabular-nums;
@@ -375,20 +405,28 @@ body.device .dev-room { font-family: var(--mono); font-size: 12px; color: #5f5f6
 .setup .regions { grid-template-columns: 40fr 60fr; }
 .setup .region.visual { border-right: 1px solid var(--line-2); align-items: stretch; }
 .setup .region.visual .region-body { display: flex; align-items: center; justify-content: center; padding: var(--s6); overflow: hidden; position: relative; }
+.setup .visual .wordmark { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
 .setup .visual .motif { color: var(--accent); width: min(72%, 520px); aspect-ratio: 1; }
 .setup .visual .motif svg { width: 100%; height: 100%; display: block; }
 .setup .region.content .region-body { padding: 0 var(--s7) var(--s6); display: flex; flex-direction: column; }
 
-/* step panels: a fresh panel wipes down over the settled one (clip-path in %, never px) */
-.steps { position: relative; flex: 1; min-height: 0; }
-.step { position: absolute; inset: 0; display: flex; flex-direction: column; gap: var(--s4); max-width: 560px; }
+/* step panels, centred in the region; a fresh panel wipes down over the settled one (clip-path in %, never px).
+   A step never grows past the region: the device list scrolls inside it and the buttons stay put. */
+.steps { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.step { flex: 0 1 auto; min-height: 0; max-height: 100%; width: min(100%, 560px); display: flex; flex-direction: column; gap: var(--s4); }
+.step > * { flex: none; }
+.step .ready { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.step .ready::-webkit-scrollbar { display: none; }
+.step .devlist { flex: 0 1 auto; min-height: 96px; overflow-y: auto; scrollbar-width: none; }
+.step .devlist::-webkit-scrollbar { display: none; }
+.step .devlist thead th { position: sticky; top: 0; background: var(--bg); z-index: 1; }
 .step[hidden] { display: none !important; }
 .step.enter { animation: step-in 360ms cubic-bezier(.2,.8,.2,1) both; }
 @keyframes step-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0% 0); } }
 .step h1 { font-size: 32px; line-height: 1.15; letter-spacing: -.03em; font-weight: 500; margin: var(--s2) 0 0; }
 .step p { color: var(--muted); font-size: 15px; margin: 0; max-width: 46ch; }
-.step .actions { display: flex; gap: var(--s3); padding-top: var(--s2); }
-.step .actions .btn { width: auto; min-width: 160px; }
+.step .actions { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s3); padding-top: var(--s2); }
+.step .actions .btn { width: 100%; min-width: 0; }
 .step .field { display: grid; gap: var(--s2); }
 .step .hint { font-size: 13px; color: var(--faint); }
 
@@ -429,7 +467,7 @@ body.device .dev-room { font-family: var(--mono); font-size: 12px; color: #5f5f6
 @media print {
   @page { size: A5 portrait; margin: 12mm; }
   body { background: #fff; color: #000; }
-  .setup .topbar, .setup .region.content, .setup .visual .motif { display: none !important; }
+  .setup .topbar, .setup .region.content, .setup .visual .motif, .setup .visual .wordmark { display: none !important; }
   .setup, .setup .regions, .setup .region.visual, .setup .region.visual .region-body { display: block; height: auto; border: 0; padding: 0; }
   .card { width: 100%; border-radius: 0; padding: 0; background: #fff; }
 }

@@ -11,7 +11,6 @@
 <main class="setup" id="setup">
   <header class="topbar">
     <div class="room"><span class="mark" aria-hidden="true"></span><span class="eyebrow">Tenant</span><span class="title">Set up a room</span></div>
-    <a class="btn navlink" id="nav-display" href="display.html">Room screen</a>
     <nav class="rail" aria-label="Setup progress">
       <div class="tile" data-step="1" data-state="active"><span>1</span></div>
       <div class="link" data-done="0"></div>
@@ -19,14 +18,15 @@
       <div class="link" data-done="0"></div>
       <div class="tile" data-step="3"><span>3</span></div>
     </nav>
+    <a class="btn navlink" id="nav-display" href="display.html">Room screen</a>
   </header>
 
   <div class="regions">
-    <!-- Left: one visual per step. The motif, then the arriving devices, then the card. -->
+    <!-- Left: one visual per step. The room's name printed in squares (steps 1–2), then the card. -->
     <section class="region visual" aria-hidden="true">
       <div class="eyebrow" id="visual-eyebrow">The room</div>
       <div class="region-body">
-        <div class="motif" id="motif-main"></div>
+        <canvas class="wordmark" id="wordmark"></canvas>
         <div class="card" id="card" hidden>
           <div class="qr" id="card-qr"></div>
           <div class="code" id="card-code">····</div>
@@ -48,7 +48,6 @@
             <p>It's the name the room uses when it talks. "Light's on in Room 212."</p>
             <div class="field">
               <input class="input" id="label" placeholder="Room 212, Table 4, the living room…" autocomplete="off" maxlength="40" aria-label="Room name">
-              <div class="hint">You can change it later. Guests never need to type it.</div>
             </div>
             <div class="actions">
               <button class="btn btn-primary" type="submit" id="to-2" disabled>Continue</button>
@@ -105,6 +104,7 @@
 </main>
 
 <script src="shared.js"></script>
+<script src="dots.js"></script>
 <script>
 (function () {
   const T = window.Tenant;
@@ -136,17 +136,23 @@
       else el.hidden = true;
     }
     // left visual
-    $("motif-main").hidden = n === 3;
+    $("wordmark").hidden = n === 3;
     $("card").hidden = n !== 3;
     $("motif-behind").hidden = n !== 3;
+    if (n !== 3) mark.relayout();
     if (n === 1) setTimeout(() => $("label").focus(), 50);
     if (n === 3) renderCard();
   }
 
   // ---- step 1: name ----
+  // The name is printed live in the left region as the host types: squares sized by
+  // how much of each letter covers them, parting around the pointer, cropped by the bottom edge.
+  const mark = T.wordmark($("wordmark"), ($("label").value || localStorage.getItem("tenant.room_label") || "").trim() || "Room", { stack: true, maxCap: .82, pointerTarget: document.querySelector(".region.visual") });
+  let markTimer = null;
+  const nameMark = () => { clearTimeout(markTimer); markTimer = setTimeout(() => mark.setText($("label").value.trim() || "Room"), 90); };
   $("label").value = localStorage.getItem("tenant.room_label") || "";
   $("to-2").disabled = !$("label").value.trim();
-  $("label").addEventListener("input", () => { $("to-2").disabled = !$("label").value.trim(); });
+  $("label").addEventListener("input", () => { $("to-2").disabled = !$("label").value.trim(); nameMark(); });
   $("step-1").addEventListener("submit", async (e) => {
     e.preventDefault();
     const label = $("label").value.trim(); if (!label) return;
@@ -189,14 +195,14 @@
   $("nav-display").href = `display.html${suffix}`;
 
   // ---- connect: the same state frames the display uses ----
-  $("motif-main").innerHTML = T.motif(56, 8, .03);
   // Device link: /d/{fresh id}?room=CODE&t=TOKEN — Jay's device page reads both and strips the token from history.
   // The id is minted here and rotated once that device shows up, so one QR never serves two phones.
   let linkId = Math.random().toString(36).slice(2, 10);
-  $("devtoken").value = localStorage.getItem("tenant.device_token") || "";
+  // The mock never touches the real key: the display's Setup link keeps ?mock=1, and a demo token there must not prefill a real room's QR.
+  $("devtoken").value = T.MOCK ? "" : (localStorage.getItem("tenant.device_token") || "");
   function renderLink() {
     const tok = $("devtoken").value.trim();
-    localStorage.setItem("tenant.device_token", tok);
+    if (!T.MOCK) localStorage.setItem("tenant.device_token", tok);
     $("devlink").hidden = !tok;
     if (!tok) return;
     const url = `${location.origin}/d/${linkId}?room=${encodeURIComponent(room.code)}&t=${encodeURIComponent(tok)}`;
@@ -222,7 +228,7 @@
   // ?step=2|3 (mock only) jumps ahead with a sample name, for screenshots and the deck.
   const jump = T.MOCK ? +(new URLSearchParams(location.search).get("step") || 1) : 1;
   if (T.MOCK && !$("devtoken").value) $("devtoken").value = "demo-device-token";
-  if (jump > 1 && !room.label) { room.label = $("label").value.trim() || "Room 212"; $("label").value = room.label; }
+  if (jump > 1 && !room.label) { room.label = $("label").value.trim() || "Room 212"; $("label").value = room.label; mark.setText(room.label); }
   go(Math.min(3, Math.max(1, jump)));
 })();
 </script>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1a1523">
+<title>Tenant — Deck</title>
+<link rel="stylesheet" href="tenant.css">
+<link rel="stylesheet" href="deck.css">
+</head>
+<body class="deck">
+<canvas id="stage" aria-hidden="true"></canvas>
+
+<main class="deck-root" id="deck" aria-live="polite">
+
+  <!-- 1 · title: one word, one line -->
+  <section class="slide s-title" data-id="title" data-shot="wide" data-stage="front">
+    <div class="copy centered">
+      <h1 class="t-display">
+        <span class="wipe" style="--d:.25s"><span class="wipe-text">Tenant</span><span class="scan-bar" aria-hidden="true"></span></span>
+      </h1>
+      <p class="t-sub"><span class="line-mask"><span style="--d:1.2s">Borrow the room. Leave, and it forgets you.</span></span></p>
+    </div>
+  </section>
+
+  <!-- 2 · the problem (1 click): header + one subheader that swaps on the click; the stack on the right -->
+  <section class="slide s-problem" data-id="problem" data-shot="push" data-steps="1">
+    <div class="copy">
+      <h2 class="t-headline">
+        <span class="line-mask"><span style="--d:.15s">Every room wants</span></span>
+        <span class="line-mask"><span style="--d:.25s">its own app.</span></span>
+      </h2>
+      <div class="beats">
+        <p class="t-sub beat" data-step="0">
+          <span class="line-mask"><span style="--d:.9s">Hotel, Airbnb, hospital bed.</span></span>
+          <span class="line-mask"><span style="--d:1.0s">A new login every time.</span></span>
+        </p>
+        <p class="t-sub beat" data-step="1" hidden>
+          <span class="line-mask"><span style="--d:.1s">Picture a hospital bed. You can't reach</span></span>
+          <span class="line-mask"><span style="--d:.2s">the switch, and nobody wants another app.</span></span>
+        </p>
+      </div>
+    </div>
+    <figure class="stack" aria-label="A stack of things a guest is asked to set up">
+      <svg viewBox="0 0 320 300" class="stack-svg" aria-hidden="true">
+        <g class="cards" id="stack-cards"></g>
+        <g class="rule" id="stack-rule"></g>
+      </svg>
+      <ol class="stack-labels" id="stack-labels">
+        <li>Hotel app</li><li>Smart lock</li><li>Thermostat</li><li>TV remote</li><li>Nurse call</li>
+      </ol>
+    </figure>
+  </section>
+
+  <!-- 3 · what happens (2 clicks): header + one subheader, then the thread -->
+  <section class="slide s-how" data-id="how" data-shot="orbit" data-steps="2">
+    <div class="copy">
+      <h2 class="t-headline">
+        <span class="line-mask"><span style="--d:.15s">Scan. Say what</span></span>
+        <span class="line-mask"><span style="--d:.25s">you need. Done.</span></span>
+      </h2>
+      <div class="beats">
+        <p class="t-sub beat" data-step="0">
+          <span class="line-mask"><span style="--d:.9s">No app, no login, no setup.</span></span>
+          <span class="line-mask"><span style="--d:1.0s">Just the QR on the wall.</span></span>
+        </p>
+        <div class="thread beat" data-step="1" hidden>
+          <div class="bubble me"><span class="typed" id="typed-ask" data-text="Can I get some light?"></span></div>
+        </div>
+        <div class="thread beat" data-step="2" hidden>
+          <div class="bubble me"><span>Can I get some light?</span></div>
+          <div class="bubble room"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="typed" id="typed-reply" data-text="Done. The phone by the window is lit."></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · the lease (1 click): header, the block (label + clock), one subheader -->
+  <section class="slide s-lease" data-id="lease" data-shot="lease" data-steps="1">
+    <div class="copy">
+      <h2 class="t-headline">
+        <span class="line-mask"><span style="--d:.15s">You're a guest,</span></span>
+        <span class="line-mask"><span style="--d:.25s">not the owner.</span></span>
+      </h2>
+      <div class="block fade" id="lease-block" style="--d:.8s">
+        <span class="who" id="lease-who">Your lease</span>
+        <span class="left odo" id="lease-left" data-value="9:59">9:59</span>
+      </div>
+      <div class="beats">
+        <p class="t-sub beat" data-step="0">
+          <span class="line-mask"><span style="--d:1.4s"><span class="device-count">3</span> devices, for as long as you're here.</span></span>
+        </p>
+        <p class="t-sub beat" data-step="1" hidden>
+          <span class="line-mask"><span style="--d:.1s">You text “leave.” The light stays on.</span></span>
+          <span class="line-mask"><span style="--d:.2s">It was never yours.</span></span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · the vision (1 click): the one room becomes nine; the click sends one guest to all of them -->
+  <section class="slide s-vision" data-id="vision" data-shot="city" data-steps="1">
+    <div class="copy">
+      <h2 class="t-headline">
+        <span class="line-mask"><span style="--d:.15s">Every room</span></span>
+        <span class="line-mask"><span style="--d:.25s">you don't own.</span></span>
+      </h2>
+      <div class="beats">
+        <p class="t-sub beat" data-step="0">
+          <span class="line-mask"><span style="--d:.9s">The light, the TV, the lock, the bed.</span></span>
+          <span class="line-mask"><span style="--d:1.0s">Already there. Just lend them.</span></span>
+        </p>
+        <p class="t-sub beat" data-step="1" hidden>
+          <span class="line-mask"><span style="--d:.1s">A hotel TV or a hospital bed joins</span></span>
+          <span class="line-mask"><span style="--d:.2s">the same way. Nothing new to buy.</span></span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · scan: header + one line + the QR -->
+  <section class="slide s-scan" data-id="scan" data-shot="behind">
+    <div class="scan-group">
+      <div class="copy centered">
+        <h2 class="t-headline">
+          <span class="line-mask"><span style="--d:.15s">You've just</span></span>
+          <span class="line-mask"><span style="--d:.25s">checked in.</span></span>
+        </h2>
+        <p class="t-sub"><span class="line-mask"><span style="--d:.7s">Scan this and say hello to the room.</span></span></p>
+        <p class="t-sub text-opt" id="text-opt" hidden>
+          <span class="line-mask"><span style="--d:.9s">Or text <b class="mono-code">join <span class="room-code">7F3A</span></b> to <span id="text-number"></span>.</span></span>
+        </p>
+      </div>
+      <div class="qr-wrap">
+        <div class="wipe" style="--d:.45s"><div class="qr wipe-text" id="qr" role="img" aria-label="QR code to join this room"></div><span class="scan-bar" aria-hidden="true"></span></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="shared.js"></script>
+<script src="deck-stage.js"></script>
+<script src="deck.js"></script>
+<script>if (new URLSearchParams(location.search).has("selftest")) { const s = document.createElement("script"); s.src = "deck-selftest.js"; document.body.appendChild(s); }</script>
+</body>
+</html>

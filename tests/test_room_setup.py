@@ -40,6 +40,16 @@ class RoomSetupTests(unittest.TestCase):
         self.assertEqual(self.client.get('/shared.js').status_code, 200)
         self.assertEqual(self.client.get('/tenant.css').status_code, 200)
 
+    def test_slides_alias_and_deck_assets_work_on_brain_origin(self):
+        response = self.client.get('/slides')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, (WEB / 'slides.html').read_bytes())
+        self.assertEqual(response.headers['cache-control'], 'no-store')
+        for asset in ('/tenant.css', '/deck.css', '/shared.js', '/deck-stage.js', '/deck.js',
+                      '/fonts/InterTight-latin.woff2'):
+            with self.subTest(asset=asset):
+                self.assertEqual(self.client.get(asset).status_code, 200)
+
     def test_setup_header_requires_nonempty_correct_secret_and_approved_origin(self):
         before = self.path.read_bytes()
         for headers in ({}, {'X-Host-Token': ''}, {'Origin': 'https://testserver'},

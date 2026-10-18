@@ -85,7 +85,8 @@
       if (closed) return;
       ws = new WebSocket(WS_BASE + path);
       ws.onopen = () => { delay = 500; onStatus && onStatus("open"); };
-      ws.onmessage = (e) => { try { onFrame(JSON.parse(e.data)); } catch (_) {} };
+      // Only the parse is guarded: a render bug must reach the console, not silently freeze the page on its last good frame.
+      ws.onmessage = (e) => { let f; try { f = JSON.parse(e.data); } catch (_) { return; } onFrame(f); };
       ws.onclose = (ev) => {
         onStatus && onStatus("closed", ev.code);
         if (closed || ev.code === 4401 || ev.code === 1008) { closed = true; return; }
@@ -102,29 +103,30 @@
   }
 
   /* ---------- display ---------- */
-  async function connectDisplay(onState) {
+  async function connectDisplay(onState, onStatus) {
     if (!MOCK) {
       const token = localStorage.getItem("tenant.host_token") || "";
       const conn = reconnecting(`/ws/display${token ? `?token=${encodeURIComponent(token)}` : ""}`,
-        (f) => { if (f.type === "state") onState(f); });
+        (f) => { if (f.type === "state") onState(f); }, onStatus);
       return {
         host: (type, extra) => conn.send(Object.assign({ type, token: localStorage.getItem("tenant.host_token") || "" }, extra || {})),
       };
     }
     // Mock: load the fixture, then keep it alive — countdown ticks, a log row lands now and then.
     // Each "ok" names the device that acted (`device`) and lights it `busy` for ~3 s, so the
-    // display's acting state is exercised. The photo event carries a local `image_url`.
+    // display's acting state is exercised. No row carries a photo URL — the real log never does;
+    // photos reach the display through connectPhotoViewer (mock/photo-state.json).
     const state = await (await fetch(mockUrl("state.json"), { cache: "no-store" })).json();
     const byId = (id) => state.devices.find(d => d.id === id);
     const extra = [
-      ["do", "Guest 1", " asked for something calm to listen to.", null, null, "play something calm"],
-      ["ok", "The room speaker", " started playing Calm.", "laptop", null, "Playing Calm on the room speaker."],
-      ["do", "Guest 1", " asked what's in the room.", null, null, "what's in this room?"],
-      ["ok", "The room", " listed its devices.", null, null, "Two phones that can light up, flash, speak and take photos; a speaker and screen; a tablet that's offline right now."],
-      ["do", "Guest 1", " asked for a photo.", null, null, "take a photo"],
-      ["ok", "Jay's phone", " took a photo and the screen is showing it.", "jay-phone", mockUrl("photo.jpg"), "Took one on Jay's phone — it's up on the screen."],
-      ["do", "Guest 1", " asked for the screen to flash.", null, null, "flash the screen"],
-      ["ok", "Owen's phone", " flashed its screen.", "owen-phone", null, "Flashed Owen's phone."],
+      ["do", "Guest 1", " asked for something calm to listen to.", null, "play something calm"],
+      ["ok", "The room speaker", " started playing Calm.", "laptop", "Playing Calm on the room speaker."],
+      ["do", "Guest 1", " asked what's in the room.", null, "what's in this room?"],
+      ["ok", "The room", " listed its devices.", null, "Two phones that can light up, flash, speak and take photos; a speaker and screen; a tablet that's offline right now."],
+      ["do", "Guest 1", " asked for a photo.", null, "take a photo"],
+      ["ok", "Jay's phone", " took a photo.", "jay-phone", "Took one on Jay's phone — it's up on the screen."],
+      ["do", "Guest 1", " asked for the screen to flash.", null, "flash the screen"],
+      ["ok", "Owen's phone", " flashed its screen.", "owen-phone", "Flashed Owen's phone."],
     ];
     let i = 0, busyTimer = null;
     onState(state);
@@ -134,10 +136,9 @@
     }, 1000);
     setInterval(() => {
       if (!state.guests.length) return; // nobody here — nothing happens
-      const [kind, subject, rest, devId, image_url, said] = extra[i++ % extra.length];
+      const [kind, subject, rest, devId, said] = extra[i++ % extra.length];
       const row = { t: Date.now() / 1000, kind, subject, rest, text: subject + rest };
       if (devId) row.device = devId;
-      if (image_url) row.image_url = image_url;
       if (kind === "ok" && devId) {
         state.devices.forEach(d => d.busy = false);
         byId(devId).busy = true; byId(devId).last_action = row.text;
@@ -158,6 +159,90 @@
       if (type === "host.reset") { state.guests = []; delete state.room.sentence_subject; delete state.room.sentence_rest; state.log.unshift({ t: Date.now() / 1000, kind: "cmd", subject: "The room", rest: " was reset.", text: "The room was reset." }); onState(state); }
       if (type === "host.revoke") { const g = state.guests.find(x => x.guest_id === (extra || {}).guest_id); if (g) { state.guests = state.guests.filter(x => x !== g); delete state.room.sentence_subject; delete state.room.sentence_rest; state.log.unshift({ t: Date.now() / 1000, kind: "guest.leave", subject: g.display_name, rest: " was asked to leave.", text: g.display_name + " was asked to leave." }); onState(state); } }
     } };
+  }
+
+  /* ---------- photo viewer (display only) ----------
+   * The state log never carries a photo URL. The display is the room's one authenticated
+   * viewer: it enrols once with the host token (POST /host/photos/viewer, Bearer auth, sets the
+   * HttpOnly `tenant_photo_viewer` cookie for /photos), then polls GET /photos/viewer/state every
+   * second. onChange({ photo, pending, version }) fires when something changed; `photo` is null
+   * or {photo_id, image_url, captured_at, source_label, version, img} with `img` already decoded,
+   * so the page never shows a blank while a new still loads. A photo is only replaced on a higher
+   * `version`; a null that is not a newer version (or any request failure) keeps the current one.
+   * After the page has painted a new photo, POST /photos/viewer/receipt promotes it to "latest".
+   * Resolves to null when this browser is not the viewer (no host token / enrol refused). */
+  async function connectPhotoViewer(onChange) {
+    const cur = { photo: null, pending: false, version: -1 };
+    const emit = () => onChange({ photo: cur.photo, pending: cur.pending, version: cur.version });
+    const url = (u) => MOCK && !/^(https?:)?\//.test(u) ? mockUrl(u) : u;
+
+    // Take one state. Decode before swapping; discard a load that finishes after a newer version.
+    function take(st) {
+      if (!st || typeof st.version !== "number") return;
+      if (st.version < cur.version) return;
+      let changed = false;
+      if (!!st.pending !== cur.pending) { cur.pending = !!st.pending; changed = true; }
+      if (st.version > cur.version) {
+        const v = st.version, p = st.photo;
+        cur.version = v;
+        if (!p) { if (cur.photo) { cur.photo = null; changed = true; } }
+        else if (!cur.photo || cur.photo.photo_id !== p.photo_id) {
+          const img = new Image();
+          img.onload = () => {
+            if (cur.version !== v) return;                       // something newer landed while this loaded
+            cur.photo = Object.assign({}, p, { img, captured_at: p.captured_at || Date.now() / 1000 });
+            emit();
+            if (!MOCK) fetch("/photos/viewer/receipt", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ photo_id: p.photo_id, version: p.version }) }).catch(() => {});
+          };
+          img.src = url(p.image_url);                            // same-origin: the viewer cookie goes along
+          return changed ? emit() : undefined;                   // the current photo stays up until onload
+        }
+      }
+      if (changed) emit();
+    }
+
+    if (MOCK) {
+      // Fixture: steps of {after, version, photo|null, pending}; loops so the beat can be watched repeatedly.
+      const fx = await (await fetch(mockUrl("photo-state.json"), { cache: "no-store" })).json();
+      let base = 0, round = 0;
+      const run = () => {
+        let t = 0;
+        for (const step of fx.steps) {
+          t += step.after;
+          setTimeout(() => {
+            const st = Object.assign({}, step, { version: step.version + base });
+            if (st.photo) st.photo = Object.assign({}, st.photo, { version: st.version, photo_id: `${st.photo.photo_id}-${round}` });
+            take(st);
+          }, t);
+        }
+        if (fx.loop) setTimeout(() => { base += fx.steps.length; round++; run(); }, t);
+      };
+      run();
+      return { stop() {} };
+    }
+
+    const token = localStorage.getItem("tenant.host_token") || "";
+    if (!token) return null;
+    async function enrol() {
+      try {
+        const r = await fetch("/host/photos/viewer", { method: "POST", credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify({ viewer_id: "mac-main" }) });
+        return r.ok;
+      } catch (_) { return false; }
+    }
+    if (!await enrol()) return null;
+    let denied = 0, timer = null;
+    async function poll() {
+      try {
+        const r = await fetch("/photos/viewer/state", { credentials: "same-origin", cache: "no-store" });
+        if (r.status === 403) { if (++denied % 15 === 1) await enrol(); return; }   // cookie gone (viewer replaced / server restart): re-enrol, at most every 15 s
+        if (!r.ok) return;
+        denied = 0;
+        take(await r.json());
+      } catch (_) { /* transient: keep what is on screen */ }
+    }
+    poll(); timer = setInterval(poll, 1000);
+    return { stop() { clearInterval(timer); } };
   }
 
   /* ---------- guest chat ---------- */
@@ -313,5 +398,5 @@
     }
   }
 
-  window.Tenant = { MOCK, capWord, listWords, fmtClock, fmtTime, motif, ring, glyph, glyphKind, halftone, qrSvg, connectDisplay, connectGuest, leaveGuest, postJoin };
+  window.Tenant = { MOCK, capWord, listWords, fmtClock, fmtTime, motif, ring, glyph, glyphKind, halftone, qrSvg, connectDisplay, connectPhotoViewer, connectGuest, leaveGuest, postJoin };
 })();

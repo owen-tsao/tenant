@@ -101,6 +101,10 @@ def create_app(config=None, *, planner=None, log_path=None, state_path=None, con
     async def host_setup():
         return page('setup.html')
 
+    @app.get('/slides')
+    async def presentation():
+        return page('slides.html')
+
     # Owen's pages also work as root-level static files. Their relative asset
     # URLs need these exact aliases when served at the agreed /j and /g routes.
     @app.get('/j/shared.js')
