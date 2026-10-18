@@ -1,0 +1,129 @@
+{
+  "recorded_at_utc": "2026-10-18T04:11:18.875348+00:00",
+  "runtime_revision": "e4b84265a821b1741196fc25a8b8f069ca80d5f9",
+  "scope": "finite actual guest UI batch; no production changes/restart/deployment by tester",
+  "cases": {
+    "text_context_default": {
+      "result": "PASS",
+      "evidence": "juniper remembered; three text/Mac turns TEXT_DEFAULT, zero say"
+    },
+    "mac_create_open_revise": {
+      "result": "PASS",
+      "file": "/Users/jay/Documents/TenantDemo/tester-mac-cobalt-r2-20261017/room-note.md",
+      "sha256": "0dc20acca99089f8217a6d5777b92bf7466a669175bf2e223d41537e05a3c5ab",
+      "evidence": "exact saved bytes plus real running TextEdit window/path/text before and after heading-only revision; both body lines preserved"
+    },
+    "actual_recording": {
+      "result": "PASS within one smoke",
+      "artist": "Daniel Caesar",
+      "title": "CYANIDE",
+      "song_id": "daniel-caesar-cyanide-42b58460277a",
+      "source_url": "https://www.youtube.com/watch?v=Jnm3ukzmJe4",
+      "evidence": "owned selected_recording program/status, advancing mpv playhead; Jay directly confirmed hearing CYANIDE"
+    },
+    "conversation_during_music": {
+      "result": "PASS",
+      "evidence": "juniper contextual reply during same song; no generated backing beat requested"
+    },
+    "song_phone_timing": {
+      "result": "PASS perceived alignment within one smoke; calibrated phase UNVERIFIED",
+      "edges": 25,
+      "all_ack": "OK",
+      "recording_beat_numbers": [
+        36,
+        60
+      ],
+      "recording_positions_seconds": [
+        31.2192,
+        49.3308
+      ],
+      "dispatch_lateness_ms": [
+        0.076,
+        1.597
+      ],
+      "ack_round_trip_ms": [
+        46.782,
+        141.633
+      ],
+      "playhead_bracket_uncertainty_ms": [
+        0.504,
+        1.308
+      ],
+      "limit": "software/transport metrics do not measure optical/acoustic phase; Jay spontaneously observed alignment"
+    },
+    "independent_phone_off": {
+      "result": "OFF ACK PASS; music-continuation interval INTERRUPTED/NOT PASS",
+      "off_confirmed_epoch": 1792296469.559437,
+      "unexpected_song_pause_epoch": 1792296470.169935,
+      "program_stop_reason": "SONG_PAUSED"
+    },
+    "separate_music_stop": {
+      "result": "UNKNOWN additional helper attempt; NOT PASS",
+      "attempt_utc": "2026-10-18T04:08:03.314Z",
+      "result_utc": "2026-10-18T04:08:03.430Z",
+      "exit_code": 1,
+      "code": "UNKNOWN",
+      "dispatch_classification": "helper invoked; matching transport/device send unestablished; neither known UNSENT nor proven dispatched",
+      "retries": 0,
+      "prior_cleanup": "phone and audio confirmed before this additional attempt"
+    },
+    "native_terminal_failure_feedback": {
+      "result": "not artificially induced",
+      "evidence": "ordinary additional helper UNKNOWN was truthfully shown in guest UI; not an actual terminal-provider failure test"
+    },
+    "photo": {
+      "result": "BLOCKED",
+      "blocker": "Owen actual consent/capture/upload/viewer UI absent; no fake replacement"
+    },
+    "device_metadata_persistence": {
+      "result": "NOT RUN",
+      "reason": "Owen host metadata/awareness UI missing; backend fields alone not actual UI acceptance"
+    },
+    "photon_inbound": {
+      "result": "not repeated",
+      "reason": "prior inbound evidence retained; no paperwork-only duplication"
+    }
+  },
+  "physical_statements": [
+    {
+      "text": "i can hear cyanide :)",
+      "meaning": "audibility confirmation"
+    },
+    {
+      "text": "wait the beat of cyanide and the light aligned wow",
+      "meaning": "human perceived alignment, not measured phase"
+    },
+    {
+      "text": "its because i got a battery low on my headphones",
+      "meaning": "reported external battery event; software does not prove cause or observe route"
+    }
+  ],
+  "cleanup": {
+    "watchdog_seconds": 90,
+    "watchdog_fired": true,
+    "watchdog_fired_epoch": 1792296493.772135,
+    "http_status": 200,
+    "revoked": true,
+    "disarmed": false,
+    "leave_button_used": false,
+    "ui": "terminal ended; no guest displayed, both devices ready",
+    "post_watchdog_command_rows": 0,
+    "latest_confirmed_program_cleanup": "phone/audio confirmed at SONG_PAUSED before additional UNKNOWN",
+    "human_final_cleanup": "PASS \u2014 Jay: Yes, both are off/stopped",
+    "gate": "Root/held",
+    "test_lock": "released",
+    "physical_confirmed_at_utc": "2026-10-18T04:11:47.124566+00:00"
+  },
+  "limits": [
+    "no calibrated phase/reliability or actual program expiry claim",
+    "ordinary independent music stop remains interrupted/UNKNOWN; no automatic replay",
+    "no output/volume changes by tester; battery event not diagnosed as source defect",
+    "No further effects/retries; Audio owner read-only pause audit; any new trial requires coordinated release"
+  ],
+  "artifacts": [
+    "outputs/mac-note-created-e4b8426.png",
+    "outputs/mac-note-revised-e4b8426.png",
+    "outputs/cyanide-guest-ended-e4b8426.jpg",
+    "outputs/room-note.md"
+  ]
+}
