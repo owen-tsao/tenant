@@ -1,10 +1,32 @@
 # Tenant scope and channel alignment
 
-## Current policy — software checks resumed; live gate held
+## Current deployed status — Root report, supersedes older summaries
+
+Current deployed/source revision: `e294e66`. Root reports generic native app/browser discovery with96 focused software checks and independent Audio review. Do not sum this with overlapping earlier suites. The earlier e4b8426/761-check deployment entry below is historical, not the latest revision or a current aggregate count. This owner did not rerun checks or inspect the live deployment.
+
+Fresh ordinary-browser “Japanese Denim” playback was heard after delayed onset: bounded music PASS. The same guest used ordinary Stop/Leave; absence of the exact owned browser tab was verified. Stop response was about36s, so this is not a fast-stop/latency PASS. Reactive visual work remained failed/unperformed beyond the waiting capture; no successful reactive visual result is established.
+
+Photon: the sole LocalTester is preparing one real phone inbound. No Photon inbound/delivery PASS is claimed. Jay resumed E2E; LocalTester exclusively owns live cases, with no competing actions from planning/photo. Older paused/freeze/pending-integration status sections below are historical where superseded here. Product ideas are unchanged. Photo production/test files remain frozen unless Root assigns a concrete failure; no source/UI/tests/effects/research, staging or commits were performed for this notes-only update.
+
+## Latest product alignment — hypothesis only
+
+Jay sees broad potential but wants a simple demo. Familiar app categories are an idea source; novel apps, ordinary computer use and record/upload transformations alone do not establish the product's value. A swordfight-to-animation flow is weak if uploading a recording replaces it.
+
+Use this short screen: **live physical or shared-capability coordination that cannot be replaced by uploading a file or ordinary remote desktop.** The cheap-laptop room gateway is a moat candidate: supported local-network/connected capabilities can be exposed to remote agents through tools/MCP wrappers, with supported OS/API/protocol paths, permissions and verified target identity/behavior. Connection alone creates no protocol; MCP creates no universal device support. No established moat/current universal compatibility or model independence is claimed.
+
+The six-category idea map in demo-ideas.md is bounded ideation only. Root may publish these thoughts to Owen. No broad research, installs, integrations, new device/code/UI work, tests or physical actions were initiated; the photo source freeze and Root/Tester live-gate ownership remain unchanged.
+
+## Historical deployment status — e4b8426
+
+Jay explicitly resumed E2E. Root reports combined revision `e4b8426` published with761 Python+12 Node checks and independent exact-map review, then deployed Brain and audio while the room was quiet. Room8157, the current phone and Mac survived; song capabilities are live. These are Root-attributed results, not checks rerun by this owner. LocalTester exclusively owns finite actual-UI/live cases; planning/photo issues no competing actions or broad duplicate tests.
+
+Device backend state/API is live; optional dashboard presentation remains Owen's work. Root's current web inspection found photo consent, capture/upload and authenticated viewer UI absent. Photo physical E2E is therefore OWEN-BLOCKED, not passed or attempted by this owner; the exact handoff has been reposted by Root. The source/test freeze remains in force unless a concrete failure is assigned. No source edits, service changes or live effects were made for this status update. Earlier live-pause and central-integration-pending summaries below are historical and superseded by this update where applicable.
+
+## Historical testing policy — earlier live pause
 
 Jay permits implementation and software unit/component/isolated integration checks using fakes, temporary files and stubbed model/device transports. End-to-end/live trials, public UI/chat, actual models/camera/devices/outputs, deployed-service experiments, restarts and deployment remain PAUSED. Root holds the live gate. Earlier all-testing-paused sections below are historical and superseded by this policy. No staging/commits while sharing checkout.
 
-## Current override — photo implementation authorized; testing paused
+## Historical override — photo implementation authorized during testing pause
 
 Jay authorized this specific photo backend/UI feature for parallel implementation, superseding older photo-planning gates below. Backend modules/routes are implemented separately; central device/native/lifecycle integration and Owen UI remain pending. Physical release is unaccepted. Exact source/evidence/progress: notes/photo-handoff.md.
 

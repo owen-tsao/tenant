@@ -1,8 +1,22 @@
 # Device runtime — local Mac owner
 
-## Device-awareness candidate — FROZEN SOFTWARE PASS, not deployed
+## Current deployed status — Root reported
 
-Jay resumed software work only. **All end-to-end/live/public UI/real model-room/deployed-service/device/camera/music testing remains paused; Root holds the live gate.** No service restart, deployment, live effect, staging or commit was performed. Independent bounded diagnostic, queue and freeze reviewers were used.
+Root reports deployed source `e294e66`, including the generic native Mac/browser discovery correction. This revision has **96 focused software checks** and an independent Audio review against exact source hashes. These are separate validation reports; no overlapping counts are added. This owner has not rerun checks or independently redeployed this revision.
+
+Root reports a fresh browser Japanese Denim **PASS**: Jay heard playback after an onset delay, the ordinary Stop reply took roughly36 seconds, normal Leave completed, and the owned browser tab was confirmed absent. The phone was not exercised in that browser case. Tester is currently preparing one real-phone Photon inbound case; no outcome is claimed yet.
+
+The projector remains blocked on physical power: its power adapter has not been located and its electrical rating is unknown. Wall projection is unconfirmed. The Mac-side path was separately verified as external extended, built-in main, both mirror-off, with the dedicated public Tenant window preserved externally; this does not establish projector power or wall-image acceptance.
+
+Root coordinates live gates and Tester owns the authorized live cases. This owner's production/tests remain frozen unless a concrete failure is assigned. This update changes only this notes file for Root publication: no source/test, effect, service or UI action and no rerun. The source-handoff snapshots, pause statements, manifests and test counts below are historical evidence, not current deployed status.
+
+### Earlier rollout checkpoint — historical
+
+Before the current revision, Root reported combined `e4b8426` published after761 Python+12 Node checks and independent exact-map review, then Brain+audio deployed while the room was quiet. Room8157/current phone/Mac survived, and song capabilities and device backend state/API were reported live. These were Root's rollout attestations at that checkpoint, not a current test or deployment verification by this owner. Optional device UI was Owen-owned; photo consent/capture/upload/authenticated-viewer UI was then absent per Root inspection, so physical photo acceptance was then Owen-blocked. These historical assertions do not supersede later case-specific evidence.
+
+## Historical device-awareness source handoff — frozen before Root rollout
+
+At this historical source-handoff checkpoint, Jay had resumed software work only. **End-to-end/live/public UI/real model-room/deployed-service/device/camera/music testing was paused and Root held the live gate at that time.** No service restart, deployment, live effect, staging or commit was performed by this owner at that checkpoint. Independent bounded diagnostic, queue and freeze reviewers were used.
 
 Final immutable `validation4` passes **710 Python tests +16 explicit metadata wiring/queue checks**, zero failures/errors/skips. The12 Node checks passed on the identical phone runtime/test hashes; no unnecessary rerun after the speech-only patch. Independent final reviewer `/root/device_awareness_final_review` passed **68 targeted checks** (28 metadata,8 wiring,8 queue/scheduling,24 existing speech/voice), found no remaining actionable issues, and matched all137 validation hashes. Full-map canonical digest: `1b730f941a2f4369bf78ed4e32877706f788f6a58ec7ce2b1f0679a1b69d8b04`. Exact full source map, changed-source map, commands' results/limits and failure history are in `tests/evidence/2026-10-17-device-awareness.json`.
 

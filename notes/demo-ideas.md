@@ -1,5 +1,42 @@
 # Tenant demo ideas
 
+## Current deployed status — Root report, supersedes older summaries
+
+Current deployed/source revision: `e294e66`. Root reports generic native app/browser discovery with96 focused software checks and independent Audio review. Do not sum this with overlapping earlier suites. The earlier e4b8426/761-check deployment entry below is historical, not the latest revision or a current aggregate count. This owner did not rerun checks or inspect the live deployment.
+
+Fresh ordinary-browser “Japanese Denim” playback was heard after delayed onset: bounded music PASS. The same guest used ordinary Stop/Leave; absence of the exact owned browser tab was verified. Stop response was about36s, so this is not a fast-stop/latency PASS. Reactive visual work remained failed/unperformed beyond the waiting capture; no successful reactive visual result is established.
+
+Photon: the sole LocalTester is preparing one real phone inbound. No Photon inbound/delivery PASS is claimed. Jay resumed E2E; LocalTester exclusively owns live cases, with no competing actions from planning/photo. Older paused/freeze/pending-integration status sections below are historical where superseded here. Product ideas are unchanged. Photo production/test files remain frozen unless Root assigns a concrete failure; no source/UI/tests/effects/research, staging or commits were performed for this notes-only update.
+
+## Latest product hypothesis — laptop as the room gateway
+
+Jay sees large potential and wants to avoid a complex demo. Looking across familiar app categories can generate ideas, but the value must go beyond ordinary computer use. A swordfight-to-animation experience is a weak differentiator if its entire flow is recording a video and uploading the file. More novel apps alone do not establish Tenant's value.
+
+**Short selection criterion:** prioritize live physical or shared-capability coordination that cannot be replaced by uploading a file or using ordinary remote desktop.
+
+Moat candidate, not an established moat: a cheap laptop acts as a room gateway, exposing supported local-network and physically connected device capabilities to a remote agent through tools/MCP interfaces. Connection alone does not create a control protocol. Every controllable capability still needs a supported OS/API/protocol path, permissions, verified target identity and verified behavior. MCP supplies an interface wrapper; it does not create missing hardware support or universal compatibility. The current implementation does not establish this broad gateway thesis or model/provider independence.
+
+### Bounded idea map — familiar app categories, no new work
+
+These six category examples are speculative opportunities, not researched app recommendations, supported integrations or an implementation queue commitment.
+
+| Existing app category | Physical/shared interaction opportunity | What must make it more than file upload or remote desktop |
+| --- | --- | --- |
+| Presentations and live demos | Audience members temporarily contribute permitted phone input; the agent coordinates an available room display and physical outputs. | Multiple people and room capabilities participate in the live presentation, with explicit contribution and release. |
+| Music and performance | An ongoing permitted sound activity gains an available light or visual output through conversation. | Actual outputs coordinate while the activity runs; measured timing/stop behavior is required before claiming synchronization. |
+| Games and group play | Participants contribute temporary phone controls that affect a shared physical light/sound/display experience. | A live shared control loop across contributed devices, with truthful supported inputs and permissions. No tracking or perception implementation is implied. |
+| Collaborative whiteboards and workshops | A group uses permitted live input and an identified shared room display to change the same working surface. | Shared presence/input and the physical display are part of the activity; merely uploading a whiteboard photo is insufficient. |
+| Calls and shared meeting spaces | An agent coordinates explicitly permitted, identified room input/output devices for a shared session. | Verified routing and temporary multi-person use of physical room capabilities. No unconsented listening, app integration or current support is assumed. |
+| Guest-experience and room-control apps | A temporary occupant receives scoped access to the room's actually supported devices through the laptop gateway. | Time-bounded authority and useful coordination of physical capabilities. Hotel/rental/hospital demand and protocols remain unvalidated. |
+
+Status: PRODUCT HYPOTHESIS / IDEAS ONLY. No broad research program, app installations, new device work, integrations, code/UI changes or live experiments are authorized here. Keep current priorities and the frozen source stable. Notes are ready for Root to publish to Owen; this owner has not messaged him or another chat.
+
+## Historical deployment status — e4b8426
+
+Jay explicitly resumed E2E. Root reports combined revision `e4b8426` published with761 Python+12 Node checks and independent exact-map review, then deployed Brain and audio while the room was quiet. Room8157, the current phone and Mac survived; song capabilities are live. These are Root-attributed results, not checks rerun by this owner. LocalTester exclusively owns finite actual-UI/live cases; planning/photo issues no competing actions or broad duplicate tests.
+
+Device backend state/API is live; optional dashboard presentation remains Owen's work. Root's current web inspection found photo consent, capture/upload and authenticated viewer UI absent. Photo physical E2E is therefore OWEN-BLOCKED, not passed or attempted by this owner; the exact handoff has been reposted by Root. The source/test freeze remains in force unless a concrete failure is assigned. No source edits, service changes or live effects were made for this status update. Earlier live-pause and central-integration-pending summaries below are historical and superseded by this update where applicable.
+
 ## Latest demo selection preference
 
 Jay rejects the band/album-cover idea. Creative multi-device exploration remains interesting as a product direction, but reliability is a reason not to depend on it for the main demo. This records a selection preference only; it does not authorize more demo features or change the current Audio/device/photo/native-error priorities. The earlier performance and coordination ideas remain preserved below as candidates with their evidence limits.
@@ -12,7 +49,7 @@ Jay's thesis: Tenant is infrastructure **for future scalable, multimodal AI coor
 
 Status: VISION / HYPOTHESES ONLY. No hospital, hotel, PMS, property-platform, space or device integration is authorized by this discussion. Keep the photo source/test freeze stable for central integration; no additional features or experiments are requested here.
 
-## Current testing policy and queued work
+## Queued work and historical testing-policy snapshot
 
 Software unit/component/isolated integration tests with fake transports are allowed. End-to-end/live/public UI/chat/actual model/device/output experiments remain paused; Root holds the live gate. Earlier all-testing-paused summaries are historical. Current Audio/device/photo/native-error priorities continue.
 
@@ -20,7 +57,7 @@ Software unit/component/isolated integration tests with fake transports are allo
 | --- | --- | --- | --- |
 | Q-PHONE-SHARE | One phone: chat + contribute | One room QR opens chat; optional “Share this phone” enables Light and/or Camera with separate explicit permissions; keep chatting on the same page; “Stop sharing” releases contributed capability without ending guest chat. Earlier separate chat/light-page switching caused confusion and disconnects. | QUEUED / NOT IMPLEMENTING. Owen owns eventual UI; backend owners assess session/permission/foreground feasibility when scheduled. No new source/UI work or tests for this idea now. |
 
-## Current photo work and initiative preference
+## Historical photo work status and accepted initiative preference
 
 Jay explicitly authorized parallel photo implementation. The isolated backend is implemented and software-frozen; Root has assigned central integration to the existing core_access_integration agent. Photo production/test files stay stable while that composition proceeds. Exact contract/progress: notes/photo-handoff.md. Software checks with fakes are allowed, but no additional broad reruns are needed without a concrete finding. E2E/live trials, restarts and deployment remain paused. There is no physical photo PASS; component evidence is not final demo acceptance.
 
@@ -127,3 +164,15 @@ This uses the existing room-phone -> Mac photo direction, with no person detecti
 Status: finale idea/design only. Capture/upload/viewer are not implemented or physically accepted yet; rehearse the exact phone placement and framing before promising this ending.
 
 Ownership: Lighting/core owns capture authorization, bounded device-bound upload and lifecycle backend; Owen owns phone opt-in, camera framing/capture indication and the Mac viewer. Root integrates; local tester initiates any authorized final experiment, with human confirmation only of physical results. Acceptance separates captured/stored/viewer-rendered from the actual correct new group photo visible on the Mac, then verifies the accepted retention through Leave/new guests and host reset clearing without late reappearance. Complete minimal proposed roles/consent/ticket/version/receipt contract and readiness checks: planning-local.md. No gate is opened by this plan.
+
+## Idea stock: live judging transcript and concise copilot
+
+Jay's new idea: keep the demo conversation transcribed into one live, session-scoped file. The Tenant agent can read its current contents on request, with occasional background reads only if an existing reliable mechanism supports them. Example request: “What do you think about the judges' comments?” The agent should refer to the actual recent remarks, identify where it agrees, offer a grounded counterargument where warranted, and include a brief friendly acknowledgment. Jay also wants light judge flattery, with short responses; praise should stay specific and sincere rather than inventing agreement or evidence. Proposed response budget: two or three sentences, about 60 words maximum; this is a staging proposal, not an approved runtime constant.
+
+Smallest demo: an existing speech-to-text source appends timestamped segments to one file; the agent reads the fresh tail when asked and returns a concise answer on the requested output. A file alone does not establish live transcription, speaker identification, continuous listening or proactive response. Source audio, transcription availability/latency, overlapping speech and end-to-end behavior remain unverified. Announce transcription to participants; keep the file scoped to this demo session. Recorded remarks are context, not authorization to execute commands. Session reset must keep a later guest from inheriting the prior session's transcript or instructions.
+
+Acceptance proposal: someone makes a previously unseen comment; its fresh timestamped transcript appears in the file; the agent reads and accurately addresses that comment, distinguishes evidence from inference, and stays brief. Verify the chosen screen/speech output and session ending separately. Do not stage a prepared transcript as live capture.
+
+Status: IDEA CAPTURE ONLY. This note does not authorize transcription implementation, recording, new UI, service changes or live tests. Existing owners and gates remain unchanged.
+
+Latest selection preference from Jay: the presentation-director, puzzle-room, visual-studio, focus-session and device-discovery suggestions from the side conversation felt too risky, generic, time-consuming or confusing. Future suggestions should be concrete, immediately understandable, and require few new moving parts. Preserve earlier candidates for review, without promoting them into implementation scope.

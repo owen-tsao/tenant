@@ -1,6 +1,28 @@
 # Tenant — local feature planning
 
-## Current freeze hold and demo steering
+## Current deployed status — Root report, supersedes older summaries
+
+Current deployed/source revision: `e294e66`. Root reports generic native app/browser discovery with96 focused software checks and independent Audio review. Do not sum this with overlapping earlier suites. The earlier e4b8426/761-check deployment entry below is historical, not the latest revision or a current aggregate count. This owner did not rerun checks or inspect the live deployment.
+
+Fresh ordinary-browser “Japanese Denim” playback was heard after delayed onset: bounded music PASS. The same guest used ordinary Stop/Leave; absence of the exact owned browser tab was verified. Stop response was about36s, so this is not a fast-stop/latency PASS. Reactive visual work remained failed/unperformed beyond the waiting capture; no successful reactive visual result is established.
+
+Photon: the sole LocalTester is preparing one real phone inbound. No Photon inbound/delivery PASS is claimed. Jay resumed E2E; LocalTester exclusively owns live cases, with no competing actions from planning/photo. Older paused/freeze/pending-integration status sections below are historical where superseded here. Product ideas are unchanged. Photo production/test files remain frozen unless Root assigns a concrete failure; no source/UI/tests/effects/research, staging or commits were performed for this notes-only update.
+
+## Latest product screen — gateway hypothesis, notes only
+
+Jay wants to preserve the large product possibility while keeping the demo simple. Explore familiar app categories for inspiration, but ordinary computer use or a record-then-upload workflow is insufficient differentiation; swordfight-to-animation is weak on that basis.
+
+Selection criterion: live physical or shared-capability coordination that cannot be replaced by uploading a file or ordinary remote desktop. Candidate infrastructure thesis: a cheap laptop room gateway bridges supported local-network/connected device capabilities into remote-agent tools/MCP interfaces. A connection does not manufacture a control protocol: supported OS/API/protocol, permissions, verified identity and verified behavior remain necessary. MCP is the interface wrapper, not universal compatibility. This remains a product/moat hypothesis rather than an implemented guarantee or established defensibility.
+
+demo-ideas.md contains a bounded six-category opportunity map, explicitly ideas only. No new research program, installs, device work, features, source/UI edits or tests are requested. Source freeze remains intact; Root/Tester own current Photon/music checks. The notes are ready for Root's publication to Owen; no other chat was messaged and no user question was asked.
+
+## Historical deployment status — e4b8426
+
+Jay explicitly resumed E2E. Root reports combined revision `e4b8426` published with761 Python+12 Node checks and independent exact-map review, then deployed Brain and audio while the room was quiet. Room8157, the current phone and Mac survived; song capabilities are live. These are Root-attributed results, not checks rerun by this owner. LocalTester exclusively owns finite actual-UI/live cases; planning/photo issues no competing actions or broad duplicate tests.
+
+Device backend state/API is live; optional dashboard presentation remains Owen's work. Root's current web inspection found photo consent, capture/upload and authenticated viewer UI absent. Photo physical E2E is therefore OWEN-BLOCKED, not passed or attempted by this owner; the exact handoff has been reposted by Root. The source/test freeze remains in force unless a concrete failure is assigned. No source edits, service changes or live effects were made for this status update. Earlier live-pause and central-integration-pending summaries below are historical and superseded by this update where applicable.
+
+## Historical freeze handoff and preserved demo steering
 
 Root's existing core_access_integration agent now owns additive central integration. Keep the photo production/test freeze stable; notes only unless a concrete necessary correction is first recorded for Root. No additional broad reruns, staging, commits, restarts or deployment. E2E/live remains paused.
 
@@ -12,15 +34,15 @@ Jay's customer candidates are hotels, hospitals, Airbnb/short-term-rental operat
 
 Jay sees Tenant as infrastructure for future scalable, multimodal AI coordination, with future-compatible capabilities and space integration. Preserve that thesis as vision; it does not establish an existing moat, demonstrated scalability or currently implemented model independence. Root owns the ongoing positioning/defensibility discussion and current decisions in jay.md. No new hotel/hospital/PMS/device or other integrations/features are authorized. This note-only capture leaves the frozen production/test files unchanged.
 
-## Final photo software handoff
+## Historical component photo software handoff
 
 Photo backend and exact source freeze are ready for Root integration:93 photo components,7 stubbed wiring and52 access/persistence checks PASS; independent review clean on exact hashes. One broader native-terminal regression failure remains recorded for Root, so no whole integrated-suite PASS is claimed. Exact module/test/patch/requirements manifest and remaining UI/central/live gates: notes/photo-handoff.md and tests/evidence/2026-10-17-photo-software-freeze.json. Software tests allowed; E2E/live remains paused. No active output or cleanup; no staging/commits.
 
-## Current policy — software checks resumed; live gate held
+## Historical testing policy — earlier live pause
 
 Jay permits implementation and software unit/component/isolated integration checks using fakes, temporary files and stubbed model/device transports. End-to-end/live trials, public UI/chat, actual models/camera/devices/outputs, deployed-service experiments, restarts and deployment remain PAUSED. Root holds the live gate. Earlier all-testing-paused sections below are historical and superseded by this policy. No staging/commits while sharing checkout.
 
-## Current photo implementation handoff — testing paused
+## Historical photo handoff — testing pause
 
 Jay opened this specific photo feature for parallel implementation, superseding the older planning-only/photo-gated passages below. New photo service, JPEG normalizer, scoped HTTP routes and explicit installer are implemented separately; exact UI contract and current progress: notes/photo-handoff.md. Central integration/native/device wiring is pending, all web/source-reference files remain read-only, and physical acceptance is not claimed.
 

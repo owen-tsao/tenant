@@ -1,10 +1,24 @@
 # Photo backend → Root / Owen handoff
 
-## Freeze hold for central composition
+## Current deployed status — Root report, supersedes older summaries
+
+Current deployed/source revision: `e294e66`. Root reports generic native app/browser discovery with96 focused software checks and independent Audio review. Do not sum this with overlapping earlier suites. The earlier e4b8426/761-check deployment entry below is historical, not the latest revision or a current aggregate count. This owner did not rerun checks or inspect the live deployment.
+
+Fresh ordinary-browser “Japanese Denim” playback was heard after delayed onset: bounded music PASS. The same guest used ordinary Stop/Leave; absence of the exact owned browser tab was verified. Stop response was about36s, so this is not a fast-stop/latency PASS. Reactive visual work remained failed/unperformed beyond the waiting capture; no successful reactive visual result is established.
+
+Photon: the sole LocalTester is preparing one real phone inbound. No Photon inbound/delivery PASS is claimed. Jay resumed E2E; LocalTester exclusively owns live cases, with no competing actions from planning/photo. Older paused/freeze/pending-integration status sections below are historical where superseded here. Product ideas are unchanged. Photo production/test files remain frozen unless Root assigns a concrete failure; no source/UI/tests/effects/research, staging or commits were performed for this notes-only update.
+
+## Historical deployment status — e4b8426
+
+Jay explicitly resumed E2E. Root reports combined revision `e4b8426` published with761 Python+12 Node checks and independent exact-map review, then deployed Brain and audio while the room was quiet. Room8157, the current phone and Mac survived; song capabilities are live. These are Root-attributed results, not checks rerun by this owner. LocalTester exclusively owns finite actual-UI/live cases; planning/photo issues no competing actions or broad duplicate tests.
+
+Device backend state/API is live; optional dashboard presentation remains Owen's work. Root's current web inspection found photo consent, capture/upload and authenticated viewer UI absent. Photo physical E2E is therefore OWEN-BLOCKED, not passed or attempted by this owner; the exact handoff has been reposted by Root. The source/test freeze remains in force unless a concrete failure is assigned. No source edits, service changes or live effects were made for this status update. Earlier live-pause and central-integration-pending summaries below are historical and superseded by this update where applicable.
+
+## Historical freeze hold for central composition
 
 Root assigned additive central software integration to the existing core_access_integration agent. This owner holds all frozen production/test/requirements/patch files stable; notes may be updated. No additional broad reruns without a concrete new finding. Any necessary correction must first be recorded here for Root before editing an overlapping file. Software checks with fakes remain permitted; all E2E/live work, deployment and restarts remain paused. No new source changes or tests were made for this handoff.
 
-## Final software freeze — ready for Root integration, live gate held
+## Historical component software freeze — before central integration
 
 Software checks are resumed; live/E2E/public UI/chat/actual model/device/camera/output/deployed-service experiments, restarts and deployment remain paused. This summary supersedes historical pause/pending-status sections below. No photo operation was sent to the live room. No active output/test guest or cleanup exists from this owner. No staging/commits.
 
@@ -33,13 +47,13 @@ Remaining: Root central integration and final combined software gate, dependency
 
 ## Historical work log and published contract
 
-## Current policy — software checks resumed; live gate held
+## Historical testing policy — earlier live pause
 
 Jay permits implementation and software unit/component/isolated integration checks using fakes, temporary files and stubbed model/device transports. End-to-end/live trials, public UI/chat, actual models/camera/devices/outputs, deployed-service experiments, restarts and deployment remain PAUSED. Root holds the live gate. Earlier all-testing-paused sections below are historical and superseded by this policy. No staging/commits while sharing checkout.
 
 Device Runtime coordination resolved in the final software-only composition: the real installer binds `metadata.camera_ready = photos.camera_ready`, and the photo owner's direct service fixture now binds the same callback. The old optional runtime lambda patch has been withdrawn/deleted. Final immutable runtime validation4 passes710 Python tests plus16 explicit wiring/queue checks; this includes the current photo source and nonnegative viewer-age correction. Root still must merge the unapplied central hooks; physical/UI acceptance remains paused and unclaimed. Exact source/hash/result record: tests/evidence/2026-10-17-device-awareness.json.
 
-## Current handoff — TESTING PAUSED by Jay
+## Historical handoff — full testing pause
 
 Jay explicitly paused all testing after the completed evidence below. No live/UI/device/audio trials, automated runs, new cases, retries, deployment or service restart until Jay resumes. All owned review/test agents were notified. Implementation/read-only review may continue. No test, guest, output or cleanup is active from this owner; all completed tests used fake I/O and closed their local contexts.
 

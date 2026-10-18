@@ -1,0 +1,107 @@
+{
+  "case": "Fresh browser music and ordinary Stop retest",
+  "revision": "e294e66f9319c239cd452797d25e7552416a94a6",
+  "guest_id": "0c7233a7-238d-40e0-a70b-b7ddb4c64abd",
+  "requests": [
+    "Play Japanese Denim by Daniel Caesar in the browser.",
+    "Stop the music."
+  ],
+  "replies": [
+    "Playing \u201cJapanese Denim\u201d by Daniel Caesar in the browser.",
+    "Stopped the music."
+  ],
+  "turns": [
+    "01a14dbf-5530-70a2-b7fa-1673a41c9bf7",
+    "01a14dc0-43ca-7850-9af2-e2b0f11178dd"
+  ],
+  "source": {
+    "url": "https://www.youtube.com/watch?v=FG2PgVl0Nlc",
+    "uploader": "Beautiful.co.il reupload",
+    "duration": 271.001,
+    "autoplay": "off",
+    "ui_volume": 15
+  },
+  "output_readonly": {
+    "default": "Bose NC700 HP",
+    "channels_scalar": 0.5590551,
+    "muted": false,
+    "changed": false
+  },
+  "samples": [
+    {
+      "at": 1792305803.022,
+      "media": [
+        {
+          "currentTime": 24.779191,
+          "duration": 271.001,
+          "ended": false,
+          "muted": false,
+          "paused": false,
+          "readyState": 4
+        }
+      ]
+    },
+    {
+      "at": 1792305808.242,
+      "media": [
+        {
+          "currentTime": 29.986864,
+          "duration": 271.001,
+          "ended": false,
+          "muted": false,
+          "paused": false,
+          "readyState": 4
+        }
+      ]
+    },
+    {
+      "at": 1792305830.658,
+      "media": [
+        {
+          "currentTime": 52.443675,
+          "duration": 271.001,
+          "ended": false,
+          "muted": false,
+          "paused": false,
+          "readyState": 4
+        }
+      ]
+    }
+  ],
+  "physical_feedback": [
+    "No, I can\u2019t hear it",
+    "i can hear it",
+    "now",
+    "Yes, it stopped",
+    "my bad it was delayed"
+  ],
+  "audibility": "Confirmed after delayed onset; cause unknown",
+  "ordinary_stop": {
+    "requested": 1792305808.3563619,
+    "reply": 1792305844.431966,
+    "native_action": "Chrome UI fallback, then close owned song tab via super+w",
+    "independent_verification": "Owned song tab2003400997 absent in fresh tab inventory, confirmed again after Leave",
+    "parent_playback_control": "none",
+    "physical_stopped": "yes"
+  },
+  "guest_leave": 1792305855.295548,
+  "final_guest_state": "access ended, composer disabled",
+  "watchdog": {
+    "armed": 1792305739.718708,
+    "max_seconds": 300,
+    "disarmed": 1792305861.578377,
+    "fired": false
+  },
+  "result": "PASS audible finite song + ordinary Stop + normal Leave; delayed audibility and roughly36s Stop response are observed limitations",
+  "photon_preflight": {
+    "enrollment": false,
+    "send": false,
+    "private_endpoint_matches_assignment": true,
+    "messages_configured_phone_matches_expected_handle": false,
+    "messages_default_sender_matches_expected_handle": false,
+    "comparison": "Both phone numbers 11digits; country-code normalization still unequal",
+    "account_changes": false,
+    "block": "Existing Mac Messages sender does not match validated Photon guest identity; Root coordinating next action",
+    "native_observation_note": "Subsequent Messages AX/close observation timed out twice; no login/account/default modifications"
+  }
+}
