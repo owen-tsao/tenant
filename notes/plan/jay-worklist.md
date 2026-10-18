@@ -2,7 +2,7 @@
 
 You own everything that makes Tenant *work*: the FastAPI Brain (registry, leases, bus, agent loop, Photon channel, host console), the phone device page's JavaScript, the laptop `osascript` agent, and hosting. Owen owns everything a human *looks at* (join/guest/display pages, styling, slides, video, Devpost). The seam between you is the wire protocol in `ARCHITECTURE.md` §3–§5 — build to it exactly; Owen's pages are coded against those frames in parallel using a mock.
 
-Read first: `ARCHITECTURE.md` (all of it — it is the spec), then `PLAN.md` §1–§3 and §9 (what, scope, kill conditions). Everything below references section numbers from `ARCHITECTURE.md`.
+Read first: `../../ARCHITECTURE.md` (all of it — it is the spec), then `PLAN.md` §1–§3 and §9 (what, scope, kill conditions). Everything below references section numbers from `ARCHITECTURE.md`.
 
 ## What you own
 

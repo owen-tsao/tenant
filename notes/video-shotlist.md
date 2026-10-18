@@ -1,85 +1,76 @@
-# Video — two halves, one film
+# Video — one iPhone take, one Screen Studio take, joined
 
-Hard facts (verified on the Hacker Guide 18:45): the video is a recording of the 3-minute presentation, uploaded to Devpost by **10:00 AM Sunday**; no video → not judged. Target **2:40**, hard cap 3:00.
+Decided Owen 02:35 Sun. Supersedes the two-half / Remotion plan. Hard facts (Hacker Guide): the video is a recording of the 3-minute presentation, uploaded to Devpost by **10:00 AM Sunday**; no video → not judged. Target **2:45**, hard cap 3:00.
 
-Structure: **Half 1 (0:00–1:20) is live iPhone footage of the real table demo.** **Half 2 (1:20–2:40) is built**, the way the Antibody demo was: Playwright captures our real pages, Remotion lays every shot (including the live footage) into one composition with the same captions, wallpaper, cards and easing as the deck. One film, one look, no "and now a screen recording" seam.
+Structure: **Clip 1 (0:00–1:20) is iPhone camera footage of the real table demo.** **Clip 2 (1:20–2:45) is one continuous Screen Studio recording** of slides → setup → display → end card, narrated live. Joined in QuickTime Player (Add Clip to End). No Remotion, no Playwright, no new dependencies.
 
-Style reference: `/Users/owentsao/Coreweave Hacks/docs/DEMO_VIDEO.md` and `video/`. What we take: framed window on a blurred wallpaper with a deep shadow; bold + grey caption pairs above the window; at most one slow push-in per shot; 300 ms dissolves; statement and one-number cards between UI shots; nothing scrolls on camera; music only under the built half, ducked under speech. What we change: black → plum `#1a1523`; the wallpaper is the deck's dithered wireframe room (`deck-stage.js`), blurred and dimmed; Inter Tight 800 for cards; pink `#f0a8e0` is the only colour and means "live".
+## Clip 1 — iPhone, 0:00–1:20
 
-## Half 1 — live (0:00–1:20)
+Landscape, propped, 1080p60, TV + both device phones + the judge's hands in frame. One take, three attempts, pick the best. Nothing is cued off-camera; if the Brain needs help, stop the take.
 
-Shot on an iPhone, landscape, propped, 1080p60. One continuous take; we cut it into beats in the edit. Setup checklist is unchanged from the previous version of this file (bottom of doc).
+| Time | On camera |
+|---|---|
+| 0:00 | Wide shot. Owen: "Picture a hospital bed at 2 AM. The switch is on the wall, the nurse is three rooms away. Here's the card on the bedside table." |
+| 0:10 | Guest scans the printed card → **Chat here** → the TV shows the guest, lease ring starts |
+| 0:20 | "turn on a light" → Owen's phone torch on |
+| 0:32 | "play Cyanide" → the speaker |
+| 0:44 | "say out loud: I need some help in here" → the TV speaker says it |
+| 0:56 | "leave" → then "turn off the light" → refused, torch stays on. Owen: "Same phone, same request. The light was never theirs to turn off." |
+| 1:08 | Owen presses **R**: torch off, music stops, code rotates. "One key. The next patient gets a clean room." |
+| 1:15 | Photo finale **only if** one real photo landed on the TV at the 8:30 rehearsal |
 
-| Time | On camera | Caption (bold / grey) | Audio |
+Upload the raw best take to Drive immediately as the no-edit fallback.
+
+## Clip 2 — Screen Studio, 1:20–2:45, one recording
+
+Record **immediately after the iPhone take, before anyone resets the room again**, so the display at the end shows the real ledger from the demo. Laptop 1440×900, Chrome full screen, tabs pre-opened in order; move between them with ⌘-Shift-]. Mic on; Owen narrates as he goes.
+
+| Time | Tab | Do | Say |
 |---|---|---|---|
-| 0:00 | Title card (built): mark + "Tenant" on the wireframe room. 4 s. | Tenant / Borrow the room. Leave, and it forgets you. | music in |
-| 0:04 | Wide: Mac on `display.html` (nobody here), two phones, the printed card. | Picture a hospital bed at 2 AM. / The light switch is on the wall. The nurse is three rooms away. | Owen VO |
-| 0:14 | Guest's hands: scans the card → join page → **Chat here**. Cut-in: the display's pink guest block appears, countdown starts. | No app. No account. / A ten-minute lease on this room's devices. | VO |
-| 0:26 | Guest types "turn on a light". **Torch comes on.** Cut-in 2 s: the chat reply. | "Light's on. Owen's phone." / The room picked the device that could do it. | room audio |
-| 0:38 | "play something calm" → music from the speaker. Display ledger logs the sentence. | Everything is a sentence. / Nothing is a terminal. | room audio |
-| 0:48 | "say the nurse is on her way" → the Mac speaks it. | The room can talk to someone else. / Not just to you. | Mac voice |
-| 0:58 | "leave" → display: guest gone, lease ended. Then "turn off the light" → denial. **Torch stays on.** | Same phone. Same request. Refused. / The light was never theirs to turn off. | VO |
-| 1:12 | Host presses reset: torch off, music stops, code rotates on the display. | One key. / The next patient gets a clean room. | VO |
+| 1:20 | `slides.html` slide 1 | | "That's Tenant. A guest borrows a room's devices by talking to it. No app, no account." |
+| 1:28 | slide 2 | → | "Rooms you don't own still make you download something." |
+| 1:36 | slide 3 | → | "You scan a card, you ask like a person, the room does it." |
+| 1:44 | slide 4 | → (countdown, then the invert) | "Access is a lease. Ten minutes, a fixed set of devices, checked at the moment you ask. Leave and it's gone." |
+| 1:54 | slide 5 | hold 3 s | "Scan this and you're in." |
+| 1:58 | `setup.html` step 1 | type the room name | "Here's the host's side. Name the room." |
+| 2:06 | step 2 | devices appear as they connect | "Plug a device in; it announces what it can do. Two phones and the Mac." |
+| 2:16 | step 3 | the printable card | "Print the card. That's the whole install." |
+| 2:24 | `display.html` | hover the guest block, then the ledger; **never scroll** | "And the host watches it all in sentences. There's the light, the song, the request the room refused, the reset." |
+| 2:38 | `brand.html?v=wide` | hold 6 s | "Tenant. Leave, and it forgets you." |
+| 2:45 | | stop | |
 
-Rule: nothing is cued off-camera. If the Brain needs help, stop the take.
+Real vs mock: all three pages against the **real Brain** (Jay's tunnel URL) if it is up; the real ledger is the payoff. Fallback if the Brain is down: `?mock=1` on all three and drop the "there's the light, the song" line.
 
-## Half 2 — built (1:20–2:40)
+Screen Studio: background `#1a1523`, window padding on, auto-zoom on clicks, cursor smoothing, 1080p export, mic audio in. Music: none, or a quiet bed under Clip 2 only if time allows.
 
-Captures are the real pages against `?mock=1` fixtures (the same ones the judge-facing pages were built on) unless marked LIVE. Every number is one we can defend; the *Proof* column says where.
+## Assembly (10 min)
 
-| # | Time | Type | On screen | Caption (bold / grey) | Proof |
-|---|---|---|---|---|---|
-| 1 | 1:20 | S | Statement card on the wireframe room. | How it works. / Three ideas, one server. | — |
-| 2 | 1:24 | UI | `display.html?mock=1` in the framed window, reset state → guest appears → countdown ticking (`state.json` ticker). One push-in on the pink guest block. | A room is a registry. / Every device announces what it can do when it connects. Adding one is plugging it in. | `web/display.html`, `ARCHITECTURE.md` §3 |
-| 3 | 1:36 | UI | `guest.html?mock=1` in a 390-px phone frame: the one-line permission ("Owen's phone, the Mac and the speaker · 9:00 left"), then the chat. | Access is a lease. / Ten minutes. A fixed set of devices. Checked at the moment of action, not when you joined. | `web/guest.html`, lease frame §5.2 |
-| 4 | 1:48 | M | One-number card, mono. | 14 ms / from "leave" to the next request being refused. No command reached a device. | Jay 17:31, `tests/evidence/…final-acceptance.json` |
-| 5 | 1:53 | UI | `display.html` ledger: the last rows, ending on the inverted "Someone who had left asked to turn off the light. The room said no." row. One push-in on that row. | The room said no. / The log is sentences a person reads. No IDs, no code, ever. | `web/display.html` ledger |
-| 6 | — | — | **Cut 23:40:** host setup is not the judge's experience. The printed card is on camera in Half 1. Times below shift 7 s earlier. | — | — |
-| 7 | 2:10 | UI | `join.html?mock=1` on the phone frame: **Chat here** / **Text the room** → Messages with "join 7F3A". **Only if a real iMessage round-trip has passed by shoot time; otherwise cut this shot.** | Or just text it. / Photon 2.0 gives the room a real phone number. Same room, same lease. | `brain/channels/photon.py`; Jay's acceptance |
-| 8 | 2:17 | M | Three mono figures stacked: `0 accounts` · `10:00 lease` · `1 key to reset`. | Nothing to install. Nothing to remember. / The host owns the room. The guest borrows it. | `PLAN.md` claim ¶ |
-| 9 | 2:23 | S | Wireframe room, slow turn; small pink dots light on the devices. | Two phones and a laptop today. / A hotel TV, a smart bulb, a hospital bed join the same way. | — |
-| 10 | 2:31 | L | End card: `notes/brand/tenant-wide.png` composition, then the GitHub URL in mono. **No QR** (the code rotates). | Tenant / The room has a brain. Leave, and it forgets you. | — |
+1. Open Clip 1 in QuickTime Player → Edit → **Add Clip to End** → the Screen Studio export → File → Export As → 1080p.
+2. Watch once end to end. Check: audio levels match between clips; total ≤ 3:00.
+3. Upload to **Drive, unlisted** (Cyanide in Clip 1 will trip YouTube Content ID). Paste the link into Devpost. Devpost final by 9:30.
 
-Audio for half 2: Owen reads the bold+grey lines as voiceover (it's a "recorded presentation", judges expect a voice); captions stay on screen for the ballroom. Music at −6 dB under the whole built half, ducked −10 dB under VO, out over the last 4 s.
+Fallback if Clip 2 slips past 9:00: submit Clip 1 alone with a 4 s title card. A rough video beats no video.
 
-## Production
+## Order of work Sunday morning
 
-### Reuse, don't rebuild
-Copy `/Users/owentsao/Coreweave Hacks/video/` → `dubhacks2/video/` and re-token: `src/components.tsx` wallpaper → the deck room render; colours → `tenant.css` tokens; font → Inter Tight (`web/fonts/InterTight-latin.woff2`, already in repo); captions bold/grey → `--fg` / `--muted`. `src/shots.ts` becomes the table above as data. `capture/*.mjs` → one script per UI shot against `python -m http.server 8899` serving `web/` (the same static server the pages are built on; `?mock=1` means no Brain needed).
+1. 8:30 rehearsal (gates the photo finale and every extra).
+2. Shoot Clip 1, three attempts. Upload raw best take.
+3. Without resetting the room, record Clip 2 in one pass. Re-record whole if a tab misbehaves; do not splice.
+4. Assemble, watch, upload, paste. Budget 9:00–9:30.
 
-**Dependency ask (needs Owen's OK before `npm install`):** `remotion`, `@remotion/cli`, `react`, `react-dom`, `playwright` — the exact set `Coreweave Hacks/video/package.json` already uses. Nothing new to the machine; new to this repo. `ffmpeg` is on PATH (`/opt/homebrew/bin/ffmpeg`), Chrome is installed, Node 24.
+## Setup checklist
 
-### Capture rules (learned the hard way on Antibody)
-- Headed Chromium, window uncovered, nobody touches it during a take.
-- `Page.startScreencast` at 2× → 60 fps CRF-12 clip; the master is the only lossy step.
-- No scrolling on camera: open pages pre-scrolled; let the composition zoom.
-- Mock ticker: `display.html?mock=1` idles with no guests; shot 2 needs the fixture to add a guest ~2 s in. Check `web/mock/state.json` supports this or add a `&demo=1` step sequence to the fixture (Owen's file).
-- One zoom per shot, centre fixed; the Antibody home-card drift came from a moving centre.
-
-### The live half inside Remotion
-Half 1's iPhone clip is imported as one more shot: trimmed per beat, placed in the same framed window on the plum wallpaper (the window is 16:9, the footage fills it), captions above it in the same style. iOS screen recording of the guest phone is a second clip for the 2-s cut-ins in beats 0:14 and 0:26. This is what makes the two halves one film.
-
-### Order of work (Sunday morning if tonight is spent on the Brain)
-1. **Tonight after 9:30 run-through: shoot Half 1 (three takes).** This is the only part that needs the hardware. Upload the raw best take to Drive immediately as the no-edit fallback.
-2. Copy and re-token the Remotion workspace (≈45 min).
-3. Capture shots 2, 3, 5, 6 against mock (≈30 min). Shot 7 only if Photon passed.
-4. Record Owen's VO on the iPhone voice memo app in a quiet corner (≈10 min).
-5. Compose, render, watch once end to end, upload unlisted to YouTube or Drive, paste into Devpost. Budget 7:00–8:45 AM, master by 9:00, Devpost final by 9:30.
-
-Fallback if step 2 slips past 8:00 AM: Half 1 raw take + title/end cards in iMovie. Submit that. A rough video beats no video.
-
-## Setup checklist for the live take (unchanged)
-
-- Mac at 1440×900, Chrome full-screen on `display.html`, clock visible. Screen Studio recording the Chrome window. Default output = Mac speaker at a volume the camera mic picks up — test "say hello" first.
-- Guest phone: iOS Screen Recording on (mic off), Do Not Disturb, brightness max.
+- TV mirrored from the laptop at 1440×900; Chrome full screen on `display.html`; default audio output = TV or room speaker at a volume the camera mic picks up. Test "say hello" first.
+- Guest phone: Do Not Disturb, brightness max.
 - Device phones: enrolled, online on the display, torches off, plugged in, Do Not Disturb.
-- Camera phone: landscape, propped, Mac display + both device phones + guest's hands in frame. Room lit so the torch still reads on camera (2-s test).
+- Camera phone: landscape, propped; the torch must read on camera (2 s test with room lights as they'll be).
 - Brain `/health` 200, room reset, zero guests, music stopped.
-- Three takes back to back; reset between; pick the best; prefer one unbroken take.
+- For Clip 2: five Chrome tabs pre-opened in order (slides, setup, display, brand wide), Screen Studio set to record the Chrome window, mic checked.
 
 ## Do not
+
 - Cue anything by hand off-camera.
 - Show the Codex window, terminal, logs, dev QR page.
-- Claim iMessage unless the beat is in the take.
+- Claim iMessage (handset delivery still unconfirmed as of Jay 23:06).
 - Speed up footage. Judges read latency as honesty.
-- Put a QR in the video.
+- Scroll on camera. Put a QR in the video (the code rotates).

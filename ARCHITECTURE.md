@@ -1,6 +1,6 @@
 # Tenant — Architecture
 
-Companion to `PLAN.md`. This is the build spec: components, data model, wire protocol, lifecycles, and the exact browser/OS APIs each capability uses. Names here are the names in code.
+Companion to [`notes/plan/PLAN.md`](notes/plan/PLAN.md) (the original build plan). This is the build spec: components, data model, wire protocol, lifecycles, and the exact browser/OS APIs each capability uses. Names here are the names in code.
 
 ---
 
@@ -237,7 +237,7 @@ A rule is data, not code: `{"rule_id","guest_id","when":{"event":"guest.join"},"
 - **Fire:** `core/bus.py` emits events on the in‑process bus; `rules.py` matches and dispatches the `do` list through the same lease check as a live command (so a revoked guest's rule dies with them). No LLM call at fire time — timing is deterministic.
 - **Bounds:** one rule per guest; a new rule replaces the old one; rules expire with the lease; 10 s cooldown per rule. Display shows the active rule as a card so the audience can see the cause before the effect.
 - **Optional event:** `phone.shake` from the device page via `DeviceMotionEvent` (iOS needs `requestPermission()` inside the Join gesture). Add only if a 10‑minute spike shows the permission prompt is tolerable.
-- **Not included:** any camera‑derived event. Perception is out of scope for this build (see `PLAN.md` §11).
+- **Not included:** any camera‑derived event. Perception is out of scope for this build (see `notes/plan/PLAN.md` §11).
 
 ---
 

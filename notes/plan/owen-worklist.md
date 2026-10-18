@@ -4,7 +4,7 @@ You own the human‑facing surface of Tenant: the three guest/host pages (`join`
 
 The seam is the wire protocol in `ARCHITECTURE.md` §3–§5. Your pages are coded against those frames; a mock lets you build and polish everything before the Brain exists.
 
-Read first: `PLAN.md` §1, §7, §8 (what the guest experiences, the demo script, the risks), then `ARCHITECTURE.md` §4 (display frame), §5.1–5.2 (join and chat frames), §7 (device page states), §12 (failure copy).
+Read first: `PLAN.md` §1, §7, §8 (what the guest experiences, the demo script, the risks), then `../../ARCHITECTURE.md` §4 (display frame), §5.1–5.2 (join and chat frames), §7 (device page states), §12 (failure copy).
 
 ## What you own
 

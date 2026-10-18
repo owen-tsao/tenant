@@ -6,3 +6,6 @@ __pycache__/
 .venv/
 node_modules/
 .DS_Store
+
+# local video production (raw footage + renders, ~1 GB); the final cut is linked from Devpost
+video/

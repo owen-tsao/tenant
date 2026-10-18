@@ -65,7 +65,7 @@ System prompt: you are Room {code}; here are the devices and what they can do ri
 
 ## 6. Who builds what
 
-Two files, one per person, written so each person's agent can work from it alone: **[`jay.md`](jay.md)** and **[`owen.md`](owen.md)**. They are the source of truth for ownership; this section is the summary.
+Two files, one per person, written so each person's agent can work from it alone: **[`jay-worklist.md`](jay-worklist.md)** and **[`owen-worklist.md`](owen-worklist.md)**. They are the source of truth for ownership; this section is the summary.
 
 - **Jay — the Brain and the devices.** Everything that makes Tenant work: FastAPI Brain (registry, bus, leases, agent loop, web‑chat + Photon channels, host console, upload, log), the device page's JavaScript, the laptop `osascript` agent, hosting/HTTPS. Stretch: rules (`ARCHITECTURE.md` §6.5).
 - **Owen — everything a human sees.** `join.html`, `guest.html`, `display.html`, the shared `tenant.css` (which also skins the device page), the `?mock=1` fixtures the pages are built against, slides, the 3‑minute video, Devpost, README story, and directing all three rehearsals. Stretch: VEYZL.
