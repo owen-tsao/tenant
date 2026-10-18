@@ -8,12 +8,21 @@ Read first: `PLAN.md` §1, §7, §8 (what the guest experiences, the demo script
 
 ## What you own
 
+**Page map (decided 5:25 PM with Owen).** Three people, three surfaces, never shared:
+- **Judge / guest** → sees Owen's **slide deck** for the pitch (it ends on the QR), then scans and lives in **Messages** (Photon) or the fallback chat page. They never operate our screen.
+- **Us (host)** → the **web app**: a setup flow (name the room → add our devices → room is ready, print the QR) and the **display**, which is our operational screen with the audience looking over our shoulder. No QR billboard on the display; the QR is a printed card + the last slide.
+- **Devices (our phones)** → `device.html`, a prop nobody reads.
+A landing page is Devpost‑only priority — built last, Sunday if needed.
+
+**Theme (decided 5:30 PM):** dark plum `#1a1523` floor, surfaces `#211b2c`, pink `#f0a8e0` as the single colour (live guest block, acting‑device dot, newest‑row wipe), pink‑on‑plum dither motif as the only texture (empty state + setup's final step). Device page stays black for the flash. Not the earlier black/amber.
+
 | Piece | Files | Done when |
 |---|---|---|
-| Stylesheet | `web/tenant.css` | One file, no framework; used by all four pages; phone‑first; readable from 2 m on the laptop for `display`; dark background on the device page so screen flash is dramatic |
+| Stylesheet | `web/tenant.css` | One file, no framework; plum/pink tokens; used by all pages; readable from 2 m on the laptop for `display`; device page black so screen flash is dramatic |
+| Setup flow (host onboarding) | `web/setup.html` | Three steps: name the room → add devices (shows each device's `/d/{id}` link + a code to type; devices appear live as they `hello`) → "Your room is ready" with the printable QR to `/j/{code}` and a button to open the display. Needs one Brain call to set the room label — ask Jay |
 | Join page | `web/join.html` | Two buttons: **Chat here** (default, one tap, no PII) → `POST /join {room_code}` → redirect to `chat_url`; **Text the room** → phone field (E.164 client‑side) → `POST /join {room_code, phone}` → big "Open Messages" using `sms_link` + "or chat here" fallback. Room code read from the URL `/j/{code}`. Hidden "Text the room" when the join response has no `imessage_number`. Works on iPhone Safari and Android Chrome |
 | Guest chat | `web/guest.html` | `/ws/guest?guest_id=` from the URL `/g/{guest_id}`; renders `assistant` and `action` frames distinctly (actions as small system rows, e.g. "owen‑phone.light(on) ✓"); sticky input; sends `{"type":"user","text"}`; shows a countdown from `expires_in` if the Brain includes it; after a denial the input stays enabled but a "Scan the code to rejoin" banner appears. Stretch: hold‑to‑talk via `webkitSpeechRecognition` |
-| Display | `web/display.html` | `/ws/display`; the *public* face at the table. Shows: room code + QR (`room.join_url`, rendered client‑side — a tiny inline QR lib is fine), device cards with capability chips (grey when `online:false`), guest cards with live countdown, scrolling log with `kind`‑based colouring. Reacts visibly to each `state` frame (a card pulses when its device is `busy`). `R` held 1 s → `host.reset` (token stored once in `localStorage`); `X` → revoke selected guest |
+| Display | `web/display.html` | `/ws/display`; **our** operational screen, audience looks over our shoulder. Top bar: room code (mono) + one state sentence + clock. Left: the guest — pink block with countdown when present, dither motif when empty. Right: device table (Device · Can do · State · Last action) over the ledger (newest on top, pink wipe once). Regions split by hairlines, no framed boxes, no QR, no join URL, nothing code‑like. `R` held 1 s → `host.reset` (token in `localStorage`); `X` → revoke selected guest |
 | Device page skin | `web/tenant.css` only — the JS in `web/device.html` is Jay's | Style off `<body data-state="idle|joining|ready|busy|offline|error">`. Big Join button in `idle`; label + "Connected to Room 7F3A" in `ready`; `flash` is a full‑viewport fixed div Jay toggles — make sure nothing (status bar, label) sits above it |
 | Mock | `web/mock/state.json`, `web/mock/chat.json`, `?mock=1` handling in `web/shared.js` | Pages render fully from fixtures with no Brain running; fixtures match `ARCHITECTURE.md` §4/§5.2 field‑for‑field; Jay diffs his real output against them |
 | Slides | `slides/` (Keynote `.key` or a single `slides.html`) | ≤ 5 slides for the laptop screen behind the demo: title, "the problem" (rooms you don't own), "what you just saw" (registry → lease → agent → device), roadmap, team. Jay's laptop agent can advance with `slides.next` — test it once |

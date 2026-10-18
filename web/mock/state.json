@@ -4,7 +4,9 @@
     "code": "7F3A",
     "label": "Room 7F3A",
     "join_url": "https://tenant.example/j/7F3A",
-    "epoch": 3
+    "epoch": 3,
+    "sentence_subject": "Guest 1",
+    "sentence_rest": " can use 3 devices for the next 7 min."
   },
   "devices": [
     {

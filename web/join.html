@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#1a1523">
 <title>Tenant — Join</title>
 <link rel="stylesheet" href="tenant.css">
 </head>
@@ -11,7 +11,7 @@
 <main class="join" id="join">
   <div class="eyebrow" id="room">Room</div>
   <h1>Talk to this room from your phone.</h1>
-  <p>Ask for a light, some music, a photo. Nothing to install, no account. Your access ends when you leave.</p>
+  <p>Ask for a light, some music, a photo. Nothing to install, no account. Your access ends when you leave or after 10 minutes.</p>
 
   <div id="step-choose" class="alt">
     <button class="btn btn-primary" id="chat">Chat here</button>
@@ -23,6 +23,8 @@
     <button class="btn btn-primary" id="go-text">Open Messages</button>
     <button class="btn" id="back">Back</button>
     <div class="note">We give the room your number so it can reply by iMessage. We don't keep it after you leave.</div>
+    <div id="err-phone" class="err" role="alert" hidden></div>
+    <button class="btn btn-primary" id="chat3" hidden>Chat here instead</button>
   </div>
 
   <div id="step-sms" class="reveal">
@@ -51,9 +53,9 @@
       const el = $(id); el.classList.toggle("open", id === step);
       if (id === "step-choose") el.style.display = step === id ? "" : "none";
     }
-    $("err").hidden = true;
+    $("err").hidden = true; $("err-phone").hidden = true; $("chat3").hidden = true;
   }
-  function fail(msg) { $("err").textContent = msg; $("err").hidden = false; }
+  function fail(msg, where) { const el = $(where || "err"); el.textContent = msg; el.hidden = false; }
   function busy(btn, on) { btn.disabled = on; btn.dataset.label ??= btn.textContent; btn.textContent = on ? "One moment…" : btn.dataset.label; }
 
   // E.164-ish: digits only, assume US if 10 digits.
@@ -75,12 +77,13 @@
 
   $("chat").onclick = () => joinChat($("chat"));
   $("chat2").onclick = () => joinChat($("chat2"));
+  $("chat3").onclick = () => joinChat($("chat3"));
   $("text").onclick = () => { show("step-phone"); setTimeout(() => $("phone").focus(), 50); };
   $("back").onclick = () => show("step-choose");
   $("go-text").onclick = async () => {
     const phone = normalize($("phone").value);
-    if (!phone) return fail("That doesn't look like a mobile number.");
-    busy($("go-text"), true);
+    if (!phone) return fail("That doesn't look like a mobile number.", "err-phone");
+    busy($("go-text"), true); $("err-phone").hidden = true; $("chat3").hidden = true;
     try {
       const r = await T.postJoin(code, phone);
       if (!r.imessage_number) { location.href = r.chat_url; return; } // Photon unavailable → chat silently
@@ -91,7 +94,12 @@
       show("step-sms");
       // Try to open Messages right away; the button stays as the fallback.
       location.href = r.sms_link;
-    } catch (e) { fail(e.message || "Couldn't set up texting. You can still chat here."); busy($("go-text"), false); }
+    } catch (e) {
+      // Texting unavailable (503 or anything else): say so in one line and offer chat right there. Never a dead end.
+      fail(e.message || "Couldn't set up texting. You can still chat here.", "err-phone");
+      $("chat3").hidden = false;
+      busy($("go-text"), false);
+    }
   };
   $("phone").addEventListener("keydown", (e) => { if (e.key === "Enter") $("go-text").click(); });
 })();

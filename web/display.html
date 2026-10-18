@@ -3,44 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1a1523">
 <title>Tenant — Room</title>
 <link rel="stylesheet" href="tenant.css">
 </head>
 <body>
 <main class="stage" id="stage" aria-live="polite">
-  <section class="stage-left">
-    <div>
-      <div class="eyebrow">Scan to talk to this room</div>
-      <div class="room-code mono" id="code">····</div>
-    </div>
-    <div>
-      <div class="qr" id="qr" aria-label="QR code to join this room"></div>
-      <div class="qr-url" id="url"></div>
-    </div>
-    <div class="bottom">
-      <p class="statement" id="statement">Connecting…</p>
-      <div id="guests" class="stack"></div>
-    </div>
-  </section>
+  <header class="topbar">
+    <div class="room"><span class="mark" aria-hidden="true"></span><span class="eyebrow">Room</span><span class="code" id="code">····</span></div>
+    <div class="sentence" id="statement">Connecting…</div>
+    <div class="clock" id="clock"></div>
+  </header>
 
-  <section class="stage-right">
-    <div class="surface devices">
-      <div class="surface-head"><span class="eyebrow">In this room</span><span class="faint" id="dev-count"></span></div>
-      <div class="surface-body">
-        <table class="grid">
-          <colgroup><col class="c-dev"><col class="c-can"><col class="c-state"><col class="c-last"></colgroup>
-          <thead><tr><th>Device</th><th>Can do</th><th>State</th><th>Last action</th></tr></thead>
-          <tbody id="devices"></tbody>
-        </table>
-        <div class="quiet" id="dev-empty" hidden>Nothing has joined this room yet.</div>
+  <div class="regions">
+    <section class="region guest">
+      <div class="eyebrow">Guest</div>
+      <div class="region-body">
+        <div id="guests" class="stack" hidden></div>
+        <div id="empty" class="empty" hidden>
+          <div class="motif" id="motif" style="color: var(--accent)"></div>
+          <div class="line">Nobody is here right now.</div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="surface ledger">
-      <div class="surface-head"><span class="eyebrow">What has happened</span><span class="mono" id="clock"></span></div>
-      <div class="surface-body" id="ledger"></div>
-    </div>
-  </section>
+    <section class="region-col">
+      <section class="region devices">
+        <div class="eyebrow">In this room</div>
+        <span class="corner"><span id="dev-count"></span><span class="segs" id="segs" aria-hidden="true"></span></span>
+        <div class="region-body">
+          <table class="grid">
+            <colgroup><col class="c-dev"><col class="c-can"><col class="c-state"><col class="c-last"></colgroup>
+            <thead><tr><th>Device</th><th>Can do</th><th>State</th><th>Last action</th></tr></thead>
+            <tbody id="devices"></tbody>
+          </table>
+          <div class="quiet" id="dev-empty" hidden>Nothing has joined this room yet.</div>
+        </div>
+      </section>
+
+      <section class="region ledger">
+        <div class="eyebrow">What has happened</div>
+        <div class="region-body" id="ledger"></div>
+      </section>
+    </section>
+  </div>
 </main>
 
 <script src="shared.js"></script>
@@ -52,50 +58,11 @@
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
-  function renderQR(url) {
-    const el = $("qr");
-    if (el.dataset.url === url) return;
-    el.dataset.url = url;
-    if (!T.MOCK) {
-      const image = document.createElement("img");
-      image.alt = "QR code to join this room";
-      image.width = 280; image.height = 280;
-      image.addEventListener("error", () => {
-        if (el.firstChild !== image) return; // A previous room's image must not replace the current code.
-        const message = document.createElement("p");
-        message.setAttribute("role", "status");
-        message.style.color = "#000";
-        message.textContent = "Join code could not load. Reload this display or use the room address below.";
-        el.replaceChildren(message);
-      });
-      el.replaceChildren(image);
-      image.src = "/qr.svg?join=" + encodeURIComponent(url);
-      return;
-    }
-    // Mock mode may use a vendored QR library or its existing placeholder tile.
-    if (window.qrcode) {
-      const q = window.qrcode(0, "M"); q.addData(url); q.make();
-      el.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
-      return;
-    }
-    // Placeholder: deterministic hash-pattern so it reads as "a QR goes here" without lying about scannability.
-    let h = 2166136261; for (const ch of url) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
-    const n = 21, cells = [];
-    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-      const finder = (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7);
-      let on;
-      if (finder) { const fx = x < 7 ? x : x - (n - 7), fy = y < 7 ? y : y - (n - 7); on = fx === 0 || fx === 6 || fy === 0 || fy === 6 || (fx >= 2 && fx <= 4 && fy >= 2 && fy <= 4); }
-      else { h = (h ^ (x * 73856093) ^ (y * 19349663)) >>> 0; h = Math.imul(h, 2654435761) >>> 0; on = (h >>> 13) & 1; }
-      if (on) cells.push(`<rect x="${x}" y="${y}" width="1" height="1"/>`);
-    }
-    el.innerHTML = `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" fill="#000">${cells.join("")}</svg>`;
-  }
+  $("motif").innerHTML = T.motif();
 
   function render(s) {
     lastState = s;
     $("code").textContent = s.room.code;
-    $("url").textContent = s.room.join_url.replace(/^https?:\/\//, "");
-    renderQR(s.room.join_url);
 
     // devices — hairline table: Device · Can do · State · Last action
     const log = (s.log || []).slice(0, 40);
@@ -107,21 +74,23 @@
     const stateOf = (d) => !d.online ? ["off", "offline"] : d.busy ? ["live", "working"] : ["", "ready"];
     $("devices").innerHTML = s.devices.map(d => {
       const [cls, word] = stateOf(d);
-      const can = d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i).join(", ");
+      const words = d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i);
+      const can = words.slice(0, 3).join(", ") + (words.length > 3 ? ` <span class="more">+${words.length - 3} more</span>` : "");
       return `<tr class="${d.online ? "" : "offline"} ${d.busy ? "busy" : ""}">
         <td class="c-dev">${esc(d.label)}</td>
-        <td class="c-can" title="${esc(can)}">${esc(can)}</td>
-        <td class="c-state"><span class="state ${cls}"><span class="dot ${cls}"></span>${word}</span></td>
+        <td class="c-can" title="${esc(words.join(", "))}">${can}</td>
+        <td class="c-state"><span class="state"><span class="dot ${cls}"></span>${word}</span></td>
         <td class="c-last" title="${esc(lastFor(d))}">${esc(lastFor(d))}</td>
       </tr>`;
     }).join("");
     $("dev-empty").hidden = s.devices.length > 0;
     const online = s.devices.filter(d => d.online).length;
     $("dev-count").textContent = s.devices.length ? `${online} of ${s.devices.length} ready` : "";
+    $("segs").innerHTML = s.devices.map(d => `<i class="${!d.online ? "" : d.busy ? "live" : "ready"}"></i>`).join("");
 
-    // guests — the amber block(s)
+    // guest — the one pink block, or the quiet motif when nobody is here.
+    // The block wipes in only the first time a guest appears; re-renders must not restart it.
     const g = s.guests || [];
-    // paint the block in only the first time a guest appears; re-renders must not restart the wipe
     $("guests").innerHTML = g.map(x => `
       <div class="guest-block ${seenGuests.has(x.guest_id) ? "" : "paint"}" data-id="${esc(x.guest_id)}">
         <span class="who">${esc(x.display_name)} is here</span>
@@ -129,16 +98,20 @@
         <span class="how">${x.channel === "photon" ? "by text message" : "from the web"}${x.last_text ? ` · last asked “${esc(x.last_text)}”` : ""}</span>
       </div>`).join("");
     g.forEach(x => seenGuests.add(x.guest_id));
+    $("guests").hidden = !g.length;
+    $("empty").hidden = !!g.length;
 
-    // statement — one sentence of state
-    let st;
-    if (!online) st = "Nothing is connected to this room yet.";
-    else if (!g.length) st = `${online} device${online === 1 ? "" : "s"} ready. Nobody is here right now.`;
-    else if (g.length === 1) st = `${g[0].display_name} can use ${online} device${online === 1 ? "" : "s"} for the next ${Math.ceil(g[0].expires_in / 60)} min.`;
-    else st = `${g.length} guests are sharing this room.`;
-    $("statement").textContent = st;
+    // the one state sentence: subject in 600, the rest in 400.
+    // The Brain may supply room.sentence_subject / sentence_rest; otherwise we build both halves here.
+    let subject, rest;
+    if (s.room.sentence_subject) { subject = s.room.sentence_subject; rest = s.room.sentence_rest || ""; }
+    else if (!online) { subject = "Nothing"; rest = " is connected to this room yet."; }
+    else if (!g.length) { subject = `${online} device${online === 1 ? "" : "s"}`; rest = " ready. Nobody is here right now."; }
+    else if (g.length === 1) { subject = g[0].display_name; rest = ` can use ${online} device${online === 1 ? "" : "s"} for the next ${Math.ceil(g[0].expires_in / 60)} min.`; }
+    else { subject = `${g.length} guests`; rest = " are sharing this room."; }
+    $("statement").innerHTML = `<b>${esc(subject)}</b>${esc(rest)}`;
 
-    // ledger — newest first, newest row lands once; empty shows one quiet line
+    // ledger — newest first; the newest row wipes in once; empty shows one quiet line
     const key = log.length ? `${log[0].t}|${log[0].text}` : null;
     const fresh = key && key !== lastLogKey && lastLogKey !== null;
     lastLogKey = key;
@@ -151,7 +124,7 @@
   // clock
   const tick = () => { $("clock").textContent = T.fmtTime(Date.now() / 1000); }; tick(); setInterval(tick, 1000);
 
-  // host keys: R held 1 s = reset; X = revoke the first guest
+  // host keys (not shown on screen): R held 1 s = reset; X = revoke the first guest; Shift+T = set host token
   let rTimer = null;
   window.addEventListener("keydown", (e) => {
     if (e.repeat) return;
@@ -161,7 +134,7 @@
     if ((e.key === "x" || e.key === "X") && lastState && lastState.guests[0]) {
       host && host.host("host.revoke", { guest_id: lastState.guests[0].guest_id });
     }
-    if (e.key === "t" && e.shiftKey) { // Shift+T: set host token once
+    if (e.key === "t" && e.shiftKey) {
       const t = prompt("Host token"); if (t) localStorage.setItem("tenant.host_token", t.trim());
     }
   });

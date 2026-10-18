@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#1a1523">
 <title>Tenant — Room</title>
 <link rel="stylesheet" href="tenant.css">
 </head>
@@ -11,12 +11,30 @@
 <main class="chat">
   <header class="chat-head">
     <span class="room" id="room">Room</span>
-    <span class="left" id="left" aria-live="off"></span>
+    <span class="head-right">
+      <span class="left mono" id="left" aria-live="off"></span>
+      <button class="btn leave" id="leave" type="button" hidden>Leave</button>
+    </span>
   </header>
+
+  <!-- one line of status; tap to see what you can use -->
+  <button class="access" id="access" type="button" aria-expanded="false" aria-controls="controls-wrap">
+    <span class="access-text" id="access-text">Connecting…</span>
+  </button>
+  <div class="controls-wrap" id="controls-wrap" hidden>
+    <table class="grid controls" aria-label="What you can use">
+      <colgroup><col style="width:42%"><col></colgroup>
+      <thead><tr><th>Device</th><th>Can do</th></tr></thead>
+      <tbody id="controls"></tbody>
+    </table>
+  </div>
+
   <div class="thread" id="thread" aria-live="polite"></div>
+
+  <div class="chips" id="chips" aria-label="Suggestions"></div>
   <form class="compose" id="compose">
     <input class="input" id="text" placeholder="Ask the room for something" autocomplete="off" enterkeyhint="send" aria-label="Message the room">
-    <button class="btn btn-primary" type="submit" aria-label="Send">Send</button>
+    <button class="btn btn-primary" id="send" type="submit" aria-label="Send">Send</button>
   </form>
 </main>
 
@@ -25,51 +43,151 @@
 (function () {
   const T = window.Tenant;
   const $ = (id) => document.getElementById(id);
+  const qs = new URLSearchParams(location.search);
+
+  // Brain URL shape: /g/{guest_id}?room={CODE}#t={secret}. Static-server fallback: ?guest=…, g_mock.
   const m = location.pathname.match(/\/g\/([A-Za-z0-9_-]+)/);
-  const guestId = m ? m[1] : (new URLSearchParams(location.search).get("guest") || "g_mock");
+  const guestId = m ? m[1] : (qs.get("guest") || "g_mock");
   const token = (location.hash.match(/t=([^&]+)/) || [])[1] || "";
-  const roomCode = new URLSearchParams(location.search).get("room") || "7F3A";
-  $("room").textContent = `Room ${roomCode}`;
+  const roomCode = qs.get("room") || "";
+  $("room").textContent = roomCode ? `Room ${roomCode}` : "Room";
 
   const thread = $("thread");
-  let typing = null, expires = null, denied = false;
+  const COPY = {
+    connecting: "Connecting…",
+    checking: "Checking your access…",
+    reconnecting: "Connection lost. Reconnecting…",
+    ended: "Your access has ended. Scan the room’s code to join again.",
+    unavailable: "The room is unavailable right now. Ask the host.",
+    dropped: "The connection dropped; your last request may not have gone through.",
+    leaveFailed: "Couldn’t end your access just now. Try Leave again.",
+    plain: "Ask the room for something, in your own words.",
+  };
+
+  // state
+  let conn = null, typing = null;
+  let connected = false, hasConnected = false, leaseState = null, deadline = null, controls = null;
+  let terminal = null; // "ended" | "unavailable" | null
+  let pending = false, leaving = false, expanded = false, awaitingLease = null;
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
-  function scroll() { thread.scrollTop = thread.scrollHeight; }
-  function add(html) { const el = document.createElement("div"); el.innerHTML = html; const node = el.firstElementChild; thread.appendChild(node); scroll(); return node; }
+  function add(html) { const el = document.createElement("div"); el.innerHTML = html; const node = el.firstElementChild; thread.appendChild(node); thread.scrollTop = thread.scrollHeight; return node; }
   function showTyping() { if (!typing) typing = add(`<div class="msg room"><span class="typing"><i></i><i></i><i></i></span></div>`); }
   function hideTyping() { if (typing) { typing.remove(); typing = null; } }
+  function remaining() { return deadline == null ? null : Math.max(0, Math.ceil((deadline - performance.now()) / 1000)); }
+  function canCompose() { return !!conn && connected && !terminal && !leaving; }
 
-  function onFrame(f) {
-    if (f.type === "user") { add(`<div class="msg me">${esc(f.text)}</div>`); showTyping(); return; }
-    if (f.type === "action") { add(`<div class="sys live">${esc(f.text)}</div>`); return; }
-    if (f.type === "assistant") { hideTyping(); add(`<div class="msg room">${esc(f.text)}</div>`); return; }
-    if (f.type === "denied" || (f.type === "lease" && f.state === "released")) {
-      denied = true; expires = null; $("left").textContent = "";
-      add(`<div class="sys denied">Your access to this room has ended. Scan the code to rejoin.</div>`);
-      return;
-    }
-    if (f.type === "lease" && typeof f.expires_in === "number") { expires = f.expires_in; }
-    if (f.type === "error") { hideTyping(); add(`<div class="sys">${esc(f.text || "The room didn't answer. Say that again?")}</div>`); }
+  function deviceLine() {
+    const names = (controls || []).map(c => c.label);
+    if (!names.length) return "Nothing in the room is available right now.";
+    return `You can use ${T.listWords(names)} · tap for details`;
   }
 
-  setInterval(() => {
-    if (expires == null) return;
-    expires = Math.max(0, expires - 1);
-    $("left").textContent = expires > 0 ? `${T.fmtClock(expires)} left` : "";
-  }, 1000);
+  function statusText() {
+    const s = remaining();
+    if (terminal === "ended") return COPY.ended;
+    if (terminal === "unavailable") return COPY.unavailable;
+    if (leaving) return "Ending your access…";
+    if (!connected) return hasConnected ? COPY.reconnecting : COPY.connecting;
+    if (leaseState === "joining") return `Send your first request within ${T.fmtClock(s ?? 60)} to start.`;
+    if (leaseState === "active") return deviceLine();
+    return awaitingLease ? COPY.checking : COPY.plain;
+  }
 
-  let conn = null;
-  T.connectGuest(guestId, token, onFrame).then(c => { conn = c; if (typeof c.expires_in === "number") expires = c.expires_in; });
+  function update() {
+    const s = remaining();
+    $("left").textContent = !terminal && leaseState && s != null ? T.fmtClock(s) : "";
+    const text = statusText();
+    if ($("access-text").textContent !== text) $("access-text").textContent = text;
+    const canExpand = !terminal && leaseState === "active" && (controls || []).length > 0;
+    $("access").classList.toggle("tappable", canExpand);
+    $("access").classList.toggle("terminal", !!terminal);
+    $("access").setAttribute("aria-expanded", String(expanded && canExpand));
+    $("controls-wrap").hidden = !(expanded && canExpand);
+    $("text").disabled = !canCompose(); $("send").disabled = !canCompose() || pending;
+    for (const b of $("chips").querySelectorAll("button")) b.disabled = !canCompose() || pending;
+    $("chips").hidden = !!terminal || !$("chips").children.length;
+    $("leave").hidden = !!terminal || !leaseState;
+    $("leave").disabled = leaving || !connected;
+    $("leave").textContent = leaving ? "Leaving…" : "Leave";
+  }
 
-  $("compose").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const text = $("text").value.trim();
-    if (!text || !conn) return;
-    $("text").value = "";
+  function renderControls(items) {
+    controls = (items || []).filter(d => d && typeof d.label === "string" && Array.isArray(d.caps));
+    $("controls").innerHTML = controls.map(d => {
+      const words = d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i).join(", ");
+      return `<tr><td title="${esc(d.label)}">${esc(d.label)}</td><td title="${esc(words)}">${esc(words)}</td></tr>`;
+    }).join("");
+    // suggestions — at most three, the conditional ones only when exactly one device can do it
+    const chips = [{ label: "What can I control?", text: "What can I control?" }];
+    const speakers = controls.filter(d => d.caps.includes("say") || d.caps.includes("speak"));
+    const music = controls.filter(d => d.caps.includes("music.play"));
+    if (speakers.length === 1) chips.push({ label: "Say hello", text: `Say hello on ${speakers[0].label}.` });
+    if (music.length === 1) chips.push({ label: "Play music", text: `Play music on ${music[0].label}.` });
+    $("chips").replaceChildren(...chips.map(c => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn chip"; b.textContent = c.label;
+      b.addEventListener("click", () => send(c.text)); return b;
+    }));
+  }
+
+  function end(reason) {
+    terminal = reason === "unavailable" ? "unavailable" : "ended";
+    leaseState = null; deadline = null; pending = false; leaving = false; expanded = false;
+    hideTyping();
+    if (terminal === "ended" && conn) conn.stopReconnect();
+    update();
+  }
+
+  function onFrame(f) {
+    if (f.type === "connection") {
+      connected = f.state === "open"; hasConnected ||= connected;
+      if (connected) {
+        // The Brain may not send a lease frame; after a moment, just let the guest talk.
+        awaitingLease = true; clearTimeout(onFrame._t); onFrame._t = setTimeout(() => { awaitingLease = false; update(); }, 2000);
+      } else if (pending) { pending = false; hideTyping(); add(`<div class="sys">${COPY.dropped}</div>`); }
+      if (f.code === 4401 || f.code === 1008) end("ended");
+      update(); return;
+    }
+    if (f.type === "lease") {
+      if (terminal === "ended") return;
+      awaitingLease = false;
+      if (f.state === "released" || f.state === "expired") { end(f.reason === "unavailable" ? "unavailable" : "ended"); return; }
+      if (f.state !== "joining" && f.state !== "active") return;
+      terminal = null; leaseState = f.state;
+      if (Number.isFinite(f.expires_in)) deadline = performance.now() + Math.max(0, f.expires_in) * 1000;
+      if (Array.isArray(f.controls)) renderControls(f.controls);
+      update(); return;
+    }
+    if (f.type === "denied") { end("ended"); return; }
+    if (f.type === "user") { add(`<div class="msg me">${esc(f.text)}</div>`); showTyping(); return; }
+    if (f.type === "action") { add(`<div class="sys">${esc(f.text)}</div>`); return; }
+    if (f.type === "assistant") { pending = false; hideTyping(); add(`<div class="msg room">${esc(f.text)}</div>`); update(); return; }
+    if (f.type === "error") { pending = false; hideTyping(); add(`<div class="sys">${esc(f.text || "The room didn’t answer. Say that again?")}</div>`); update(); }
+  }
+
+  function send(text) {
+    text = (text || "").trim();
+    if (!text || !canCompose() || pending) return;
+    if (conn.send(text) === false) { connected = false; update(); return; }
+    pending = true; $("text").value = "";
     if (!T.MOCK) { add(`<div class="msg me">${esc(text)}</div>`); showTyping(); }
-    conn.send(text);
+    update();
+  }
+
+  // tick the countdown; a lease that reaches zero without a frame from the Brain is shown as ended
+  setInterval(() => { if (leaseState && remaining() === 0) end("ended"); else update(); }, 500);
+
+  $("access").addEventListener("click", () => { if ($("access").classList.contains("tappable")) { expanded = !expanded; update(); } });
+  $("compose").addEventListener("submit", (e) => { e.preventDefault(); send($("text").value); });
+  $("leave").addEventListener("click", async () => {
+    if (leaving || terminal || !conn) return;
+    leaving = true; update();
+    try { await T.leaveGuest(guestId); end("ended"); }
+    catch (_) { if (terminal) return; leaving = false; update(); add(`<div class="sys">${COPY.leaveFailed}</div>`); }
   });
+
+  update();
+  T.connectGuest(guestId, token, onFrame).then(c => { conn = c; update(); }).catch(() => { connected = false; update(); });
 })();
 </script>
 </body>
