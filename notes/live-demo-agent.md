@@ -1,6 +1,6 @@
 # Prepared local demo capabilities for the genuine Tenant room agent
 
-Jay's decision, 2026-10-18: the iPad sends **chat instructions only** through Tenant's existing guest chat. Interpret the actual request using your normal tools. These are available artifacts and operating notes, not a keyword router, canned answer list, or authority to execute the whole demo.
+Jay's latest decision, 2026-10-18: **iPad integration comes last. The current drawing stage simulates both user and agent** to refine the proactive offer → consent → relaxing experience. The revised script is `notes/demo-chat-script.md`. Explicit simulation fixtures/dialogue are allowed in that mode; identify them as simulation rather than autonomous reasoning or sensing. For actual guest requests, interpret the request using your normal tools. This guide is capability information, not authority to auto-run a demonstration.
 
 ## Drawing bells and sunset photo album
 
@@ -18,7 +18,9 @@ The lab is the sibling `../tenant-capability-lab/` of this repository. Its `TRAN
 
 ## Input and evidence limits
 
-The working drawing input is **mouse/trackpad** in the Mac control page. The iPad is only a chat terminal. **Notability / Apple Pencil events are not connected.** No camera, microphone, screen observation, or proactive drawing detector runs in this lab. If asked to connect Notability, state the missing connection and ask about a fallback; do not silently use a sample or describe mouse input as iPad input.
+The working drawing input is **mouse/trackpad or explicit simulated stroke replay** in the Mac control page. **iPad / Notability / Apple Pencil integration is deferred until the simulated loop works.** No camera, microphone, screen observation, or real proactive drawing detector runs in this lab. Do not start an iPad/Notability investigation for this simulation stage. If an actual guest separately asks to connect Notability, state the missing connection; do not describe a sample or mouse input as iPad input.
+
+The new simulated scene starts with quiet drawing, offers “Want to make this a little more relaxing?” with concrete soft-bell/photo options, waits for acceptance, then enables only the agreed effects. A decline stays quiet. This simulation controller and explicit photo gating are not implemented yet: the current placeholder advances photos on every stroke. Do not claim pre-consent/held-photo behavior until those changes are verified. Preserve the approved sound engine and distinguish simulated decisions from real tool effects.
 
 **Try sample drawing** is explicitly synthetic three-stroke replay. Use it only if a preview/replay is requested; identify it as a sample. Never use it as proof of live sensing. A replay is not a person drawing.
 

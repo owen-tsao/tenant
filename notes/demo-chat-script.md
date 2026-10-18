@@ -1,67 +1,61 @@
-# Tenant — chat-led demo draft
+# Tenant — proactive drawing experience
 
-Updated 2026-10-18. Jay controls the genuine room agent from **Tenant chat on the iPad**. No handwriting commands or Notability connection are implied. This draft supplements the earlier `demo-final.md`; it does not overwrite Owen's recording script or turn untested scenes into accepted features.
+Updated 2026-10-18 after Jay's correction: **integrate the iPad at the end. For now simulate both the user and the agent.** This replaces this file's earlier iPad-chat-first sequence. Main owns drawing; Celsius continues separately in Lighting. Owen's `demo-final.md` and web files are not changed.
 
-## The story
+## What we are building now
 
-“Tenant gives an agent temporary access to the capabilities around you. I can start with one thing, add another while it is running, and change my mind through the same conversation.”
+A quiet drawing activity becomes a more relaxing experience because the agent offers a useful change in context. The user does not have to discover controls or ask for the setup first.
 
-Use the strongest accepted sequence as the core. The creative scene is optional until its current chat-to-display path is checked. Don't squeeze every experiment into the presentation.
+Use the existing Mac canvas and explicit simulated stroke/conversation fixtures. Keep the accepted bell engine and real cached photo album. The simulated agent's dialogue/action choices may be scripted at this stage; label that mode clearly. It tests the interaction and real downstream behavior. It does not establish autonomous model reasoning, general screen perception, Notability integration or live iPad input.
 
-## Core sequence — about 90 seconds, plus actual agent response time
+## The core script
 
-| Jay says in iPad chat | Expected real action | What the audience sees or hears |
-| --- | --- | --- |
-| “Play Cyanide on the room computer.” | Agent checks current playback and starts the existing managed recording if nothing is already playing. | The actual song begins. No generated substitute. |
-| “Make the connected phone light pulse along with this song.” | Agent attaches the selected online phone to the current song program. If more than one target is ambiguous, Jay chooses. | The phone joins the running song; the song is not restarted. |
-| “Put the reactive orb on the TV. Keep the music and phone going.” | Agent updates only the current program's visual flag. | The live orb appears while the other effects continue. It reacts to audio energy; don't describe it as an exact beat detector. |
-| “Turn off just the phone light. Keep the music and orb.” | Agent detaches the phone and confirms OFF without stopping the song. | Light stays off; the rest continues. |
-| “Stop the song and hide the orb.” | Agent stops the same program and verifies its outcome. | Music and orb stop. |
+| Beat | Simulated user | Simulated agent | Required behavior |
+| --- | --- | --- | --- |
+| 1. Ordinary activity | Starts drawing a few lines. No command to Tenant. | Observes the simulated drawing activity. | Quiet canvas; no newly enabled sound or photo changes. |
+| 2. Useful initiative | Keeps drawing. | “Want to make this a little more relaxing? I can add soft bells as you draw and calm photos on the TV.” | One contextual offer. Wait for an answer; do not activate effects. |
+| 3. Consent | “Yeah, that sounds nice.” | “Sure—keep drawing.” | Enable the agreed drawing-to-bell and drawing-to-photo behavior. Preserve current system output/volume and the accepted tuning. |
+| 4. Experience | Draws a low stroke, holds it, lifts, then starts another farther right. | Does not narrate each stroke. | One sustained bell per stroke, eight-second release and independent overlapping tails. Each new stroke chooses another real photo with a 900 ms crossfade. |
+| 5. Conversation changes the scene | “Stop the bells, but leave that photo up.” | “Sure.” | Stop bell voices and echoes. Hold the current photo; later strokes do not advance it unless that behavior is enabled again. Keep the drawing. |
 
-Present-tense claim: earlier physical trials showed these combinations working on this Mac and phone. A fresh combined iPad run is still required before calling this exact script ready. Don't describe general device compatibility or precise synchronization as proven.
+The quoted wording is a rehearsal example, not a rigid keyword requirement for the later genuine agent. Accepting/declining turns are explicitly simulated fixtures in this stage. Do not hide an operator cue and present it as agent perception.
 
-## Creative scene — about 45–60 seconds, only after its chat check passes
+The TV can initially retain the currently displayed photo. The important boundary is that drawing does not advance it before the user accepts that connection. Showing/repositioning the album window is setup, separate from offering to connect it to drawing.
 
-Transition: “I can also use the room for something creative.”
+## Other answers and interruptions
 
-| Jay says or does | Expected real action | Visible or audible proof |
-| --- | --- | --- |
-| In iPad chat: “Show the sunset photo album on the TV.” | Agent reuses the prepared local album/control pages in the same Chrome profile and shows the album in the TV's normal window. | A real sunset photo fills the album window. |
-| In chat: “Enable the soft drawing bells. Keep those long echoes.” | Agent clicks Enable quiet sound; keeps the accepted tuning and current output. | Enabled status. No claimed sound until an actual stroke. |
-| On the **Mac**, draw two or three mouse/trackpad strokes, starting at different horizontal positions. | Existing local stroke routing sustains one bell per stroke; lifting starts its eight-second tail. Each new stroke advances the album. | Lower/higher bells overlap, and real photos crossfade on the TV. State plainly that the current input is the Mac trackpad. |
-| In chat: “Stop the bells, but leave that photo on the TV.” | Agent clicks Stop sound, without Start over. | Echoes stop; the same photo remains. |
+- **Decline:** “No thanks, I just want to draw.” → agent acknowledges, stays quiet, and adds no effects. It does not repeat the offer during that episode.
+- **Change of mind:** cancel before activation → no queued sound/photo activation later. Stop during the experience → silence and freeze further automatic changes.
+- **Stop sound only:** preserve the artwork and displayed photo. The core script's request also leaves that photo held; do not keep shuffling it in the background.
+- **Start over:** end the old simulated episode, cancel old timers/replies/strokes, clear the canvas, stop sound and return effects to disabled. A late reply from the old episode cannot turn anything on.
 
-If showing only a sample, say “Here is the prepared sample drawing,” and explicitly request sample replay. Do not present sample replay as live iPad drawing. A Notability/Pencil version remains a separate future input connection.
+These are acceptance cases for the simulation controller, not claims that all of them already exist in the current placeholder.
 
-## Optional Celsius ending — reserved, not yet accepted
+## Optional co-drawing beat
 
-The side lab is preparing an actual camera/OCR mismatch observation. Only add it after a separate handoff and physical acceptance: visible captured label, evidence-based short interruption, no invented medical assessment, and a clear camera start/stop. Until then omit it from the live script; mention it only as work in progress if asked. No camera is used by the drawing scene.
+After the core exchange works, the simulated user draws a divider and says:
 
-## Optional co-drawing scene — Jay's new idea, queued
+> “Draw with me. Keep your drawing on the right side of this line; I'll draw on the left. Draw whatever you feel like.”
 
-Jay draws a divider down the middle, then asks in chat: “Draw with me. Keep your drawing on the right side of this line; I'll draw on the left. Draw whatever you feel like.” The agent contributes its own drawing while respecting the shared boundary. The desired interaction is collaborative drawing, not handwriting recognition as a prerequisite.
+The simulated agent adds its own clearly labeled strokes on the right, preserving the user's marks. “Stop drawing” cancels further agent strokes without erasing the drawing. Keep this optional until the core offer → consent → experience → stop loop is stable. Real agent-chosen artwork and Notability/Pencil control are later integrations.
 
-This needs a shared writable canvas or a verified Notability control/input path. Neither is established by the existing mouse-to-bell demo. Keep it as a candidate scene; don't claim two-way drawing or trigger a sample as though the agent observed the line. A later acceptance should show the actual divider, the agent's new strokes entirely on its assigned side, preservation of Jay's strokes, and stopping when asked.
+## My action items
 
-## Close — about 10 seconds
+1. **Simulate the user drawing** with the existing Mac canvas/replay; keep an explicit simulation label and a fresh episode.
+2. **Add the proactive offer** after drawing begins, once per episode, with no need for a user setup command.
+3. **Gate effects on the answer:** yes enables the agreed relaxing layer; no leaves ordinary drawing alone. Cancel/reset fences queued work.
+4. **Connect the accepted layer** to the existing soft bells and TV photo album, preserving the sound Jay approved. Add independent sound/photo enable flags rather than changing the bell synthesis.
+5. **Simulate the conversation and optional co-drawing:** exercise example exchanges and stop/refinement requests; keep the core small.
+6. **Verify the complete simulated loop, then integrate the iPad last.** Test accept, decline, delayed old answer, stop during a held stroke, and reset; verify audio state and photo identity/count. Physical TV/audibility confirmation remains separate from software checks.
 
-“The agent chose how to use the available tools, while the computer handled the timing and device connections. The next step is making those connections repeatable across rooms.”
+## Current implementation boundary
 
-If demonstrating permission ending, use the existing visible Leave/host reset path as a separate accepted closing beat. Do not imply that arbitrary native applications are forcibly stopped by every guest leave: managed programs and broad native app effects have different cleanup guarantees.
+- Existing engine: mouse/explicit replay input, soft C3–C5 bells, eight-second fading tails, local six-photo shuffle, separate same-profile TV view, sound stop and page reset.
+- Jay accepted the bell sound and confirmed the normal album window on the TV. Keep TV windowed and preserve current audio settings.
+- One genuine room-chat Stop sound check previously worked. That does not establish the new simulated offer/consent controller.
+- **Still to implement for this revision:** simulated conversation/initiative controller and explicit photo gating. The current placeholder advances photos on strokes immediately, so it must change before the pre-consent/held-photo cases can pass.
+- No camera, microphone, active screen watcher or real proactive drawing detector runs in this lab. None is needed for this explicitly simulated stage.
+- iPad, Notability/Pencil and real input transport are **deferred until the simulated experience works**. Do not make them the next blocker or start that research now.
+- Celsius, song/light/orb demonstrations and unrelated live batches are outside this drawing script.
 
-## Before the take
-
-1. Open the current room join page on the iPad and use **Chat here**. Keep one phone's light page open, awake, enrolled and online. The iPad sends ordinary chat; the Mac runs the agent/tools.
-2. Keep the TV in extended-display mode, with a **normal Chrome window**. No fullscreen. Preserve the system audio output and volume **20**. Don't mix drawing bells with the song unless explicitly desired.
-3. Confirm the current managed song and phone are actually available. Check the photo controller and matching TV preview; never invent their session URL. The drawing server currently uses `http://127.0.0.1:57633/`.
-4. The room agent receives a capability-guide reference to `notes/live-demo-agent.md` on each new turn after the backend loads the change. It must interpret actual requests, execute real controls, and verify results. It is not instructed to auto-run this script or prewrite answers.
-5. Do one bounded rehearsal of the selected sequence, with a physical confirmation of TV and sound. If a beat fails, remove that beat for the take; don't debug or secretly cue it off-camera.
-
-## Current readiness
-
-- Earlier music/light/orb trials: bounded physical passes already recorded; the complete current iPad script is not freshly accepted.
-- Drawing engine, shuffle and browser-to-browser photo channel: prior software checks passed; revised bell sound accepted by Jay.
-- Current album: Jay confirmed it is visible on the TV after manually moving the normal Chrome window; automatic window movement did not work in this connection.
-- New room-agent capability guide: deployed in981bb90. One genuine guest-chat request to stop drawing bells passed: the agent read the guide, clicked the actual Stop sound control, and fresh independent page state showed “Sound stopped, including echoes” with the same Coastal dusk photo and stroke0. Sound was already off, so this establishes control wiring/preservation, not audible interruption of active bells or full-script reliability. Browser-session contention forced a native-control fallback; do not promise instantaneous responses.
-- iPad: chat only by Jay's choice. Actual drawing remains Mac mouse/trackpad; Notability is not connected.
-- Celsius: separate owner, separate acceptance. No implicit launch or camera reservation here.
+Canonical local control entry: `http://127.0.0.1:57633/` (verify liveness before use). Source and approved audio evidence: sibling `../tenant-capability-lab/`. No live app/service or TV changes were performed by this script rewrite.
