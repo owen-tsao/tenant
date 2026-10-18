@@ -33,6 +33,10 @@ async def guest_socket(ws: WebSocket):
                     continue
                 frames = await core.agent.turn(guest_id, frame.get('text'))
                 await publisher.send_batch(frames)
+                if core.speech is not None:
+                    # The real final text is already delivered. Audio is optional,
+                    # once per native turn, with dispatch-time authority checks.
+                    await core.speech.speak_reply(frames)
 
         tasks = [asyncio.create_task(receive()), asyncio.create_task(publisher.run())]
         # A send failure must also stop a receiver/model task waiting on this socket.

@@ -41,6 +41,9 @@ class NativeSession:
     async def drain_queue(self):
         self.calls.append(('drain', len(self.queue)))
         self.queue.clear()
+    async def assert_queue_empty(self):
+        if self.queue:
+            raise RoomSessionError('Native queue is not empty')
     async def background_terminals(self): return list(self.jobs)
     async def terminate_background_terminal(self, process_id):
         self.calls.append(('terminate', process_id))

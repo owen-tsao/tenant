@@ -207,38 +207,40 @@ class RoomSession:
 
     async def list_turns(self):
         """Return ordered private history, using the supported paginated contract."""
-        turns, cursor = [], None
-        while True:
-            params = {'threadId': self.thread_id, 'sortDirection': 'asc', 'limit': 100, 'itemsView': 'summary'}
-            if cursor is not None:
-                params['cursor'] = cursor
-            page = await self._request('thread/turns/list', params)
-            if not isinstance(page.get('data'), list):
-                raise RoomSessionError('Invalid room history response')
-            turns.extend(page['data'])
-            next_cursor = page.get('nextCursor')
-            if next_cursor is None:
-                return turns
-            if next_cursor == cursor or len(turns) > 1000:
-                raise RoomSessionError('Room history could not be safely verified')
-            cursor = next_cursor
+        return await self._list_pages('thread/turns/list', {'sortDirection': 'asc', 'itemsView': 'summary'})
 
     async def _list_control_items(self, method):
-        items, cursor = [], None
-        while True:
-            params = {'threadId': self.thread_id, 'limit': 100}
-            if cursor is not None:
-                params['cursor'] = cursor
-            page = await self._request(method, params)
-            if not isinstance(page.get('data'), list):
-                raise RoomSessionError('Invalid room pending-work response')
-            items.extend(page['data'])
-            next_cursor = page.get('nextCursor')
-            if next_cursor is None:
-                return items
-            if next_cursor == cursor or len(items) > 1000:
-                raise RoomSessionError('Room pending work could not be safely verified')
-            cursor = next_cursor
+        return await self._list_pages(method)
+
+    async def _list_pages(self, method, extra_params=None):
+        items, cursor, seen_cursors = [], None, {None}
+        # Page count also bounds empty pages with endlessly changing cursors;
+        # item count alone cannot do that. Every seen cursor detects multi-page
+        # cycles, rather than only an immediately repeated cursor.
+        try:
+            for _ in range(16):
+                params = {'threadId': self.thread_id, 'limit': 100, **(extra_params or {})}
+                if cursor is not None:
+                    params['cursor'] = cursor
+                page = await self._request(method, params)
+                data = page.get('data')
+                if not isinstance(data, list) or len(data) > 100:
+                    raise RoomSessionError('Invalid room pagination response')
+                items.extend(data)
+                if len(items) > 1000:
+                    raise RoomSessionError('Room pagination exceeds its item limit')
+                next_cursor = page.get('nextCursor')
+                if next_cursor is None:
+                    return items
+                if (not isinstance(next_cursor, str) or not next_cursor
+                        or next_cursor in seen_cursors):
+                    raise RoomSessionError('Room pagination cursor is invalid or repeated')
+                seen_cursors.add(next_cursor)
+                cursor = next_cursor
+            raise RoomSessionError('Room pagination exceeds its page limit')
+        except BaseException:
+            self.require_reset()
+            raise
 
     async def list_queue(self):
         return await self._list_control_items('thread/queue/list')

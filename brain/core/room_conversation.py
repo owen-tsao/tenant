@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Callable
 from agent.room_session import RoomSession, RoomSessionError
+from brain.core.conversation_speech import CompletedReply, ReplyFrames
 
 
 @dataclass(frozen=True)
@@ -70,6 +71,13 @@ class ConversationAgent:
                 and lease is not None and ('*' in lease.scopes or 'computer' in lease.scopes)
                 and not self._stop.is_set())
 
+    def allows_reply(self, receipt):
+        """Authorize this completed turn's optional output without renewing access."""
+        return (isinstance(receipt, CompletedReply)
+                and receipt.thread_id == self.settings.thread_id
+                and self.leases.current(receipt.guest_id) is receipt.lease
+                and self._allowed(receipt.guest_id, receipt.generation))
+
     def _admit(self, guest_id):
         if self._controller != guest_id:
             previous = self._controller
@@ -125,24 +133,73 @@ class ConversationAgent:
         session = self._session
         if session is None:
             return
-        if session.active_turn_id is not None:
-            turn_id = session.active_turn_id
-            await session.interrupt()
+        if getattr(self, '_cleanup_failure', False):
+            raise RoomSessionError('Native cleanup remains unconfirmed; it was not retried', outcome_unknown=True)
+        # Completing an interrupted turn can automatically promote native queued
+        # input. Remove that input first, under the SAME deadline as interruption,
+        # completion observation and background-job verification.
+        deadline = asyncio.get_running_loop().time() + self.settings.cleanup_timeout
+        try:
+            async with asyncio.timeout_at(deadline):
+                await session.drain_queue()
+                turn_id = session.active_turn_id
+                if turn_id is not None:
+                    await session.interrupt()
+                    while True:
+                        event = await session.next_event()
+                        # No approval or guest output is forwarded during cleanup.
+                        params = event.get('params', {})
+                        if (event.get('method') == 'turn/started'
+                                and params.get('turn', {}).get('id') != turn_id):
+                            raise RoomSessionError('Unexpected native work started during cleanup')
+                        if (event.get('method') == 'turn/completed'
+                                and params.get('turn', {}).get('id') == turn_id):
+                            break
+                if session.active_turn_id is not None:
+                    raise RoomSessionError('Native work remains active after interruption')
+                generation = getattr(session, '_activity_generation', None)
+                await session.assert_queue_empty()
+                for job in await session.background_terminals():
+                    result = await session.terminate_background_terminal(job.get('processId'))
+                    if result.get('terminated') is not True:
+                        raise RoomSessionError('Native background work did not stop')
+                if await session.background_terminals():
+                    raise RoomSessionError('Native background work remains')
+                await session.assert_queue_empty()
+                if (session.active_turn_id is not None
+                        or getattr(session, '_activity_generation', None) != generation):
+                    raise RoomSessionError('Native activity changed during cleanup verification')
+        except BaseException as error:
+            # A failed or cancelled cleanup must release the controller lock,
+            # never silently reopen authority or retry the same uncertain work.
+            self._cleanup_failure = True
+            self._failed = True
+            if hasattr(session, 'require_reset'):
+                session.require_reset()
+            if isinstance(error, asyncio.CancelledError):
+                raise
+            raise RoomSessionError('Native cleanup outcome is unknown; control remains blocked and nothing was retried',
+                                   outcome_unknown=True) from None
+
+    async def _cancel_cleanup(self, guest_id, generation):
+        # Include same-lease history verification in the one cleanup budget.
+        # Await directly: a second cancellation must close authority rather than
+        # leave a shielded cleanup task running after the controller lock exits.
+        try:
             async with asyncio.timeout(self.settings.cleanup_timeout):
-                while session.active_turn_id is not None:
-                    event = await session.next_event()
-                    # No tool approval or guest output is forwarded during cancellation.
-                    params = event.get('params', {})
-                    if event.get('method') == 'turn/completed' and params.get('turn', {}).get('id') == turn_id:
-                        break
-        await session.drain_queue()
-        for job in await session.background_terminals():
-            process_id = job.get('processId')
-            result = await session.terminate_background_terminal(process_id)
-            if result.get('terminated') is not True:
-                raise RoomSessionError('Native background work did not stop')
-        if await session.background_terminals():
-            raise RoomSessionError('Native background work remains')
+                await self._drain_active()
+                if self._clean_generation == generation and self._allowed(guest_id, generation):
+                    ids = [turn.get('id') for turn in await self._session.list_turns()]
+                    await self._session.confirm_clean(ids)
+        except BaseException as error:
+            self._cleanup_failure = True
+            self._failed = True
+            if self._session is not None and hasattr(self._session, 'require_reset'):
+                self._session.require_reset()
+            if isinstance(error, asyncio.CancelledError):
+                raise
+            raise RoomSessionError('Native cleanup outcome is unknown; control remains blocked and nothing was retried',
+                                   outcome_unknown=True) from None
 
     async def _reset_native(self):
         async with asyncio.timeout(self.settings.cleanup_timeout):
@@ -239,10 +296,13 @@ class ConversationAgent:
                             return self.reply('Tenant finished without a text reply. The request was not repeated.')
                         self.log.append('ok', 'Tenant replied to the guest.', guest_id=guest_id,
                                         thread_id=self.settings.thread_id, turn_id=turn_id, generation=generation)
-                        return self.reply(self._redact(final[-1]))
+                        return ReplyFrames(CompletedReply(
+                            guest_id, generation, self.settings.thread_id, turn_id,
+                            self._redact(final[-1]), self.leases.current(guest_id)))
         except BaseException:
-            # Preserve honest uncertainty. Interrupting cannot undo already-run tools.
-            await asyncio.shield(self._drain_active())
+            # The outer controller keeps the lock through one bounded cleanup.
+            # Starting another shielded drain here could orphan native work if
+            # the browser disconnects while that cleanup is already running.
             raise
 
     async def turn(self, guest_id, text):
@@ -280,10 +340,7 @@ class ConversationAgent:
                 # A browser reconnect is not a new guest. Stop this turn without
                 # resending it; retain the same valid lease and its transcript.
                 try:
-                    await asyncio.shield(self._drain_active())
-                    if self._clean_generation == generation and self._allowed(guest_id, generation):
-                        ids = [turn.get('id') for turn in await self._session.list_turns()]
-                        await self._session.confirm_clean(ids)
+                    await self._cancel_cleanup(guest_id, generation)
                 except Exception:
                     self._failed = True
                 raise
@@ -291,7 +348,7 @@ class ConversationAgent:
                 self._failed = True
                 try:
                     if self._session is not None:
-                        await asyncio.shield(self._drain_active())
+                        await self._drain_active()
                 except Exception:
                     pass
                 self.log.append('err', 'Tenant could not confirm the conversation result. Nothing was retried.',

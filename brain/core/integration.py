@@ -20,12 +20,16 @@ class Core:
         self.leases = Leases(self.registry.room, clock=clock, on_change=self.registry.persist,
                              healthy=lambda: self.registry.persistence_healthy)
         self.log = EventLog(log_path, clock=clock)
+        self.speech = None
         if conversation is None:
             self.agent = Agent(self.registry, self.bus, self.leases, planner, self.log)
         else:
             from brain.core.room_conversation import ConversationAgent
             self.agent = ConversationAgent(self.leases, self.log, conversation,
                                            private_values=(self.config.host_token, self.config.device_token), registry=self.registry)
+            from brain.core.conversation_speech import ConversationSpeech
+            self.speech = ConversationSpeech(self.registry, self.bus, self.leases, self.log,
+                                             self.agent.allows_reply)
         self.credentials = {}
         self.cleanup_hook = cleanup_hook
 
