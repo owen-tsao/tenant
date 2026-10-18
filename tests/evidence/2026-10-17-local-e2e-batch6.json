@@ -1,0 +1,92 @@
+{
+  "recorded_at_utc": "2026-10-18T05:17:47.741461+00:00",
+  "runtime_revision": "063dd01deae21f33a8ac2bd3c0dd4cf4e44fc017",
+  "scope": "One fresh actual guest; music-only prompt, later independent light request, ordinary stop; no new software changes",
+  "audit_baseline_bytes": 232212,
+  "guest_id": "b8da19b2-6fbd-4c99-a1d4-ff2bad9217d5",
+  "native_thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+  "cases": {
+    "music_first_later_light": {
+      "status": "PASS for software transition and acknowledged effects",
+      "requests": [
+        "Play CYANIDE by Daniel Caesar.",
+        "Make the connected phone light follow the music.",
+        "Stop the music and turn the phone light off."
+      ],
+      "request_t": [
+        1792300440.3941162,
+        1792300478.742635,
+        1792300507.781387
+      ],
+      "reply_t": [
+        "2026-10-18T05:14:29.438Z",
+        "2026-10-18T05:14:55.292Z",
+        "2026-10-18T05:15:23.082Z"
+      ],
+      "program_id": "p_0a6a7553b52043acbba97c049b4c9a5a",
+      "song_id": "daniel-caesar-cyanide-42b58460277a",
+      "start_result_utc": "2026-10-18T05:14:23.028Z",
+      "initial_light_device_ids": [],
+      "attach_result_utc": "2026-10-18T05:14:47.739Z",
+      "post_attach_result_utc": "2026-10-18T05:14:52.829Z",
+      "same_program_and_song": true,
+      "post_attach_playhead_advancing": true,
+      "phone_first_on_off_ack": true,
+      "program_start_request_count": 1,
+      "program_update_payloads": [
+        {
+          "request_id": "cyanide-light-attach-20261017-b3795a",
+          "program_id": "p_0a6a7553b52043acbba97c049b4c9a5a",
+          "light_device_id": "jay-visible-phone-oct17"
+        }
+      ],
+      "tempo_update_requested": false,
+      "backing_beat_requested": false,
+      "player_process_observation": {
+        "pid": 3643,
+        "started_local": "2026-10-17 22:14:20 America/Los_Angeles",
+        "observation": "mpv process observed after light attachment; creation precedes later light request; no before-attachment PID sample",
+        "proof_limit": "Same program/song and single start/no tempo update are confirmed; no continuous process observer or calibrated playback gap measurement."
+      },
+      "stop_result_utc": "2026-10-18T05:15:16.984Z",
+      "stop_reason": "requested_stop",
+      "cleanup": {
+        "audio": "confirmed",
+        "jay-visible-phone-oct17": "confirmed"
+      },
+      "edge_count": 40,
+      "edge_ack_codes": [
+        "OK"
+      ]
+    }
+  },
+  "watchdog": {
+    "armed_t": 1792300436.7127051,
+    "limit_seconds": 90,
+    "disarmed_t": 1792300521.723694,
+    "fired": false
+  },
+  "guest_end": {
+    "method": "actual Leave button after confirmed cleanup",
+    "audit_t": 1792300544.864013,
+    "ui": "ended/Message and Send disabled; display nobody here/both devices ready"
+  },
+  "physical_statement": "like i can tell the commands are on rhythm, i think there is like a transient delay only sometimes on the light timing. but overall its fine. if the thing was truly off beat, then they would slowly diverge completely. but they were basically in sync half the time and sometimes the light is a little late. idk would would you even fix it but for now its prolly good enough?",
+  "physical_interpretation": "Jay accepts approximate rhythm for now and reports occasional late flashes. Response does not separately explicitly confirm smooth playback transition or final cleanup; machine cleanup confirmed. No follow-up duplicate question.",
+  "limits": [
+    "No calibrated physical phase measurement; occasional late flash remains open refinement",
+    "Full evolving visuals/plugin/projector flow remains untested",
+    "Projector blocked on missing HDMI cable per Root/Jay",
+    "No source/tempo/output/volume changes, additional expiry trial, or automatic replay"
+  ],
+  "cleanup": {
+    "audio": "confirmed",
+    "phone": "confirmed",
+    "gate": "Root/held",
+    "exclusive_lock": "released; lock holder returned LOCK_RELEASED"
+  },
+  "artifacts": [
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/guest-chat-batch6.txt",
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/cyanide-music-first-later-light-063dd01.jpg"
+  ]
+}
