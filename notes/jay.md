@@ -123,3 +123,5 @@ If an entry is longer than two sentences it belongs in `ARCHITECTURE.md`, not he
 
 - 19:43 — Stop repair / deployed0b4a1ec — Source hashes match independent engine/glue reviews;452Python+12Node pass with0failures/skips, including69focused engine and30integration checks. Fresh authorized OFF can quiesce the phone and recover its old claim after uncertainty resolves; no replay/bypass, and unrelated Mac cleanup cannot block guest phoneOFF.
 - 19:43 — Live acceptance / pending — Brain alone restarted; room8157/currentphone/Mac preserved, public health/setup/display/QR200 and unauthorized label403. Jay has ONE fresh fullbeat30BPM → phoneOFF while beatcontinues → beatstop test; expiry remainsINTERRUPTED, photo remainsgated, hostreset can still waitaudio and Owen Stoplight/setupUI requests remainopen.
+
+- 19:46 — Physical stop PASS /0b4a1ec — Jay confirmed phoneOFF while beatcontinued, then separately beatstop with phoneOFF; matching native OFF and requested_stop receipts confirmed cleanup. Actualguest asked1sON/1sOFF (0.5beat), so fullbeat2s cadence is not claimed; one SAMEchat expiry/fullbeat trial is nowpending, with norestart or newguest.

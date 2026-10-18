@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-17",
+  "runtime_revision": "0b4a1ec",
+  "room": "8157",
+  "program_id": "p_e7de1521da0443209f9c940f5724c591",
+  "status": "PASS_WITHIN_SCOPED_STOP_TEST",
+  "source_validation": {
+    "python": 452,
+    "node": 12,
+    "failures": 0,
+    "skips": 0,
+    "independent_frozen_source_review": "PASS"
+  },
+  "natural_guest_requests": [
+    {
+      "turn_id": "01a14ce4-6198-7543-a340-1084cbe8bf0a",
+      "request": "So basically I wanna try something so first start a 30 BPM beat with the phone light one will be on one will be off and make sure the phone light is like kind of *NSYNC so for example, like one second on one second off",
+      "measured_configuration": {
+        "bpm": 30,
+        "light_beats_per_state": 0.5,
+        "on_ms": 1000,
+        "off_ms": 1000
+      }
+    },
+    {
+      "turn_id": "01a14ce4-cea6-7771-925f-f0b1f8551ae8",
+      "request": "OK, can you turn off only the phone light but I need you to keep the B playing",
+      "off_req": "r_598312030afb4e59b6e0bf9a0c7d17e1",
+      "ack_at": 1792291431.633837,
+      "result": {
+        "on": false
+      },
+      "phone_claim_released": true
+    },
+    {
+      "turn_id": "01a14ce6-504a-7780-8314-4e504dd10e4e",
+      "request": "You can stop the beat now",
+      "stop_recorded_at": 1792291530.322599,
+      "cleanup": {
+        "jay-visible-phone-oct17": "confirmed",
+        "audio": "confirmed"
+      }
+    }
+  ],
+  "machine_evidence": {
+    "phone_edges": 21,
+    "failed_edge_receipts": 0,
+    "edge_rtt_ms_median": 192.774,
+    "edge_rtt_ms_max": 575.715,
+    "new_edges_after_explicit_off_ack": 0,
+    "seconds_between_phone_off_ack_and_requested_program_stop": 98.689,
+    "native_start_off_stop_sequence": "No unrequested tempo changes or stop in these three observed turns."
+  },
+  "human_observations": {
+    "phone_stayed_off_while_beat_continued": "Jay confirmed",
+    "final_beat_silent_phone_stayed_off": "Jay separately confirmed after final stop request"
+  },
+  "limits": [
+    "One observed sequence is not reliability evidence.",
+    "Guest explicitly requested one-second states; the proposed two-second fullbeat cadence was not tested in this sequence.",
+    "This test did not induce UNKNOWN; uncertain recovery is source-test evidence only.",
+    "Transport acknowledgments do not measure optical/acoustic alignment.",
+    "Earlier live stop failure and interrupted expiry remain recorded."
+  ],
+  "remaining_gate": {
+    "actual_program_expiry": "PENDING_SEPARATE_TEST"
+  }
+}
