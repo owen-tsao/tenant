@@ -1,0 +1,27 @@
+--- a/web/display.html
++++ b/web/display.html
+@@ -56,7 +56,23 @@
+     const el = $("qr");
+     if (el.dataset.url === url) return;
+     el.dataset.url = url;
+-    // If a QR library has been vendored (window.qrcode from qrcode-generator), use it; otherwise a placeholder tile.
++    if (!T.MOCK) {
++      const image = document.createElement("img");
++      image.alt = "QR code to join this room";
++      image.width = 280; image.height = 280;
++      image.addEventListener("error", () => {
++        if (el.firstChild !== image) return; // A previous room's image must not replace the current code.
++        const message = document.createElement("p");
++        message.setAttribute("role", "status");
++        message.style.color = "#000";
++        message.textContent = "Join code could not load. Reload this display or use the room address below.";
++        el.replaceChildren(message);
++      });
++      el.replaceChildren(image);
++      image.src = "/qr.svg?join=" + encodeURIComponent(url);
++      return;
++    }
++    // Mock mode may use a vendored QR library or its existing placeholder tile.
+     if (window.qrcode) {
+       const q = window.qrcode(0, "M"); q.addData(url); q.make();
+       el.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
