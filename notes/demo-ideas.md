@@ -176,3 +176,10 @@ Acceptance proposal: someone makes a previously unseen comment; its fresh timest
 Status: IDEA CAPTURE ONLY. This note does not authorize transcription implementation, recording, new UI, service changes or live tests. Existing owners and gates remain unchanged.
 
 Latest selection preference from Jay: the presentation-director, puzzle-room, visual-studio, focus-session and device-discovery suggestions from the side conversation felt too risky, generic, time-consuming or confusing. Future suggestions should be concrete, immediately understandable, and require few new moving parts. Preserve earlier candidates for review, without promoting them into implementation scope.
+
+
+## Live film crew — two phones, one attention shift (Jay, October 18)
+
+Accepted for a small infrastructure experiment: two ordinary iPhones share live video through existing VDO.Ninja into this Mac's OBS. Establish distinct fresh feeds and visible WIDE/OBJECT cuts first, then try one silent semantic choice of the useful close-up when someone starts demonstrating an object. Camera setup is separate from Tenant's guest-entry QR; no Photo Booth, native phone app or new video stack. Keep both views warm before the demo, with a simple manual cut fallback.
+
+Current setup, evidence, limits and operator controls: [film crew](film-crew.md). Do not claim a proactive PASS, projector output, public guest lease integration or reliability from the working feed setup/software tests. This is creative coordination around useful attention, not the rejected band idea.

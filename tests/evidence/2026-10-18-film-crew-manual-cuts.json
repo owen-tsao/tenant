@@ -1,0 +1,62 @@
+{
+  "test": "film-crew-phase-1-manual-cuts",
+  "status": "PASS_SWITCH_MECHANICS_ONLY",
+  "observed_at": 1792317446.101452,
+  "collection": "Tenant Film Crew",
+  "transition": "Cut",
+  "cut_count": 10,
+  "requested_sequence": [
+    "OBJECT",
+    "WIDE",
+    "OBJECT",
+    "WIDE",
+    "OBJECT",
+    "WIDE",
+    "OBJECT",
+    "WIDE",
+    "OBJECT",
+    "WIDE"
+  ],
+  "all_program_readbacks_match": true,
+  "program_png_visually_inspected_after_each_cut": true,
+  "native_mac_program_window_verified_at": [
+    "start_WIDE",
+    "middle_OBJECT",
+    "end_WIDE"
+  ],
+  "ack_elapsed_ms": [
+    11.15,
+    6.45,
+    7.66,
+    5.57,
+    5.82,
+    7.03,
+    5.84,
+    6.56,
+    8.27,
+    3.99
+  ],
+  "ack_latency_is_not_physical_end_to_end_latency": true,
+  "private_pixel_evidence_sha256": {
+    "06-WIDE.png": "e2be9fdf1c9b7a64fa99b2fb322ff509ec3012ab438315915760721536e7f3ec",
+    "03-OBJECT.png": "96ea8ba29e290df099aaa3b5afe5db0e10dfd2b7379267f098ef82c86b1e2cfe",
+    "10-WIDE.png": "585675fbd2a38317a46e4244d327edb09594161e424826ead214c47cd95001a1",
+    "native-end.png": "c7a008857a5aee9c327768c5e52aff0fcd7ece0eeb1b491c7bc952dc5f555f8e",
+    "01-OBJECT.png": "e03fa63b03f9b505add989f695192f992ca7e1b92b3d2fe0a6d4245f289cf03f",
+    "09-OBJECT.png": "3821b9757c8241818aee48ef327f965ad7e0e0c4ddf59436834d1a6fd580d2c2",
+    "07-OBJECT.png": "ce90a3a75ad390a4b7994abd5540378bbeba441dcb1e350adde0a43a74f0471e",
+    "native-middle.png": "3fcb8b1a6f4b554d08bd67af9d4a4d84f9ef2d4b89529475eec7c0c092af3fc9",
+    "04-WIDE.png": "42c85264498da51591b06134ed00721d0a691ee44b00afa56ca142adc883e0b3",
+    "02-WIDE.png": "a38a282d92692c0d222914b42f32811dfa29fa12ffc172a299b275fb7e720a0d",
+    "05-OBJECT.png": "33f8ce22c660820b5086edb83c7ea4eaf873a48883c57b4db1c52df12cead926",
+    "08-WIDE.png": "9cd1442f74191269f8c5b34e2d09495ae7333c2e7e4018ae62cb41245f73b703",
+    "native-start.png": "57c26efdd81704fe813aa2ede0cbec287d9c889a7ed90f99a0659fae93b073ed"
+  },
+  "phone_lens_cover_identity_challenge": "pending",
+  "useful_camera_composition": "pending; portrait near object and blurred/obstructed other view",
+  "disconnect_reconnect": "pending; not attempted",
+  "proactive_decision": "not released or attempted",
+  "no_stream_record_virtual_camera": true,
+  "system_audio_and_music_untouched": true,
+  "warm_setup_retained": true
+}
