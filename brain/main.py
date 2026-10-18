@@ -16,6 +16,7 @@ from brain.core.copy import confirmed_sentence, failure_sentence
 from brain.core.integration import install_core
 from brain.core.persistence import RoomStateStore
 from brain.core.planner import CodexPlanner
+from brain.core.room_conversation import ConversationSettings
 from brain.ws.devices import device_socket
 
 WEB = Path(__file__).resolve().parent.parent / "web"
@@ -52,14 +53,14 @@ async def reset_cleanup(core):
     return not missing and all(outcomes)
 
 
-def create_app(config=None, *, planner=None, log_path=None, state_path=None):
+def create_app(config=None, *, planner=None, log_path=None, state_path=None, conversation=None):
     config = config or Config.from_env()
     app = FastAPI()
     registry = (RoomStateStore(state_path).load_registry(config.room_code)
                 if state_path else Registry(Room(config.room_code, "Room " + config.room_code)))
     bus = Bus(registry)
     app.state.registry, app.state.bus, app.state.config = registry, bus, config
-    core = install_core(app, planner, log_path=log_path, cleanup_hook=reset_cleanup)
+    core = install_core(app, planner, log_path=log_path, cleanup_hook=reset_cleanup, conversation=conversation)
 
     @app.websocket("/ws/device")
     async def devices(ws: WebSocket):
@@ -130,5 +131,18 @@ def create_app(config=None, *, planner=None, log_path=None, state_path=None):
     app.mount("/", StaticFiles(directory=WEB, check_dir=False), name="web")
     return app
 
-app = create_app(planner=CodexPlanner(), log_path='log/events.jsonl',
-                 state_path=os.getenv('TENANT_STATE_PATH'))
+def runtime_conversation_settings():
+    mode = os.getenv('TENANT_AGENT_MODE', 'planner')
+    if mode == 'planner':
+        return None
+    if mode != 'conversation':
+        raise ValueError('TENANT_AGENT_MODE must be planner or conversation')
+    return ConversationSettings(
+        thread_id=os.getenv('TENANT_ROOM_THREAD_ID', ''),
+        anchor_turn_ids=(os.getenv('TENANT_ROOM_ANCHOR_TURN_ID', ''),),
+        socket_path=os.getenv('TENANT_APP_SERVER_SOCKET') or None)
+
+
+_runtime_conversation = runtime_conversation_settings()
+app = create_app(planner=None if _runtime_conversation else CodexPlanner(), log_path='log/events.jsonl',
+                 state_path=os.getenv('TENANT_STATE_PATH'), conversation=_runtime_conversation)

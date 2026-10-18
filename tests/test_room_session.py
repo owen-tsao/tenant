@@ -240,6 +240,19 @@ class RoomSessionTests(unittest.IsolatedAsyncioTestCase):
             await self.client.answer('missing-turn', {'success': True, 'contentItems': []})
         self.assertFalse(any(f.get('id') == 'missing-turn' and 'result' in f for f in self.socket.sent))
 
+    async def test_authority_checked_after_native_queue_wait_before_model_submission(self):
+        allowed = True
+        original_send = self.socket.send
+        async def changed_during_queue(raw):
+            nonlocal allowed
+            if json.loads(raw).get('method') == 'thread/queue/list':
+                allowed = False
+            await original_send(raw)
+        self.socket.send = changed_during_queue
+        with self.assertRaises(RoomSessionError):
+            await self.client.start_turn('Guest request', authorize=lambda: allowed)
+        self.assertFalse(any(f.get('method') == 'turn/start' for f in self.socket.sent))
+
     async def test_bounded_event_overflow_fails_instead_of_dropping_approval(self):
         self.client._events = asyncio.Queue(maxsize=1)
         await self.socket.emit({'method': 'item/agentMessage/delta', 'params': {'threadId': THREAD, 'delta': 'first'}})

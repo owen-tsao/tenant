@@ -130,7 +130,7 @@ class RoomSession:
                     if 'id' in message:
                         raise RoomSessionError('Tool request belongs to another conversation')
                     continue
-                if message['method'] in ('turn/started', 'turn/completed') or 'id' in message:
+                if message['method'] in ('turn/started', 'turn/completed', 'thread/queue/changed') or 'id' in message:
                     self._activity_generation += 1
                 turn = params.get('turn', {})
                 if message['method'] == 'turn/started':
@@ -165,7 +165,7 @@ class RoomSession:
             self._events.get_nowait()
         self._events.put_nowait(error)
 
-    async def start_turn(self, text):
+    async def start_turn(self, text, *, authorize=None):
         if not isinstance(text, str) or not text.strip() or len(text) > 8000:
             raise ValueError('A room message of 1–8000 characters is required')
         async with self._start_lock:
@@ -174,6 +174,8 @@ class RoomSession:
             if self._active_turn is not None or self._busy_unknown:
                 raise RoomSessionError('Room conversation already has an active turn')
             await self.assert_queue_empty()
+            if authorize is not None and not authorize():
+                raise RoomSessionError('Room access ended before submission')
             self._busy_unknown = True
             try:
                 result = await self._request('turn/start', {
@@ -272,6 +274,29 @@ class RoomSession:
 
     def require_reset(self):
         self._reset_required = True
+
+    async def confirm_clean(self, expected_retained_turn_ids):
+        """Open the handoff gate only after an already-clean setup is verified."""
+        self.require_reset()
+        async with self._start_lock:
+            generation = self._activity_generation
+            if self._active_turn is not None or self._busy_unknown:
+                raise RoomSessionError('Room turn is still active')
+            await self.assert_queue_empty()
+            if await self.background_terminals():
+                raise RoomSessionError('Room background work remains')
+            history = await self.list_turns()
+            if [turn.get('id') for turn in history] != list(expected_retained_turn_ids):
+                raise RoomSessionError('Room history did not match its clean setup')
+            await self.assert_queue_empty()
+            if await self.background_terminals():
+                raise RoomSessionError('Room background work remains after verification')
+            if generation != self._activity_generation or self._active_turn is not None or self._busy_unknown:
+                raise RoomSessionError('Room activity changed during context verification')
+            self._server_requests.clear()
+            while not self._events.empty():
+                self._events.get_nowait()
+            self._reset_required = False
 
     async def revert(self, before_turn_id, *, expected_retained_turn_ids):
         """Mechanically remove the old guest's history, retaining the known setup.

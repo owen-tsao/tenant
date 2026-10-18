@@ -30,7 +30,8 @@ def lease_frame(core, guest_id):
                           if current.state == 'joining' else current.expires_at)
     controls = []
     for device in core.registry.devices.values():
-        if device.room_id != current.room_id or not device.online or core.agent.label_is_ambiguous(device):
+        ambiguous = getattr(core.agent, 'label_is_ambiguous', lambda _device: False)
+        if device.room_id != current.room_id or not device.online or ambiguous(device):
             continue
         caps = sorted(cap for cap in device.caps if cap in ALLOWED_CAPS
                       and ('*' in current.scopes or cap in current.scopes))
@@ -38,10 +39,14 @@ def lease_frame(core, guest_id):
             controls.append({'label': device_label(device), 'caps': caps})
     # Stable ordering avoids updates solely because a device reconnected.
     controls.sort(key=lambda item: item['label'].casefold())
-    return {'type': 'lease', 'state': current.state,
+    frame = {'type': 'lease', 'state': current.state,
             'expires_in': max(0, math.ceil(effective_deadline - now)),
             'access_expires_in': max(0, math.ceil(current.expires_at - now)),
             'controls': controls}
+    if getattr(core.agent, 'agent_mode', None) == 'conversation':
+        frame.update(agent_mode='conversation', computer_control='broad' if '*' in current.scopes or 'computer' in current.scopes else 'none',
+                     controls_are_advisory=True, context_reset='between_guests')
+    return frame
 
 
 class GuestPublisher:

@@ -13,14 +13,19 @@ from brain.core.copy import confirmed_sentence, failure_sentence
 
 
 class Core:
-    def __init__(self, app, planner, *, clock=time.time, log_path=None, cleanup_hook=None):
+    def __init__(self, app, planner, *, clock=time.time, log_path=None, cleanup_hook=None, conversation=None):
         self.registry = app.state.registry
         self.bus = app.state.bus
         self.config = app.state.config
         self.leases = Leases(self.registry.room, clock=clock, on_change=self.registry.persist,
                              healthy=lambda: self.registry.persistence_healthy)
         self.log = EventLog(log_path, clock=clock)
-        self.agent = Agent(self.registry, self.bus, self.leases, planner, self.log)
+        if conversation is None:
+            self.agent = Agent(self.registry, self.bus, self.leases, planner, self.log)
+        else:
+            from brain.core.room_conversation import ConversationAgent
+            self.agent = ConversationAgent(self.leases, self.log, conversation,
+                                           private_values=(self.config.host_token, self.config.device_token), registry=self.registry)
         self.credentials = {}
         self.cleanup_hook = cleanup_hook
 
@@ -69,6 +74,8 @@ class Core:
 
     def sweep(self):
         self.leases.sweep()
+        if hasattr(self.agent, 'check_access'):
+            self.agent.check_access()
         # Credentials/tombstones last through the original cookie lifetime only.
         # Old sessions cannot regain authority, and an overnight demo stays bounded.
         now = self.leases.clock()
@@ -114,11 +121,14 @@ class Core:
                         cap=body['cap'], req=req, ok=result.ok, code=result.code)
         return result.as_dict()
 
-    def revoke(self, guest_id):
+    def revoke(self, guest_id, *, actor='host'):
         revoked = self.leases.revoke(guest_id)
         self.agent.pending.pop(guest_id, None)
+        if hasattr(self.agent, 'access_ended'):
+            self.agent.access_ended(guest_id)
         if revoked:
-            self.log.append('guest.leave', 'The host ended guest access. Existing effects stay as set.', guest_id=guest_id)
+            sentence = ('The guest ended room access.' if actor == 'guest' else 'The host ended guest access.')
+            self.log.append('guest.leave', sentence + ' Already-started effects may remain.', guest_id=guest_id)
         return revoked
 
     async def reset(self):
@@ -127,6 +137,9 @@ class Core:
         self.agent.pending.clear()
         self.log.clear()
         self.log.append('guest.leave', 'The host ended all guest access and refreshed the room invitation.')
+        context_cleanup = None
+        if hasattr(self.agent, 'reset_context'):
+            context_cleanup = 'confirmed' if await self.agent.reset_context() else 'unconfirmed'
         cleanup = 'not_configured'
         if self.cleanup_hook:
             try:
@@ -141,10 +154,11 @@ class Core:
             self.log.append('ok' if cleanup == 'confirmed' else 'err', sentence, cleanup=cleanup)
         return {'ok': self.registry.persistence_healthy, 'room_code': self.registry.room.code,
                 'revoked': revoked, 'cleanup': cleanup,
+                **({} if context_cleanup is None else {'context_cleanup': context_cleanup}),
                 **({} if self.registry.persistence_healthy else {'error': 'Room state could not be saved; guest control is disabled'})}
 
 
-def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=None):
+def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=None, conversation=None):
     """Call after registry/bus/config state setup, before mounting static files.
 
     The caller owns an existing /host/do route; delegate its authenticated body
@@ -154,7 +168,7 @@ def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=N
     from brain.api.host import router as host_router
     from brain.channels.webchat import router as guest_router
     from brain.ws.display import router as display_router
-    core = Core(app, planner, clock=clock, log_path=log_path, cleanup_hook=cleanup_hook)
+    core = Core(app, planner, clock=clock, log_path=log_path, cleanup_hook=cleanup_hook, conversation=conversation)
     app.state.core = core
     previous_lifespan = app.router.lifespan_context
 
@@ -172,6 +186,9 @@ def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=N
                 task.cancel()
                 with suppress(asyncio.CancelledError):
                     await task
+                if hasattr(core.agent, 'close'):
+                    with suppress(Exception):
+                        await core.agent.close()
 
     app.router.lifespan_context = lifespan
     for router in (join_router, host_router, guest_router, display_router):

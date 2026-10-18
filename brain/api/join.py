@@ -44,7 +44,5 @@ async def leave(request: Request):
     guest_id = body.get('guest_id') if body else None
     if not core.authentic_guest(guest_id, request.cookies):
         return JSONResponse({'error': 'Guest authorization required'}, status_code=403)
-    core.leases.revoke(guest_id)
-    core.agent.pending.pop(guest_id, None)
-    core.log.append('guest.leave', 'The guest ended access. Existing effects stay as set.', guest_id=guest_id)
+    core.revoke(guest_id, actor='guest')
     return {'ok': True}
