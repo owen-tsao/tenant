@@ -27,3 +27,11 @@ If an entry is longer than two sentences it belongs in `ARCHITECTURE.md`, not he
 - Mock: the 7s ticker now idles when there are no guests (nobody here → nothing happens), so pressing R gives a genuinely quiet reset state.
 - Fixed a real bug: the amber guest block re-ran its wipe-in animation on every 1s re-render (would flicker on the live backend too). It now animates only the first time a guest appears.
 - Screenshots: notes/shots/display-reset-1440x900.png, notes/shots/display-live-1440x900.png.
+
+## 17:40 — plum/pink theme; display is now the host's operational screen
+- Theme tokens replaced in `web/tenant.css`: plum floor `#1a1523`, pink accent `#f0a8e0` used only for the live guest block, the dot on a device that is acting, and the one-time wipe on the newest ledger row. Two line weights: `--line` (.14) inside a region, `--line-2` (.32) between regions. Buttons are pills (pink primary, outline secondary). device.html styles stay black-floored.
+- Display restructured (Conduction-Pieces regions, no boxes): 56px top bar (ROOM + code · state sentence · clock), left GUEST region (pink block, or the dither motif + "Nobody is here right now."), right IN THIS ROOM table (40%) over WHAT HAS HAPPENED (remainder). QR and join URL removed from the display — QR goes on the printed card / slides. Both columns end at y=900 at 1440x900 (measured).
+- `T.motif()` in shared.js draws the one texture (ordered-dithered pinwheel of squares) — reuse it behind the QR in the setup flow's "room is ready" step. `T.qrSvg(url)` holds the placeholder QR generator for that flow; still no QR library vendored.
+- Fixed: `[hidden]` was being overridden by `display:flex` on the empty-state container (both guest block and motif showed). Added `[hidden]{display:none!important}` globally.
+- Mock fixtures now fetch with `cache: "no-store"` so edits to state.json / chat.json show on reload.
+- Shots: notes/shots/display-plum-reset.png, display-plum-live.png, join-plum-390x844.png, join-plum-phone-step-390x844.png, guest-plum-390x844.png.

@@ -20,6 +20,40 @@
   };
   function capWord(c) { return CAP_WORDS[c] || c; }
 
+  /* The one texture: a pinwheel of pink squares, ordered-dithered so density
+   * falls off from the centre. Deterministic; returns an inline <svg> string.
+   * Used only where no text has to be read over it (display empty state,
+   * setup "room is ready" behind the QR). */
+  function motif(n = 40, arms = 8, twist = .04) {
+    const bayer = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+    const c = (n - 1) / 2, R = c * Math.SQRT2, cells = [];
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const dx = x - c, dy = y - c, r = Math.hypot(dx, dy), th = Math.atan2(dy, dx);
+      const spiral = Math.pow(.5 + .5 * Math.cos(arms * th + r * twist * arms), 1.15);
+      const fall = Math.pow(Math.max(0, 1 - r / (R * .76)), .3);
+      const v = spiral * fall;
+      if (v > (bayer[y % 4][x % 4] + .5) / 16) cells.push(`<rect x="${x * 7}" y="${y * 7}" width="6" height="6"/>`);
+    }
+    return `<svg viewBox="0 0 ${n * 7 - 1} ${n * 7 - 1}" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true">${cells.join("")}</svg>`;
+  }
+
+  // QR placeholder until a QR library is approved: a deterministic hash pattern
+  // that reads as "a QR goes here" without pretending to be scannable.
+  // If window.qrcode (qrcode-generator) exists it is used instead.
+  function qrSvg(url) {
+    if (window.qrcode) { const q = window.qrcode(0, "M"); q.addData(url); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); }
+    let h = 2166136261; for (const ch of url) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+    const n = 21, cells = [];
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const finder = (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7);
+      let on;
+      if (finder) { const fx = x < 7 ? x : x - (n - 7), fy = y < 7 ? y : y - (n - 7); on = fx === 0 || fx === 6 || fy === 0 || fy === 6 || (fx >= 2 && fx <= 4 && fy >= 2 && fy <= 4); }
+      else { h = (h ^ (x * 73856093) ^ (y * 19349663)) >>> 0; h = Math.imul(h, 2654435761) >>> 0; on = (h >>> 13) & 1; }
+      if (on) cells.push(`<rect x="${x}" y="${y}" width="1" height="1"/>`);
+    }
+    return `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" fill="#000">${cells.join("")}</svg>`;
+  }
+
   function fmtClock(sec) {
     sec = Math.max(0, Math.round(sec));
     const m = Math.floor(sec / 60), s = sec % 60;
@@ -61,7 +95,7 @@
       };
     }
     // Mock: load the fixture, then keep it alive — countdown ticks, a log row lands now and then.
-    const state = await (await fetch(mockUrl("state.json"))).json();
+    const state = await (await fetch(mockUrl("state.json"), { cache: "no-store" })).json();
     const extra = [
       ["do", "Guest 1 asked for something calm to listen to."],
       ["ok", "The room speaker started playing Calm."],
@@ -95,7 +129,7 @@
       const conn = reconnecting(`/ws/guest?guest_id=${encodeURIComponent(guestId)}&token=${encodeURIComponent(token || "")}`, onFrame);
       return { send: (text) => conn.send({ type: "user", text }) };
     }
-    const fx = await (await fetch(mockUrl("chat.json"))).json();
+    const fx = await (await fetch(mockUrl("chat.json"), { cache: "no-store" })).json();
     let t = 0;
     for (const step of fx.script) { t += step.after; setTimeout(() => onFrame(step), t); }
     return { send: (text) => { onFrame({ type: "user", text }); setTimeout(() => onFrame({ type: "assistant", text: "(mock) I heard: " + text }), 700); }, expires_in: fx.expires_in };
@@ -115,5 +149,5 @@
     return out;
   }
 
-  window.Tenant = { MOCK, capWord, fmtClock, fmtTime, connectDisplay, connectGuest, postJoin };
+  window.Tenant = { MOCK, capWord, fmtClock, fmtTime, motif, qrSvg, connectDisplay, connectGuest, postJoin };
 })();
