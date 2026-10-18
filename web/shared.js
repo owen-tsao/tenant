@@ -117,14 +117,14 @@
     const state = await (await fetch(mockUrl("state.json"), { cache: "no-store" })).json();
     const byId = (id) => state.devices.find(d => d.id === id);
     const extra = [
-      ["do", "Guest 1", " asked for something calm to listen to.", null],
-      ["ok", "The room speaker", " started playing Calm.", "laptop"],
-      ["do", "Guest 1", " asked what's in the room.", null],
-      ["ok", "The room", " listed its devices.", null],
-      ["do", "Guest 1", " asked for a photo.", null],
-      ["ok", "Jay's phone", " took a photo and the screen is showing it.", "jay-phone", mockUrl("photo.jpg")],
-      ["do", "Guest 1", " asked for the screen to flash.", null],
-      ["ok", "Owen's phone", " flashed its screen.", "owen-phone"],
+      ["do", "Guest 1", " asked for something calm to listen to.", null, null, "play something calm"],
+      ["ok", "The room speaker", " started playing Calm.", "laptop", null, "Playing Calm on the room speaker."],
+      ["do", "Guest 1", " asked what's in the room.", null, null, "what's in this room?"],
+      ["ok", "The room", " listed its devices.", null, null, "Two phones that can light up, flash, speak and take photos; a speaker and screen; a tablet that's offline right now."],
+      ["do", "Guest 1", " asked for a photo.", null, null, "take a photo"],
+      ["ok", "Jay's phone", " took a photo and the screen is showing it.", "jay-phone", mockUrl("photo.jpg"), "Took one on Jay's phone — it's up on the screen."],
+      ["do", "Guest 1", " asked for the screen to flash.", null, null, "flash the screen"],
+      ["ok", "Owen's phone", " flashed its screen.", "owen-phone", null, "Flashed Owen's phone."],
     ];
     let i = 0, busyTimer = null;
     onState(state);
@@ -134,7 +134,7 @@
     }, 1000);
     setInterval(() => {
       if (!state.guests.length) return; // nobody here — nothing happens
-      const [kind, subject, rest, devId, image_url] = extra[i++ % extra.length];
+      const [kind, subject, rest, devId, image_url, said] = extra[i++ % extra.length];
       const row = { t: Date.now() / 1000, kind, subject, rest, text: subject + rest };
       if (devId) row.device = devId;
       if (image_url) row.image_url = image_url;
@@ -143,6 +143,12 @@
         byId(devId).busy = true; byId(devId).last_action = row.text;
         clearTimeout(busyTimer);
         busyTimer = setTimeout(() => { byId(devId).busy = false; onState(state); }, 3000);
+      }
+      // the conversation grows with the ledger: a "do" is the guest's text, an "ok" is the room's reply
+      const g = state.guests[0];
+      if (said && g) {
+        g.transcript = (g.transcript || []).concat([{ role: kind === "do" ? "guest" : "room", text: said, t: row.t }]).slice(-10);
+        if (kind === "do") g.last_text = said;
       }
       state.log.unshift(row);
       state.log = state.log.slice(0, 40);
