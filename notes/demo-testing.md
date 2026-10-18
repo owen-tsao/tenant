@@ -16,6 +16,8 @@ Reviewed source, automated tests, live transport, human experience and physical 
 
 ## Current matrix
 
+Latest deployment:00594fa,407Python+12Node, independent review PASS. Audited retirement of the two absent legacy enrollments was followed by a SEPARATE fresh reset: current phone OFF and Mac pause ACKs, cleanup/context/programs confirmed, room9162. Half-period first-cycle receipt and speech-budget fixes are live; ONE fresh actual guest60BPM/phone test is pending. The earlier failures and unconfirmed reset below remain historical evidence.
+
 Root update, October17 19:13 PT: Brain6cb644a and Mac audio af6f8be were used for the latest live music trial. Jay confirmed a continuous 90 BPM beat and the spoken tempo answer. First longer narration returned UNKNOWN; reviewed player-budget fix4198998 is committed but not yet deployed. Phone attachment FAILED at its first ON after a166 ms acknowledgement window; no retry. Explicit host reset rotated the room to0C4C, confirmed context/program cleanup and acknowledged OFF/pause, but aggregate cleanup remained unconfirmed. Audio/core owners are reviewing a60 BPM/500 ms pulse baseline and truthful first-cycle receipt before the next physical check. These outcomes supersede pending-only statements in the historical rows below; no synchronization claim passes.
 
 | Check | State and evidence | Owner/blocker |
