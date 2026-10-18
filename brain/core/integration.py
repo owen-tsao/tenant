@@ -39,6 +39,8 @@ class Core:
             from brain.core.conversation_speech import ConversationSpeech
             self.speech = ConversationSpeech(self.registry, self.bus, self.leases, self.log,
                                              self.agent.allows_reply, timeout=conversation.cleanup_timeout)
+            self.agent.reply_speech = self.speech
+            self.agent.device_tools.reply_voice = self.speech
         self.credentials = {}
         self.cleanup_hook = cleanup_hook
         self.photon = None

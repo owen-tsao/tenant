@@ -3,6 +3,7 @@ import asyncio
 import json
 import unittest
 from dataclasses import FrozenInstanceError
+from types import SimpleNamespace
 
 from brain.core.bus import Bus
 from brain.core.conversation_speech import (
@@ -76,6 +77,25 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
             self.registry, self.bus, self.leases, self.log,
             lambda receipt: receipt.generation == self.generation,
             timeout=.04)
+        self.voice_counter = 0
+
+    async def asyncTearDown(self):
+        await self.speech.close()
+
+    def grant(self):
+        return SimpleNamespace(guest_id=self.lease.guest_id, generation=self.generation,
+            lease=self.lease, thread_id="native-room", room_id=self.registry.room.id,
+            epoch=self.registry.room.epoch, turn_id="policy-turn", closed=False,
+            deadline=asyncio.get_running_loop().time() + 1)
+
+    def enable(self, speaker):
+        grant = self.grant()
+        choice = next(item for item in self.speech.inventory(grant)["speakers"]
+                      if item["device_id"] == speaker.device.id)
+        self.voice_counter += 1
+        result = self.speech.set_voice(grant, {"request_id": "voice-" + str(self.voice_counter),
+            "enabled": True, "device_id": choice["device_id"], "speaker_ref": choice["speaker_ref"]})
+        self.assertTrue(result["ok"], result)
 
     def register(self, device_id='laptop', *, auto=True, result=None):
         socket = Socket(self.bus, auto=auto, result=result)
@@ -87,13 +107,15 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     def reply(self, text='Hello from Tenant.', *, turn_id='native-1', explicit_speech_attempted=False):
         return ReplyFrames(CompletedReply(self.lease.guest_id, 1, 'native-room', turn_id, text, self.lease,
-                                         explicit_speech_attempted=explicit_speech_attempted))
+                                         explicit_speech_attempted=explicit_speech_attempted,
+                                         voice_revision=self.speech.revision_for(self.grant())))
 
     def status(self):
         return self.log.audit_rows[-1]['audit']['audio_status']
 
     async def test_short_native_reply_speaks_once_only_and_does_not_log_its_text(self):
         speaker = self.register()
+        self.enable(speaker)
         reply = self.reply()
         await self.speech.speak_reply(reply)
         await self.speech.speak_reply(reply)
@@ -106,12 +128,14 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_plain_history_error_or_interpreter_frames_never_speak(self):
         speaker = self.register()
+        self.enable(speaker)
         await self.speech.speak_reply([{'type': 'assistant', 'text': 'Hello from Tenant.'}])
         self.assertEqual(speaker.frames, [])
         self.assertEqual(self.log.rows, [])
 
     async def test_explicit_speech_receipt_skips_auto_narration_once_without_parsing_text(self):
         speaker = self.register()
+        self.enable(speaker)
         reply = self.reply('Done.', explicit_speech_attempted=True)
         await self.speech.speak_reply(reply)
         await self.speech.speak_reply(reply)
@@ -124,6 +148,7 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_explicit_speech_receipt_does_not_queue_or_substitute_after_unknown(self):
         speaker = self.register(auto=False)
+        self.enable(speaker)
         reply = self.reply('The spoken result is uncertain.', explicit_speech_attempted=True)
         await self.bus.locks['laptop'].acquire()
         try:
@@ -138,11 +163,13 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_mentioning_speech_in_text_is_not_a_dispatch_receipt(self):
         speaker = self.register()
+        self.enable(speaker)
         await self.speech.speak_reply(self.reply('I spoke.'))
         self.assertEqual(speaker.frames[0]['args'], {'text': 'I spoke.'})
 
     async def test_speech_request_budget_cannot_outlast_the_current_lease(self):
         speaker = self.register()
+        self.enable(speaker)
         self.speech.timeout = 15
         self.lease.expires_at = self.now + .125
         await self.speech.speak_reply(self.reply())
@@ -153,25 +180,29 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_unsafe_long_reply_uses_only_short_screen_fallback(self):
         speaker = self.register()
+        self.enable(speaker)
         await self.speech.speak_reply(self.reply('```python\nprint("synthetic-private")\n```'))
         self.assertEqual(speaker.frames[0]['args'], {'text': FALLBACK})
 
-    async def test_no_speaker_offline_and_ambiguous_speaker_do_not_dispatch_or_retry(self):
+    async def test_text_default_and_lost_binding_never_discover_or_substitute_a_speaker(self):
         await self.speech.speak_reply(self.reply(turn_id='none'))
-        self.assertEqual(self.status(), 'NO_UNIQUE_SPEAKER')
+        self.assertEqual(self.status(), 'TEXT_DEFAULT')
         first = self.register()
+        self.enable(first)
         self.registry.offline(first.device)
         await self.speech.speak_reply(self.reply(turn_id='offline'))
         self.assertEqual(first.frames, [])
-        self.assertEqual(self.status(), 'NO_UNIQUE_SPEAKER')
+        self.assertEqual(self.status(), 'TEXT_DEFAULT')
         first.device.online = True
         second = self.register('second')
-        reply = self.reply(turn_id='ambiguous')
+        reply = self.reply(turn_id='requires-new-choice')
         await self.speech.speak_reply(reply)
-        self.assertEqual(self.status(), 'NO_UNIQUE_SPEAKER')
-        self.registry.offline(second.device)
-        await self.speech.speak_reply(reply)
-        self.assertEqual(first.frames, [])  # A later connection change does not replay a skipped turn.
+        self.assertEqual(self.status(), 'TEXT_DEFAULT')
+        self.assertEqual(first.frames, [])
+        self.assertEqual(second.frames, [])
+        self.enable(first)
+        await self.speech.speak_reply(self.reply(turn_id='chosen-first'))
+        self.assertEqual(len(first.frames), 1)
         self.assertEqual(second.frames, [])
 
     async def test_configured_missing_speaker_does_not_substitute(self):
@@ -179,20 +210,22 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
         self.speech.speaker_device_id = 'laptop'
         await self.speech.speak_reply(self.reply())
         self.assertEqual(other.frames, [])
-        self.assertEqual(self.status(), 'NO_UNIQUE_SPEAKER')
+        self.assertEqual(self.status(), 'TEXT_DEFAULT')
 
     async def test_lease_scope_is_rechecked_and_volume_is_never_called(self):
         speaker = self.register()
+        self.enable(speaker)
         self.lease.scopes = {'computer'}
         await self.speech.speak_reply(self.reply())
         self.assertEqual(speaker.frames, [])
-        self.assertEqual(self.status(), 'PERMISSION')
+        self.assertEqual(self.status(), 'TEXT_DEFAULT')
 
     async def test_revoke_expiry_new_guest_and_reset_while_queued_send_nothing(self):
         for transition in ('revoke', 'expiry', 'new_guest', 'reset'):
             with self.subTest(transition=transition):
                 self.setUp()
                 speaker = self.register()
+                self.enable(speaker)
                 lock = self.bus.locks['laptop']
                 await lock.acquire()
                 task = asyncio.create_task(self.speech.speak_reply(self.reply()))
@@ -211,8 +244,9 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(speaker.frames, [])
                 self.assertEqual(self.status(), 'PERMISSION')
 
-    async def test_new_speaker_ambiguity_after_queueing_prevents_dispatch(self):
+    async def test_another_speaker_after_queueing_cannot_change_the_explicit_selection(self):
         speaker = self.register()
+        self.enable(speaker)
         lock = self.bus.locks['laptop']
         await lock.acquire()
         task = asyncio.create_task(self.speech.speak_reply(self.reply()))
@@ -220,12 +254,13 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
         other = self.register('other')
         lock.release()
         await task
-        self.assertEqual(speaker.frames, [])
+        self.assertEqual(len(speaker.frames), 1)
         self.assertEqual(other.frames, [])
-        self.assertEqual(self.status(), 'PERMISSION')
+        self.assertEqual(self.status(), 'ACKNOWLEDGED')
 
     async def test_connection_replacement_does_not_migrate_pending_speech(self):
         speaker = self.register()
+        self.enable(speaker)
         lock = self.bus.locks['laptop']
         await lock.acquire()
         task = asyncio.create_task(self.speech.speak_reply(self.reply()))
@@ -240,6 +275,7 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_unknown_is_not_replayed_even_after_late_ack_or_another_speaker_appears(self):
         speaker = self.register(auto=False)
+        self.enable(speaker)
         reply = self.reply()
         await self.speech.speak_reply(reply)
         self.assertEqual(self.status(), 'UNKNOWN')
@@ -251,6 +287,7 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_disconnect_after_send_is_unknown_without_retry(self):
         speaker = self.register(auto=False)
+        self.enable(speaker)
         reply = self.reply()
         task = asyncio.create_task(self.speech.speak_reply(reply))
         await speaker.sent.wait()
@@ -262,6 +299,7 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_cancellation_after_send_is_unknown_and_same_turn_cannot_replay(self):
         speaker = self.register(auto=False)
+        self.enable(speaker)
         reply = self.reply()
         task = asyncio.create_task(self.speech.speak_reply(reply))
         await speaker.sent.wait()
@@ -275,6 +313,7 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_ack_without_spoken_payload_is_not_claimed_as_playback(self):
         speaker = self.register(result={'accepted': True})
+        self.enable(speaker)
         await self.speech.speak_reply(self.reply())
         self.assertEqual(len(speaker.frames), 1)
         self.assertEqual(self.status(), 'UNCONFIRMED')
@@ -343,6 +382,26 @@ class ConversationSpeechIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await asyncio.wait_for(socket.outgoing.get(), 1))['type'], 'lease')
         return socket, task
 
+    async def until(self, predicate):
+        async with asyncio.timeout(1):
+            while not predicate():
+                await asyncio.sleep(0)
+
+    async def voice_turn(self, guest, text):
+        self.native.auto_finish = False
+        guest.incoming.put_nowait({'type': 'user', 'text': text})
+        await self.until(lambda: any(grant.turn_id is not None and not grant.closed
+                                    for grant in self.core.agent.device_tools._grants.values()))
+        grant = next(grant for grant in self.core.agent.device_tools._grants.values()
+                     if grant.turn_id is not None and not grant.closed)
+        choice = self.core.speech.inventory(grant)['speakers'][0]
+        result = await self.core.agent.device_tools.dispatch({'token': grant.token, 'operation': 'reply-voice',
+            'request_id': 'explicit-opt-in', 'enabled': True,
+            'device_id': choice['device_id'], 'speaker_ref': choice['speaker_ref']})
+        self.assertTrue(result['ok'], result)
+        self.native.auto_finish = True
+        await self.native.finish(grant.turn_id, 'Native reply: ' + text)
+
     async def test_delivered_genuine_final_is_spoken_and_reconnect_does_not_replay_it(self):
         speaker = self.register()
         guest, task = await self.open()
@@ -352,7 +411,7 @@ class ConversationSpeechIntegrationTests(unittest.IsolatedAsyncioTestCase):
             delivered_before_audio.append(any(item['type'] == 'assistant' for item in guest.frames))
             await send(frame)
         speaker.send_json = check_delivery
-        guest.incoming.put_nowait({'type': 'user', 'text': 'Hello'})
+        await self.voice_turn(guest, 'Hello')
         await asyncio.wait_for(speaker.sent.wait(), 1)
         final = [frame for frame in guest.frames if frame['type'] == 'assistant']
         self.assertEqual(final, [{'type': 'assistant', 'text': 'Native reply: Hello'}])
@@ -368,7 +427,7 @@ class ConversationSpeechIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_failed_final_delivery_never_starts_audio(self):
         speaker = self.register()
         guest, task = await self.open(fail_final=True)
-        guest.incoming.put_nowait({'type': 'user', 'text': 'Hello'})
+        await self.voice_turn(guest, 'Hello')
         await asyncio.wait_for(task, 1)
         self.assertEqual(speaker.frames, [])
         self.assertEqual(self.native.counter, 1)
@@ -377,9 +436,13 @@ class ConversationSpeechIntegrationTests(unittest.IsolatedAsyncioTestCase):
         speaker = self.register(auto=False)
         self.core.speech.timeout = 1
         guest, task = await self.open()
-        guest.incoming.put_nowait({'type': 'user', 'text': 'Hello'})
+        await self.voice_turn(guest, 'Hello')
         await asyncio.wait_for(speaker.sent.wait(), 1)
         self.assertTrue(any(frame['type'] == 'assistant' for frame in guest.frames))
+        voice_task = next(iter(self.core.speech._tasks))
+        voice_task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await voice_task
         task.cancel()
         await task
         self.assertEqual(self.core.log.audit_rows[-1]['audit']['audio_status'], 'UNKNOWN')

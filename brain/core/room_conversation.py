@@ -50,6 +50,7 @@ class ConversationAgent:
         self._first_guest_turn = None
         self.device_tools = None
         self.programs = None
+        self.reply_speech = None
         if registry is not None and bus is not None:
             from brain.core.native_devices import NativeDevices
             self.device_tools = NativeDevices(registry, bus, leases, log, self._device_turn_allowed,
@@ -107,6 +108,8 @@ class ConversationAgent:
             if previous:
                 self.leases.revoke(previous)
                 self._end_programs(previous)
+                if self.reply_speech is not None:
+                    self.reply_speech.end_guest(previous)
         return self._generation
 
     def _end_programs(self, guest_id):
@@ -128,9 +131,11 @@ class ConversationAgent:
         self._generation += 1
         self._clean_generation = None
         self._end_programs(guest_id)
+        if self.reply_speech is not None:
+            self.reply_speech.end_guest(guest_id)
         generation = self._generation
         try:
-            task = asyncio.create_task(self._settle_ended(generation))
+            task = asyncio.create_task(self._settle_ended(generation, guest_id))
         except RuntimeError:
             return
         self._cleanup_tasks.add(task)
@@ -140,7 +145,9 @@ class ConversationAgent:
         if self._controller and self.leases.current(self._controller) is None:
             self.access_ended(self._controller)
 
-    async def _settle_ended(self, generation):
+    async def _settle_ended(self, generation, guest_id=None):
+        if self.reply_speech is not None:
+            await self.reply_speech.drain(guest_id)
         async with self._lock:
             if generation != self._generation:
                 return  # The incoming controller performs the same cleanup before submission.
@@ -234,6 +241,8 @@ class ConversationAgent:
     async def _reset_native(self):
         if self.device_tools is not None:
             self.device_tools.revoke_all()
+        if self.reply_speech is not None:
+            await self.reply_speech.drain()
         async with asyncio.timeout(self.settings.cleanup_timeout):
             session = await self._connect()
             await self._drain_active()
@@ -350,7 +359,8 @@ class ConversationAgent:
                         return ReplyFrames(CompletedReply(
                             guest_id, generation, self.settings.thread_id, turn_id,
                             self._redact(final[-1]), self.leases.current(guest_id),
-                            explicit_speech_attempted=bool(grant and grant.explicit_speech_attempted)))
+                            explicit_speech_attempted=bool(grant and grant.explicit_speech_attempted),
+                            voice_revision=self.reply_speech.revision_for(grant) if self.reply_speech is not None and grant else None))
         except BaseException:
             # The outer controller keeps the lock through one bounded cleanup.
             # Starting another shielded drain here could orphan native work if
@@ -418,6 +428,13 @@ class ConversationAgent:
         if controller:
             self.leases.revoke(controller)
             self.access_ended(controller)
+        if self.reply_speech is not None:
+            try:
+                async with asyncio.timeout(self.settings.cleanup_timeout + 1):
+                    await self.reply_speech.close()
+            except Exception:
+                self._failed = True
+                self.log.append('err', 'Tenant could not confirm reply audio cleanup.')
         if self.programs is not None:
             try:
                 async with asyncio.timeout(self.program_cleanup_timeout()):

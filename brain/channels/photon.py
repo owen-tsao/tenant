@@ -464,7 +464,10 @@ class PhotonChannel:
             self.store.outcome(message_id, 'ACCEPTED')
             self._log('ACCEPTED_NOT_DELIVERED', guest_id)
             if getattr(self.core, 'speech', None) is not None and self._can_reply(frames, lease):
-                await self.core.speech.speak_reply(frames)
+                if hasattr(self.core.speech, 'schedule_reply'):
+                    self.core.speech.schedule_reply(frames)
+                else:
+                    await self.core.speech.speak_reply(frames)
         except asyncio.CancelledError:
             self.store.outcome(message_id, 'ACCEPTED' if accepted else 'UNKNOWN')
             raise

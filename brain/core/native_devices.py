@@ -65,6 +65,7 @@ class NativeDevices:
         self._blink_sleep = asyncio.sleep
         self.device_locks = defaultdict(asyncio.Lock)
         self.programs = None
+        self.reply_voice = None
 
     async def prepare(self, guest_id, generation, lease, thread_id):
         if self._closed:
@@ -124,26 +125,24 @@ class NativeDevices:
         command = shlex.join([sys.executable, str(helper), '--context', str(grant.path)])
         text = (
             '[Tenant room integration context]\n'
-            'You are the LIVE room conversation with broad computer tools. Guest-requested coding, artifacts '
-            'and apps are allowed; do not turn ordinary guest requests into Tenant engineering rehearsals/self-tests. '
-            'Fulfill THIS guest request only. Keep requested performances running after your reply. '
-            'Never rehearse unrequested start, tempo changes or stop; change tempo/stop only when asked. '
-            'The backend handles access ending and faults. '
+            'LIVE room agent with broad computer tools: fulfill guest coding/artifact/app requests, '
+            'not unrequested Tenant tests/rehearsals. Fulfill THIS request only. '
+            'Keep requested performances running after replying; change tempo/stop only on request. '
+            'Backend ends access and handles faults. '
             'Start replies with a concise plain result within 160 characters; details can follow. '
-            'Final replies are voiced automatically: do not call say merely to narrate them. '
             'Use this private shell helper for enrolled light/audio. Run inventory first; use exact IDs, '
             'online state and schemas. Multiple explicitly requested operations/devices are allowed. '
             'Ask for a choice on ambiguous/unavailable targets; never substitute. Preserve output/volume '
-            'unless explicitly asked. Only helper JSON results establish effects; shell exit/prose does not. '
+            'unless explicitly asked. Only helper JSON confirms effects, not shell exit/prose. '
             'UNKNOWN may have acted: stop dependent actions; never retry under another ID or claim cancellation. '
             'Keep helper paths/credentials out of routine replies.\n'
             f'Helper command prefix: {command}\n'
-            'Append inventory (read-only), call, or light-blink. Send one JSON object on stdin: '
+            'Use inventory (read-only), call, or light-blink with JSON stdin: '
             'call takes request_id,device_id,cap,args; light-blink takes request_id,device_id,count '
             '(any positive integer, default 3; 500ms ON/OFF intervals). Blink ends OFF only after ACK. '
             'Use a stable unique request_id per operation; duplicates return recorded results without replay. '
             'Calls are bounded by this active turn/lease, with no host bypass. '
-            'A newly requested OFF is a distinct compensating action: call light with args {on:false}. '
+            'For a newly requested OFF, call light with args {on:false}. '
             'It stops future program ON, waits boundedly for earlier work, then sends one fresh OFF. '
             'It never replays an old ON. If unresolved/BUSY, use the phone device page Disconnect/release camera; '
             'do not claim OFF or retry an uncertain OFF under another ID in this turn.\n'
@@ -165,6 +164,14 @@ class NativeDevices:
                 'raw action with a fresh request_id only after confirmed detach; music may continue. Never retry UNKNOWN detach. '
                 'A bpm update restarts the loop with a new phase. Process launch/dispatch timestamps do not prove '
                 'physical audio/light sync; prepared Music is not tempo-synced. Programs end with guest access.')
+        if self.reply_voice is not None:
+            text += ('\nReply voice context: '
+                     + json.dumps(self.reply_voice.context(grant), separators=(',', ':'))
+                     + '. Text is default. Mention only a flagged enrolled-bridge offer once in chat. '
+                     'Enable brief future voice only on explicit request; discovery never enables or substitutes. '
+                     'One-off say never enables it; use say only for requested speech, not final narration. '
+                     'Append reply-voice with JSON request_id,enabled:false; '
+                     'or request_id,enabled:true,device_id,speaker_ref from inventory.reply_voice.')
         return text
 
     async def _handle(self, reader, writer):
@@ -239,7 +246,8 @@ class NativeDevices:
                                     'interval_ms': 500, 'bounded_by': 'current_turn_and_lease', 'ends_off_on_success': True}]
                                     if any(cap['name'] == 'light' for cap in caps) else [])})
             return {'ok': True, 'devices': devices,
-                    **({'programs': self.programs.inventory(grant)} if self.programs is not None else {})}
+                    **({'programs': self.programs.inventory(grant)} if self.programs is not None else {}),
+                    **({'reply_voice': self.reply_voice.inventory(grant)} if self.reply_voice is not None else {})}
         valid_call = operation == 'call' and set(request) == {'token', 'operation', 'request_id', 'device_id', 'cap', 'args'}
         valid_blink = (operation == 'light-blink'
                        and {'token', 'operation', 'request_id', 'device_id'} <= set(request)
@@ -251,14 +259,21 @@ class NativeDevices:
              and fields <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
              and ('light_beats_per_state' not in fields or 'light_device_id' in fields)) or
             (operation in ('program-stop', 'program-status') and fields == {'request_id', 'program_id'}))
-        if not valid_call and not valid_blink and not valid_program:
+        valid_voice = (self.reply_voice is not None and operation == 'reply-voice'
+                       and type(request.get('enabled')) is bool
+                       and ((request['enabled'] is False and fields == {'request_id', 'enabled'})
+                            or (request['enabled'] is True
+                                and fields == {'request_id', 'enabled', 'device_id', 'speaker_ref'}
+                                and isinstance(request['device_id'], str)
+                                and isinstance(request['speaker_ref'], str))))
+        if not valid_call and not valid_blink and not valid_program and not valid_voice:
             return denied('INVALID', 'Invalid helper request. Nothing was sent.')
         request_id = request['request_id']
         if (not isinstance(request_id, str) or not 1 <= len(request_id) <= 80
                 or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in request_id)):
             return denied('INVALID', 'A short request ID is required. Nothing was sent.')
         payload = ({key: copy.deepcopy(request[key]) for key in ('device_id', 'cap', 'args')} if valid_call else
-                   {key: copy.deepcopy(request[key]) for key in fields} if valid_program else
+                   {key: copy.deepcopy(request[key]) for key in fields} if valid_program or valid_voice else
                    {'device_id': copy.deepcopy(request['device_id']), 'count': copy.deepcopy(request.get('count', 3))})
         payload['operation'] = operation
         try:
@@ -281,7 +296,11 @@ class NativeDevices:
             return copy.deepcopy(await asyncio.shield(future))
         program_targets = self._program_targets(grant, operation, payload) if valid_program else set()
         try:
-            if valid_program:
+            if valid_voice:
+                response = self.reply_voice.set_voice(grant,
+                    {key: value for key, value in payload.items() if key != 'operation'},
+                    authorized=lambda: self.permitted(grant) and connected())
+            elif valid_program:
                 if program_targets & grant.unknown_devices:
                     response = denied('UNKNOWN', 'An affected device has an unknown earlier result. Nothing was resent; '
                                       'status, stop and detach-only cleanup remain available.')
@@ -300,7 +319,7 @@ class NativeDevices:
                 ids = response.get('unknown_device_ids', program_targets)
                 if isinstance(ids, (list, set, tuple)):
                     grant.unknown_devices.update(device_id for device_id in ids if isinstance(device_id, str))
-            else:
+            elif not valid_voice:
                 device_id = payload.get('device_id')
                 if isinstance(device_id, str):
                     grant.unknown_devices.add(device_id)

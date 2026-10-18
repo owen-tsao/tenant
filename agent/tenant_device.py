@@ -38,7 +38,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description='Use the current Tenant native-turn device grant.')
     parser.add_argument('--context', required=True)
     parser.add_argument('operation', choices=('inventory', 'call', 'light-blink', 'program-start',
-                                             'program-update', 'program-stop', 'program-status'))
+                                             'program-update', 'program-stop', 'program-status', 'reply-voice'))
     args = parser.parse_args(argv)
     try:
         payload = None
@@ -51,6 +51,12 @@ def main(argv=None):
                 (args.operation == 'call' and set(payload) == {'request_id', 'device_id', 'cap', 'args'}) or
                 (args.operation == 'light-blink' and {'request_id', 'device_id'} <= set(payload)
                  and set(payload) <= {'request_id', 'device_id', 'count'}) or
+                (args.operation == 'reply-voice' and type(payload.get('enabled')) is bool
+                 and isinstance(payload.get('request_id'), str)
+                 and ((payload['enabled'] is False and set(payload) == {'request_id', 'enabled'})
+                      or (payload['enabled'] is True
+                          and set(payload) == {'request_id', 'enabled', 'device_id', 'speaker_ref'}
+                          and isinstance(payload['device_id'], str) and isinstance(payload['speaker_ref'], str)))) or
                 (args.operation == 'program-start' and set(payload) == {'request_id', 'device_id', 'bpm'}) or
                 (args.operation == 'program-update' and {'request_id', 'program_id'} < set(payload)
                  and set(payload) <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
