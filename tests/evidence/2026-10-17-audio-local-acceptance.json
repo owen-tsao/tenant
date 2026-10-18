@@ -1,7 +1,7 @@
 {
   "recorded_at_utc": "2026-10-18T03:00:25.661541+00:00",
   "base_revision": "2c9fe5f35b4b10a0dcb8e33e334fa745fa493e46",
-  "status": "PASS_SYNTHETIC_POLICY_ACCEPTANCE_LIVE_SEMANTICS_PENDING",
+  "status": "PASS_SYNTHETIC_AND_SCOPED_ACTUAL_UI_VOICE_NEW_GUEST",
   "owned_files_sha256": {
     "agent/AUDIO.md": "ff0d237c5e82c8c8c3c92892c8a224399d57c8fc6182cab1c819a6e84a3e7fc4",
     "tests/test_reply_voice_acceptance.py": "73a5f6583cc5c8229395f061a5bfa777229f930e19eb9edf7c7b7f4e578acda1"
@@ -83,7 +83,20 @@
     "result": "PASS_TEXT_DEFAULT",
     "say_requests": 0,
     "leave_http": 200,
-    "natural_opt_in_opt_out_one_off_new_guest": "PENDING_LOCAL_TESTER_BATCH"
+    "natural_opt_in_opt_out_one_off_new_guest": "Completed actual UI batch: opt-in/follow-up, opt-out/text follow-up, one-off without duplicate narration, next-guest context and text-default isolation PASS within smoke scope. Jay confirmed expected hearing and silence.",
+    "tester_source": "notes/tester.md, completed Batch1; tests/evidence/2026-10-17-local-e2e.json",
+    "tester_receipts": {
+      "natural_opt_in_ack": "r_7bc21a95775a49beb5e715d16dea0a4c",
+      "voice_followup_ack": "r_1e703f249616486483657958e96c9da2",
+      "one_off_ack": "r_d4f9463e7df243c492dc879f26ea6320",
+      "re_enabled_before_leave_ack": "r_3466624a2d124d219a215ebfeb24ecf1",
+      "opt_out_and_followup": "TEXT_DEFAULT, zero say",
+      "one_off_narration": "EXPLICIT_SPEECH_ATTEMPTED, no duplicate narration",
+      "post_one_off_followup": "Marigold.; TEXT_DEFAULT",
+      "human_observation": "Tester records Jay directly confirmed expected hearing and silence for this voice sequence only.",
+      "leave": "Terminal access-ended UI with disabled composer/send; no inferred backend stale-request rejection."
+    },
+    "new_guest": "Predecessor re-enabled voice before Leave. Next guest in same fixed native thread omitted prior marigold marker, reported no prior word, generation5, TEXT_DEFAULT and zero say. Conversational/generation smoke evidence; not a complete memory-isolation audit."
   },
   "beat_phone_evidence": {
     "file": "tests/evidence/2026-10-17-stop-recovery-live.json",
@@ -96,9 +109,20 @@
     "physical_observation": "Phone stayed OFF while beat continued; final beat stop and phone OFF separately confirmed by Jay.",
     "cadence": "Observed 30 BPM with explicitly requested 1s ON/1s OFF (0.5 beats per state); configured 1 beat per state yields 2s/2s and is source-tested only.",
     "synchronization": "Optical/acoustic offset unmeasured; no fixed transport-derived correction justified.",
-    "automatic_expiry": "Physically UNVERIFIED; no additional run started."
+    "automatic_expiry": "Physically UNVERIFIED; no additional run started.",
+    "later_actual_ui": "Batch1 requested30BPM/2sON/2sOFF:9 alternating ACKed edges,8 intended intervals2000ms. Jay confirmed visible cadence, phoneOFF while beatcontinued and separatebeatstop. No calibrated synchronization claim."
   },
-  "tester_as_of": "2026-10-18T02:59:49Z: batch1 joined actual UI; first native turn pending. Gated-photo entry-copy failure belongs to Owen; no audio failure recorded yet.",
-  "next_step": "Review tester native/dispatch receipts for natural consent, opt-out, one-off and new guest before any production audio correction. Finite 20s performance is blocked without a supported bound; program-start currently accepts request_id/device_id/bpm only.",
-  "actions": "No live probes, runtime restarts, output/volume changes, staging, commits or messages to other chats by this owner."
+  "tester_as_of": "Completed Batch1, October17 20:04PT; subsequent c7e902b text/display-only Batch2 ended20:06:15PT, no device actions. Root checked room quiet and lock unheld.",
+  "next_step": "No production audio correction justified by passing sequence. Jay requests actual Daniel Caesar music with real-song beat matching; generated audio engine has no arbitrary-song phase source. Identify reusable playback/timing and confirmed pause/cleanup before a separate released trial. No more standalone generated-beat tests.",
+  "actions": "No live probes, runtime restarts, output/volume changes, staging, commits or messages to other chats by this owner.",
+  "updated_at_utc": "2026-10-18T03:08:52.544277+00:00",
+  "base_revision_scope": "Checkout HEAD at original evidence recording; deployed voice contract and live tester batch remain f228b39. Shared source hashes capture uncommitted concurrent display work.",
+  "test_window_clarification": {
+    "authority": "Root clarification in this chat and notes/tester.md",
+    "observation_window_seconds": 20,
+    "meaning": "Intended observation window, not a requested product duration feature or absolute physical guarantee.",
+    "test_flow_bound": "Tester establishes existing explicit program-stop plus independent watchdog revoking only the named test guest; engine remains bounded by actual lease.",
+    "ownership": "Tester verifies cleanup and continues other cases if not ready. No competing live calls from Audio.",
+    "correction": "Earlier Audio claim that missing program-start duration alone blocks this experiment was too strong and is superseded."
+  }
 }

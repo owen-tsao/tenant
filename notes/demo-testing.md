@@ -16,6 +16,10 @@ Reviewed source, automated tests, live transport, human experience and physical 
 
 ## Current matrix
 
+Root20:08 PT: **c7e902b deployed**, independently reviewed496Python+12Node, zero failures/skips. Actual UI tester completed voice consent/one-off/new-guest isolation and requested30BPM2sON/2sOFF → phoneOFF whilebeatcontinued → separatebeatstop; Jay confirmed physical results. Subsequent text-only display batch verified actual guest/room conversation,120s joiningring, original600s activegrant and cleared conversation after Leave. Both test batches ended quiet; Root checked zero guests, devices online/idle and lock unheld. Full scoped evidence: `tests/evidence/2026-10-17-local-e2e.json` and `notes/tester.md`. Two UI findings remain Owen-owned: gated-photo entry offer and oldest-first headline/rail. Do not infer physical expiry, optical/acoustic alignment, Photon delivery or an unbriefed journey from these smoke passes.
+
+Latest music direction from Jay: actual Daniel Caesar recordings plus phone following the song's beat. No further standalone generated-beat trials. Current engine follows its generated audio phase; arbitrary-song beat phase is not implemented. Any future real-song trial must establish the actual playback source and confirmed pause/cleanup before starting. Existing generated-beat evidence remains historical evidence for its own scope.
+
 Root19:59 PT: **voicef228b39 deployed**,484Python+12Node independentPASS; actualpublicHTTPS/WSS nativeguestdefaulttext returned TEXT_DEFAULT,0say andLeave200. Local E2E Tester nowowns autonomousinterfaceexperiments; Jayonlyconfirmsunobservablephysicalresults, nottestinitiation. Cloudownerswere replacedwithlocalMacchats; no sourcefakescountasphysicalproof. Programphysicalexpiry remainsunverified, with noforcedrepeat.
 
 Root19:48 PT: follow-up real expiry/fullbeat run **NOT STARTED** after Jay questioned repeating physical tests. Preserve manualstopPASS; automaticexpiry source checks pass but its post-fix physical outcome remainsUNVERIFIED. No automatic new ON/audio, no claim that the earlier interrupted expiry passed.

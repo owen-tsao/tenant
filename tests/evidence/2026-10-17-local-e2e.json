@@ -1,0 +1,106 @@
+{
+  "recorded_at_utc": "2026-10-18T03:08:52.544277+00:00",
+  "status": "PASS_SCOPED_ACTUAL_UI_BATCHES_WITH_RETAINED_UI_FINDINGS",
+  "source": "Local tester notes and screenshots; Root independently corroborated final quiet snapshot, unheld lock and Batch2 join/turn/reply/leave audit rows.",
+  "source_acceptance": {
+    "deployed_display_revision": "c7e902b",
+    "python_tests": 496,
+    "node_tests": 12,
+    "failures": 0,
+    "skips": 0,
+    "independent_review": "PASS",
+    "source_manifest_sha256": "2e751f910d7510c6e2e6877fa1c958f53848d400705215fa674c8e49b1addf98"
+  },
+  "batch1": {
+    "runtime_revision": "f228b39",
+    "entry": "Actual /j/8157 -> Chat here; two fresh guests; same fixed native room conversation.",
+    "default_text_context": "PASS; harmless marigold marker retained within first guest; TEXT_DEFAULT and no say.",
+    "ongoing_voice": "PASS; explicit opt-in and follow-up speech acknowledged, opt-out and follow-up TEXT_DEFAULT with no say. Jay confirmed hearing and expected silence.",
+    "one_off_speech": "PASS; one requested say acknowledged, automatic duplicate suppressed, following answer text-only. Jay heard requested phrase.",
+    "new_guest": "PASS within conversational/generation scope; voice-enabled predecessor left, next guest generation5 had no prior marker and defaulted to text with zero say. No full memory-isolation audit inferred.",
+    "cadence": {
+      "requested_bpm": 30,
+      "requested_seconds_on": 2,
+      "requested_seconds_off": 2,
+      "alternating_edges": 9,
+      "acknowledged_edges": 9,
+      "target_intervals_ms": [
+        2000,
+        2000,
+        2000,
+        2000,
+        2000,
+        2000,
+        2000,
+        2000
+      ],
+      "human_confirmation": "Jay confirmed visible approximately2s states and audible beat.",
+      "physical_alignment": "UNMEASURED"
+    },
+    "stop": {
+      "phone_off": "ACK at2026-10-17T20:03:20.262-07:00; beat continued.",
+      "beat_stop": "Requested-stop cleanup phone/audio confirmed2026-10-17T20:03:37.774-07:00; no later pulse rows.",
+      "human_confirmation": "Jay confirmed phone stayed OFF while beat continued, then beat stopped."
+    },
+    "watchdog": "Independent60s named-test-guest revoke watchdog disarmed before deadline; never fired.20s was observation target, not engine duration. Phone train about16s; first edge to full stop about34s.",
+    "leave": "Both guest UIs terminal/disabled; ended second guest reload remained ended without new native/device action. Backend stale-request denial not inferred from UI prevention.",
+    "final_leave_pt": "2026-10-17T20:03:54.068-07:00",
+    "native_turns": 12,
+    "unknown_audit_outcomes": 0
+  },
+  "batch2": {
+    "runtime_revision": "c7e902b",
+    "entry": "Actual UI, one fresh guest, one harmless text exchange, no device actions.",
+    "joining_ring": "PASS;1:59 countdown, nearly full ring at1:56; observed143 rectangles and max occupied angle343.07degrees consistent with120s denominator.",
+    "active_grant": "PASS; first message about9s after issuance showed9:50, not renewed10:00; later9:32 ring consistent with original600s grant.",
+    "public_conversation": "PASS; actual guest cobalt display-check message and exact final Welcome, display tester. appeared in guest chat and room conversation.",
+    "controller_selection": "Single-guest observed PASS; concurrent guest ordering not live-tested.",
+    "departure": "PASS; Leave terminal/disabled; displayed departure then no guest/public conversation after normal6s fading window.",
+    "voice": "TEXT_DEFAULT, no say requests.",
+    "device_action_rows": 0,
+    "native_turns": 1,
+    "final_leave_pt": "2026-10-17T20:06:15.067-07:00",
+    "audit_offset_bytes": 146571
+  },
+  "retained_ui_findings": [
+    {
+      "owner": "Owen",
+      "finding": "Join entry advertises photo while capture remains gated.",
+      "decision": "Remove or condition photo offer until implemented; no web changes by Root."
+    },
+    {
+      "owner": "Owen",
+      "finding": "Headline/rail consume oldest ledger rows first; later stop/Leave can be hidden.",
+      "decision": "Use current/latest relevant event; preserve chronological ledger if desired; no Root web changes."
+    }
+  ],
+  "final_root_check": {
+    "guests": 0,
+    "devices": [
+      {
+        "id": "jay-visible-phone-oct17",
+        "online": true,
+        "busy": false
+      },
+      {
+        "id": "laptop",
+        "online": true,
+        "busy": false
+      }
+    ],
+    "test_lock": "unheld",
+    "test_gate": "Root/held",
+    "brain_running": true
+  },
+  "limits": [
+    "Finite engineering smoke; not reliability or unbriefed usability evidence.",
+    "Physical program expiry and final reset remain unverified on changed program runtime.",
+    "No calibrated optical/acoustic onset, phase, drift or song beat-matching proof.",
+    "Photon inbound/delivered reply/same-enrollment continuity not accepted.",
+    "Public live exchange harmless; redaction adversarial behavior supported only by source checks.",
+    "Photo, perception and guest-supplied agents remain gated."
+  ],
+  "next_music_direction": "Actual Daniel Caesar recordings with song beat phase. Current engine follows generated audio; arbitrary-song timing and confirmed browser playback cleanup require implementation before a trial.",
+  "details": "notes/tester.md",
+  "screenshots_workspace": "Local tester outputs: display-joining-c7e902b.jpg, display-conversation-c7e902b.jpg, display-after-leave-c7e902b.jpg; physical-sequence screenshots do not independently prove optical/acoustic timing."
+}
