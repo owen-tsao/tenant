@@ -56,7 +56,17 @@ The actual guest-UI run on `e4b8426` created, opened and conversationally revise
 
 These are narrow smoke passes. A later actual guest-UI case also began CYANIDE without foreknowledge of a light request, then added the phone to the same advancing recording and stopped both with confirmed cleanup. Jay accepts the approximate rhythm for the current demo while reporting occasional late flashes. Precise synchronization, acoustic continuity and general reliability remain unestablished. His fuller desired experience adds discovery and use of an existing visual tool, then optional projection; those stages still need separate acceptance.
 
-Photo capture still needs Owen’s actual consent/capture/viewer UI before physical acceptance. Jay has now connected HDMI; macOS detects an external display and the existing public Tenant screen is prepared there. The projector remains dark with its power adapter unconnected. A later box photo identifies AAXA LED Showtime 3D; the listed85W maximum usage does not establish its adapter voltage, polarity or connector specification. A matching power adapter has not been found, and wall projection is unconfirmed. Existing Mac-only Music visualization is being evaluated separately without depending on the projector. Production hospitality operation, general autonomous adaptation and arbitrary device compatibility are future claims. Use verified capabilities for the main sequence and keep creative coordination optional until its remaining acceptance is complete.
+Photo capture is currently blocked on the missing phone/device capture path and complete authenticated Mac viewer. Jay owns backend/device wiring; Owen owns visual presentation, not the whole camera feature. The narrow implementation is now authorized and in software review, with real phone capture/display still unverified. Jay has connected HDMI; macOS detects an external display and the public Tenant screen is prepared there. The AAXA LED Showtime3D projector remains unpowered while its matching power adapter is being located; wall projection is unconfirmed. Production hospitality operation, general autonomous adaptation and arbitrary device compatibility remain future claims.
+
+## Presentation Q&A — what are our “servers”?
+
+Jay wants this explanation available if judges ask, rather than adding technical setup to the main presentation:
+
+> Tenant uses ordinary computers as gateways. A gateway makes its connected apps and physical devices available to an authorized agent. A guest scans the QR to receive temporary access to those capabilities. Our current demo uses one Mac; the architecture can extend to Mac minis and other gateway machines for additional spaces and integrations.
+
+Multiple deployed servers or a fleet of Mac minis have not been demonstrated. Reusing existing computers is the architecture and cost thesis, not evidence of universal device support or an established moat.
+
+For the current paired-phone exploration, Jay now authorizes iPhone Mirroring. It is an existing control bridge for a phone paired with the Mac, not a promise that scanning a QR grants control of any guest’s iPhone. Browser camera/flashlight contribution is a separate path. Apple documents the shared-account/nearby/locked-phone requirements and excludes camera/microphone use through Mirroring. [Apple requirements](https://support.apple.com/en-us/120421). No phone-app interaction has passed yet; the earlier Mac TextEdit/Calculator pass is separate evidence.
 
 ## Points for Owen to add to the demo
 

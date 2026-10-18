@@ -1,5 +1,17 @@
 # Photon status — evidence audit, October 17, 2026
 
+## Latest real run — October 18
+
+The actual phone entered its own number through the normal Text the room flow. Eight real inbound claims for the same guest reached ACCEPTED and ran in the fixed native room conversation. The agent independently used installed Spotify to play Japanese Denim, then handled the user's request to add approximate phone pulses without interrupting playback. Jay heard the music and confirmed that the phone pulsed roughly with it and stayed OFF after the explicit stop. Approximation is accepted for this demo; precise beat phase was not measured.
+
+The agent initially declined beat matching, then used Spotify position and an estimated tempo for a one-off sequence of existing phone commands after the user asked it to try. The loop exited on an unconfirmed OFF attempt; the subsequent explicit OFF was acknowledged, with no later light commands. Do not describe that as a reliable managed synchronization loop or guaranteed automatic cleanup. Spotify was preserved as the user's ongoing native-app effect.
+
+The eighth genuine Photon request asked for a phone photo. It was rejected before dispatch with PERMISSION because current photo/source readiness was missing; the phone advertised only light. There is no real photo/display pass. Backend/device completion is now separately authorized and underway. Native iPhone-app control was not exercised by these eight Photon turns; the separate Mac TextEdit/Calculator pass used a genuine guest web chat.
+
+This guest's original creation+600s lease expired naturally at00:14:31.818 PDT, its local binding detached, and the reused external provider assignment remained. Activation does not extend the original deadline. Public display history retains ten bubbles and clears with the ended guest; the recorded native conversation and sanitized test evidence preserve the observed sequence.
+
+Evidence: `tests/evidence/2026-10-18-photon-existing-capabilities-live.json`, with physical observations and correlated claim/native/reply timestamps. This supersedes the earlier fresh violet-case ambiguity, whose separate evidence is retained in `2026-10-17-photon-real-phone-retest.json` rather than retroactively labeled successful. Everything below is a historical audit or source-handoff checkpoint where it differs from this section.
+
 Photon is already verified through Tenant for real inbound messages, the shared native room conversation, and provider acceptance of replies. Earlier notes describing native inbound as unverified are stale. Actual handset receipt is a separate observation; a missing confirmation is not a demonstrated failure.
 
 This was a read-only audit of existing records. No new join, message, API poll, native turn, device action, restart, or test-suite rerun was performed.

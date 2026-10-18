@@ -1,0 +1,143 @@
+{
+  "case": "Real iPhone Photon retest with same guest web-memory setup",
+  "revision": "e294e66f9319c239cd452797d25e7552416a94a6",
+  "guest_id": "57996329-5254-4dde-8148-aa58fbb7995a",
+  "enrollment": {
+    "count": 1,
+    "route": "Actual Text the room UI with privately verified Mac configured/default phone; same iPhone requested",
+    "new_owned_assignment": true,
+    "new_returned_endpoint_validated": true,
+    "old_external_assignment_preserved": true
+  },
+  "setup": {
+    "input": "Remember that my test color is violet. Reply with a short text confirmation only.",
+    "reply": "Got it\u2014your test color is violet.",
+    "fixed_native_thread": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+    "native_turn": "01a14dc9-6521-7162-aeac-83f537b34ac0",
+    "generation": 5,
+    "same_enrollment_web_fallback": true,
+    "original_lease_seconds": 600,
+    "renewed": false
+  },
+  "phone_prompt": {
+    "qr_prepared_for_new_validated_endpoint": true,
+    "nonce": "TENANT-VIOLET-73",
+    "body": "What test color did I ask you to remember? Reply with the color and TENANT-VIOLET-73. Text only.",
+    "user_gate_owner": "Root chat; tester embedded QR without duplicate question",
+    "mac_or_provider_fake_send": false
+  },
+  "handset_observation": {
+    "source": "Root relayed direct human answer to its async question",
+    "exact_answer": "Yes \u2014 received violet and TENANT-VIOLET-73",
+    "status": "AMBIGUOUS / UNCONFIRMED after clarification; original Yes preserved, receipt not established",
+    "followup_clarification": "i havent connected anything else"
+  },
+  "server_correlation": {
+    "claims_total": 2,
+    "new_guest_claims": [],
+    "recent_any_guest_claims": 0,
+    "brain_health_http": 200,
+    "new_photon_events": [],
+    "brain_log_recent_error_markers": {
+      "Traceback": 0,
+      "ERROR": 0,
+      "WORKER_UNAVAILABLE": 0,
+      "POLL_UNAVAILABLE": 0,
+      "STORAGE_UNAVAILABLE": 0
+    },
+    "worker_health_limit": "No direct in-memory worker inspection; successful earlier enrollment plus absence of failure events is not a proven current worker heartbeat."
+  },
+  "assignment_precleanup": {
+    "checked_at": 1792306622.147478,
+    "assignment_read": "ok",
+    "active_assignment_count": 2,
+    "new_assignment_found": true,
+    "new_endpoint_matches": true,
+    "new_handle_matches": true,
+    "new_project_matches": true,
+    "old_external_assignment_preserved": true
+  },
+  "events": [
+    {
+      "t": 1792306356.3146281,
+      "kind": "guest.join",
+      "audit": {}
+    },
+    {
+      "t": 1792306406.6940649,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14dc9-6521-7162-aeac-83f537b34ac0",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 5
+      }
+    },
+    {
+      "t": 1792306409.771497,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14dc9-6521-7162-aeac-83f537b34ac0",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 5
+      }
+    },
+    {
+      "t": 1792306409.772414,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14dc9-6521-7162-aeac-83f537b34ac0",
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "generation": 5
+      }
+    },
+    {
+      "t": 1792306643.3261728,
+      "kind": "guest.leave",
+      "audit": {}
+    },
+    {
+      "t": 1792306644.68493,
+      "kind": "photon",
+      "audit": {
+        "photon_status": "RELEASED"
+      }
+    }
+  ],
+  "cleanup": {
+    "checked_at": 1792306660.416023,
+    "new_guest_binding_count": 0,
+    "new_owned_assignment_still_active": false,
+    "old_external_assignment_preserved": true,
+    "active_assignment_count": 1,
+    "new_guest_claim_count": 0
+  },
+  "final_guest_ui": "Access ended; Message and Send disabled",
+  "overall_result": "UNCONFIRMED fresh round trip: ambiguous handset answer and zero new durable inbound claims/native Photon turns/provider replies. Not a fresh PASS or proven transport failure.",
+  "historical_photon_passes": "Retained: two prior genuine inbound/shared-native-thread/provider-acceptance runs. This unmatched fresh run does not downgrade them.",
+  "scope": {
+    "source_changes": false,
+    "audio_device_effects": false,
+    "account_defaults_changes": false,
+    "new_enrollment_retries": false,
+    "ttl_renewal": false
+  },
+  "remaining_clarification": "No further question or test authorized in current phase; Root will diagnose separately. Ended QR must not be reused.",
+  "post_cleanup_join_ui_check": {
+    "checked_at": 1792306746.174753,
+    "url": "https://writers-detector-strengthen-catalyst.trycloudflare.com/j/8157",
+    "initial_buttons": [
+      "Chat here",
+      "Text the room"
+    ],
+    "phone_form": [
+      "Your mobile number",
+      "Open Messages",
+      "Back"
+    ],
+    "exact_copy": "We give the room your number so it can reply by iMessage. We don't keep it after you leave.",
+    "disconnected_notice_observed": false,
+    "phone_entered": false,
+    "enrollment_submitted": false,
+    "limit": "Form availability is not evidence of provider connectivity, worker heartbeat, or successful new enrollment."
+  }
+}

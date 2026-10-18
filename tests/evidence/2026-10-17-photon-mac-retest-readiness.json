@@ -1,0 +1,27 @@
+{
+  "case": "Photon retest new verified Mac sender readiness",
+  "revision": "e294e66f9319c239cd452797d25e7552416a94a6",
+  "actual_sender": "Stored only in ignored0600 private handoff, no identity in this artifact",
+  "existing_account": {
+    "configured_phone_matches_default_sender": true,
+    "configured_phone_differs_prior_photon_identity": true,
+    "accounts_or_defaults_changed": false
+  },
+  "root_scope": "One legitimate new guest Text the room enrollment for actual Mac phone authorized; normal shared assignment ownership and exact release required",
+  "block": "Messages native control unavailable: repeated getAXState and fresh getApp com.apple.MobileSMS calls each timeout after5s. CUA listApps still reports Messages running. Cause unproven.",
+  "enrollment_attempted": false,
+  "assignment_created": false,
+  "message_sent": false,
+  "provider_inbound_polled": false,
+  "historical_passes": "Real inbound/shared fixed native thread/provider acceptance remain verified twice; not downgraded by UI blocker",
+  "closeout": {
+    "guest_created": false,
+    "gate": "Root/held",
+    "flock": "acquired briefly for gate handoff then released",
+    "effects": "none started"
+  },
+  "next_required": "Restore supported Messages UI control or receive one actual iPhone inbound from an appropriately enrolled verified sender; no fake inbound/account changes.",
+  "followup_visual_fallback": "Supported existing Messages.getScreenshot also timeout after5s; no blind Quit/reopen performed.",
+  "installed_api_dictionary": "Messages.sdef documents application.accounts, account enabled/service type/connection status, participant(handle/account), send(text,to participant/chat). Read only dictionary inspection, no application scripting API called.",
+  "alternative_constraint": "CUA instructions require specific human request before using other computer-interaction technologies such as osascript/AppleScript; Root informed. No fallback send attempted."
+}
