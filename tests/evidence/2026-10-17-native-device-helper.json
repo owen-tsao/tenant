@@ -34,7 +34,7 @@
     "online_lights": 0,
     "web_changed": false,
     "output_or_volume_changed": false,
-    "native_model_or_physical_probe": "NOT_PERFORMED"
+    "native_model_or_physical_probe": "REAL_NATIVE_READ_ONLY_INVENTORY_PASS_PHYSICAL_EFFECT_PENDING"
   },
   "next_live_gates": [
     "Pending Photon dictated greeting: same native thread text delivery and actual audible response.",
@@ -46,5 +46,21 @@
     "These are existing device capabilities exposed via native shell helper commands, not dynamically registered MCP tools.",
     "The broad native OS/shell itself remains outside device Bus guarantees; this is not OS isolation or undo of already-started effects.",
     "Native app visual rendering remains unverified."
-  ]
+  ],
+  "live_read_only_inventory": {
+    "status": "PASS_REAL_NATIVE_TO_HELPER",
+    "source_revision": "89a0b4c",
+    "native_turn_id": "01a14ca6-e1af-7b82-9b5d-a35aab3d0cf5",
+    "trigger": "Guest naturally requested three flashlight blinks, ending OFF.",
+    "observed_command": "Native agent invoked the provided private helper inventory command.",
+    "exit_code": 0,
+    "response_ok": true,
+    "observed_online_devices": [
+      "Room speaker",
+      "Phone lightJay phone"
+    ],
+    "physical_command_sent": false,
+    "actual_limit": "The original one-action-per-turn guard refused a three-blink sequence. This was a software restriction, not missing phone hardware.",
+    "next_change": "Jay explicitly rejected arbitrary action/blink-count ceilings; reviewed multi-call execution and positive-count blink sequences are being implemented. Actual lease/cancellation/uncertain-result rules remain."
+  }
 }

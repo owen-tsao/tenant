@@ -50,11 +50,9 @@
     "limitation": "Stored native history is verified. Simultaneous native app rendering and managed conversation control are not established."
   },
   "remaining_acceptance": [
-    "Automatic spoken response to an ordinary phone conversation is heard physically.",
     "Native app visibility and live rendering are confirmed.",
     "An intended interactive Mac action and enrolled phone action work through this genuine conversation.",
-    "New native control path expiry, cancellation, and reset outcomes are verified beyond source tests.",
-    "Dictated input is confirmed separately from typed input."
+    "New native control path expiry, cancellation, and reset outcomes are verified beyond source tests."
   ],
   "limits": [
     "A few text turns and one guest replacement are debugging evidence, not a reliability estimate.",
@@ -88,5 +86,12 @@
       }
     ],
     "limit": "This establishes actual tool execution in the shared conversation. It does not establish interactive control of arbitrary apps or enrolled phone/audio tools."
+  },
+  "dictation_and_spoken_response": {
+    "status": "PASS_ONE_HUMAN_ATTESTED_WEB_GREETING",
+    "revision": "89a0b4c",
+    "turn_id": "01a14ca2-d436-7d33-95e8-271c9cbc0c8f",
+    "human_report": "Dictation worked and I heard the reply",
+    "evidence_file": "2026-10-17-conversation-speech.json"
   }
 }

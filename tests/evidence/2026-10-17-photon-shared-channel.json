@@ -1,5 +1,5 @@
 {
-  "status": "DEPLOYED_REVIEWED_PHYSICAL_CHANNEL_PENDING",
+  "status": "REAL_ENROLLMENT_OBSERVED_USER_FAILURE_RETRY_DEFECT_REPRODUCED",
   "recorded_at": "2026-10-18T01:20:31.508160+00:00",
   "base_commit": "2f8cdbc239f08418c5b0e7027160d91669d44c94",
   "source_sha256": {
@@ -96,5 +96,15 @@
     "recent_inbound_metadata_samples": 3,
     "observed_shape": "received; imessage; human sender; agent receiver; direct two-participant space; projectId/createdAt present",
     "keys_or_phone_handles_exposed": false
+  },
+  "human_attempt": {
+    "user_report": "Text message access is unavailable",
+    "route_enabled_probe": "400 INVALID_PHONE from invalid-number probe; no enrollment/seat/model effect",
+    "real_client_read_preflight": "PhotonClient.assignments() HTTP success, one assignment",
+    "private_state_observed": "One active real binding reusing an external assignment; no message claims and no pinned inbound space. No phone handles exposed.",
+    "offline_defect": "Same authenticated browser repeating identical room_code/phone request receives409 PHONE_IN_USE instead of recovering the original unexpired enrollment.",
+    "causal_limit": "Reproduced retry defect may explain the report; original live error code was not recorded, so exact cause is not established.",
+    "fix_owner": "photon_shared_channel",
+    "physical_text_delivery": "UNCONFIRMED"
   }
 }

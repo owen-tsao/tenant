@@ -1,6 +1,6 @@
 {
   "recorded_at": "2026-10-18T01:13:19.066994+00:00",
-  "status": "DEPLOYED_REVIEWED_COMBINED_PASS_PHYSICAL_ACCEPTANCE_PENDING",
+  "status": "PASS_ONE_HUMAN_ATTESTED_DICTATED_WEB_GREETING",
   "mode": "Automatic brief audio for genuine native conversation replies; text is delivered first.",
   "scope": {
     "modified": [
@@ -66,7 +66,8 @@
     }
   },
   "remaining": [
-    "Human confirmation of ordinary conversational speech through the deployed public phone path."
+    "Photon delivery/automatic audio and same-enrollment continuity remain separate live gates.",
+    "Microphone denial fallback, interruption, long responses and repeat voice reliability remain unperformed."
   ],
   "independent_review": {
     "reviewer": "access_contract_review",
@@ -87,6 +88,26 @@
     "unique_online_say_bridge": "Room speaker",
     "output_and_volume_changed": false,
     "human_request": "Fresh phone guest, keyboard dictation in own words, report on-screen words and audible reply",
-    "human_result": "PENDING"
+    "human_result": "PASS_WEB_GREETING"
+  },
+  "human_web_acceptance": {
+    "deployed_revision": "89a0b4c",
+    "input_method": "iPhone keyboard microphone in guest web chat",
+    "human_report": "Dictation worked and I heard the reply",
+    "native_turn_id": "01a14ca2-d436-7d33-95e8-271c9cbc0c8f",
+    "native_input": "Hey hey, what’s up? Let’s tell me something. Can you just say hi to me",
+    "native_reply": "Hi! Great to meet you.",
+    "same_native_thread_verified_by": "Supported app read_thread",
+    "request_logged_at": 1792287102.011682,
+    "native_reply_logged_at": 1792287105.52843,
+    "speech_ack_logged_at": 1792287108.834391,
+    "speech_req": "r_a049574caabd4f2188834f922b3a873a",
+    "speech_status": "ACKNOWLEDGED",
+    "request_to_native_reply_ms": 3517,
+    "request_to_reported_playback_finished_ms": 6733,
+    "acoustic_onset_latency": "NOT_MEASURED",
+    "volume_or_output_changed": false,
+    "sample_count": 1,
+    "limit": "One attested greeting is a bounded smoke check, not a reliability estimate or continuous voice-session proof."
   }
 }
