@@ -51,7 +51,8 @@ class ConversationAgent:
         self.device_tools = None
         if registry is not None and bus is not None:
             from brain.core.native_devices import NativeDevices
-            self.device_tools = NativeDevices(registry, bus, leases, log, self._device_turn_allowed)
+            self.device_tools = NativeDevices(registry, bus, leases, log, self._device_turn_allowed,
+                                               turn_timeout=settings.turn_timeout)
 
     def _device_turn_allowed(self, grant):
         return (self._allowed(grant.guest_id, grant.generation)

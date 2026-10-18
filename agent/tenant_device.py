@@ -1,6 +1,7 @@
 """Private native-turn device helper. Standard library only; never retries."""
 import argparse
 import json
+import math
 from pathlib import Path
 import socket
 import sys
@@ -15,7 +16,10 @@ def invoke(context_path, operation, payload=None):
     if len(encoded) > MAX_BYTES:
         raise ValueError('Request too large')
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
-        connection.settimeout(8)
+        timeout = context.get('long_timeout', 122) if operation == 'light-blink' else 8
+        if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
+            raise ValueError('Invalid helper deadline')
+        connection.settimeout(timeout)
         connection.connect(context['socket'])
         connection.sendall(encoded)
         with connection.makefile('rb') as stream:
@@ -31,16 +35,20 @@ def invoke(context_path, operation, payload=None):
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Use the current Tenant native-turn device grant.')
     parser.add_argument('--context', required=True)
-    parser.add_argument('operation', choices=('inventory', 'call'))
+    parser.add_argument('operation', choices=('inventory', 'call', 'light-blink'))
     args = parser.parse_args(argv)
     try:
         payload = None
-        if args.operation == 'call':
+        if args.operation in ('call', 'light-blink'):
             text = sys.stdin.read(MAX_BYTES + 1)
             if len(text.encode()) > MAX_BYTES:
                 raise ValueError('Request too large')
             payload = json.loads(text)
-            if not isinstance(payload, dict) or set(payload) != {'request_id', 'device_id', 'cap', 'args'}:
+            valid = (isinstance(payload, dict) and (
+                (args.operation == 'call' and set(payload) == {'request_id', 'device_id', 'cap', 'args'}) or
+                (args.operation == 'light-blink' and {'request_id', 'device_id'} <= set(payload)
+                 and set(payload) <= {'request_id', 'device_id', 'count'})))
+            if not valid:
                 raise ValueError('Invalid call')
         result = invoke(args.context, args.operation, payload)
     except Exception:

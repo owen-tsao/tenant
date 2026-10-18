@@ -40,7 +40,7 @@ class Bus:
             if "maximum" in schema and value > schema["maximum"]: return False
         return True
 
-    async def call(self, device_id, cap, args, timeout=5.0, *, authorize=None):
+    async def call(self, device_id, cap, args, timeout=5.0, *, authorize=None, on_dispatch=None):
         # Snapshot inputs and connection before queueing. Never migrate queued work to a new socket.
         import copy
         args = copy.deepcopy(args)
@@ -68,6 +68,13 @@ class Bus:
                     self.pending[req] = (dev, future)
                     dev.busy = True
                     sent = True  # send failure may still have delivered bytes
+                    if on_dispatch is not None:
+                        # A synchronous observation of a POSSIBLE send, not an
+                        # acknowledgment. Observers cannot alter Bus authority.
+                        try:
+                            on_dispatch(req, dev)
+                        except Exception:
+                            pass
                     await dev.ws.send_json({"type":"do", "req":req, "cap":cap, "args":args,
                                             "deadline_ms":max(1, int((expires - asyncio.get_running_loop().time())*1000)), "epoch":self.registry.room.epoch})
                     result = await future

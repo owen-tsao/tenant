@@ -91,16 +91,35 @@ class NativeDeviceTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn(self.grant.token, repr(self.log.audit_rows))
         self.assertNotIn(str(self.grant.path), repr(self.log.rows))
 
-    async def test_concurrent_duplicate_and_changed_ids_cannot_replay_or_add_a_second_action(self):
+    async def test_duplicate_does_not_replay_but_a_new_requested_action_is_allowed(self):
         self.phone.auto = False
         first = asyncio.create_task(self.tools.dispatch(self.call()))
         await self.phone.sent.wait()
         duplicate = asyncio.create_task(self.tools.dispatch(self.call()))
+        self.assertEqual((await self.tools.dispatch(self.call(args={'on': 1})))['code'], 'INVALID')
+        self.assertEqual((await self.tools.dispatch(self.call(args={'on': False})))['code'], 'INVALID')
         self.bus.receive(self.phone.device, {'type': 'ok', 'req': self.phone.frames[0]['req'], 'result': {'on': True}})
         self.assertEqual(await first, await duplicate)
         self.assertEqual((await self.tools.dispatch(self.call(args={'on': False})))['code'], 'INVALID')
-        self.assertEqual((await self.tools.dispatch(self.call(request_id='call-2')))['code'], 'LIMIT')
+        self.phone.auto = True
+        self.assertTrue((await self.tools.dispatch(self.call(request_id='call-2', args={'on': False})))['ok'])
+        self.assertEqual([f['args']['on'] for f in self.phone.frames], [True, False])
+
+    async def test_independent_device_calls_can_be_inflight_concurrently(self):
+        self.phone.auto = False
+        second = device(self.registry, self.bus, 'laptop', caps={
+            'music.play': {'args': {}, 'description': 'Start music'}})
+        first_task = asyncio.create_task(self.tools.dispatch(self.call()))
+        second_task = asyncio.create_task(self.tools.dispatch(self.call(request_id='second-call', device_id='laptop',
+                                                                       cap='music.play', args={})))
+        async with asyncio.timeout(.2):
+            await asyncio.gather(self.phone.sent.wait(), second.sent.wait())
+        self.assertTrue((await second_task)['ok'])
+        self.assertFalse(first_task.done())  # Phone ACK is held while Mac succeeds.
+        self.bus.receive(self.phone.device, {'type': 'ok', 'req': self.phone.frames[0]['req'], 'result': {'on': True}})
+        self.assertTrue((await first_task)['ok'])
         self.assertEqual(len(self.phone.frames), 1)
+        self.assertEqual(len(second.frames), 1)
 
     async def test_unknown_is_cached_and_never_retried_or_substituted(self):
         self.phone.auto = False
@@ -108,10 +127,15 @@ class NativeDeviceTests(unittest.IsolatedAsyncioTestCase):
         first = await self.tools.dispatch(self.call())
         self.assertEqual(first['code'], 'UNKNOWN')
         self.assertEqual(await self.tools.dispatch(self.call()), first)
-        other = await self.tools.dispatch(self.call(request_id='new', device_id='backup'))
-        self.assertEqual(other['code'], 'LIMIT')
+        # A fresh ID cannot resend an unresolved device action, even after a late ACK.
+        self.bus.receive(self.phone.device, {'type': 'ok', 'req': self.phone.frames[0]['req'], 'result': {'on': True}})
+        other = await self.tools.dispatch(self.call(request_id='new'))
+        self.assertEqual(other['code'], 'UNKNOWN')
         self.assertEqual(len(self.phone.frames), 1)
         self.assertEqual(backup.frames, [])
+        # UNKNOWN does not revoke independent explicit work on another device.
+        self.assertTrue((await self.tools.dispatch(self.call(request_id='independent', device_id='backup')))['ok'])
+        self.assertEqual(len(backup.frames), 1)
 
     async def test_all_live_authority_changes_while_bus_queued_send_nothing(self):
         for change in ('expiry', 'revoke', 'scope', 'native_completion', 'new_controller', 'reset'):
@@ -149,8 +173,10 @@ class NativeDeviceTests(unittest.IsolatedAsyncioTestCase):
         backup = device(self.registry, self.bus, 'backup')
         result = await self.tools.dispatch(self.call(device_id='missing'))
         self.assertEqual(result['code'], 'OFFLINE')
-        self.assertEqual((await self.tools.dispatch(self.call(device_id='backup', request_id='new')))['code'], 'LIMIT')
         self.assertEqual(self.phone.frames + backup.frames, [])
+        # An explicitly requested new target is allowed; the helper never chooses it.
+        self.assertTrue((await self.tools.dispatch(self.call(device_id='backup', request_id='new')))['ok'])
+        self.assertEqual(len(backup.frames), 1)
 
     async def test_copied_stale_context_and_connected_clients_cannot_restore_authority(self):
         saved = copy.deepcopy(json.loads(self.grant.path.read_text()))
@@ -192,8 +218,12 @@ class NativeDeviceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.tools._clients, set())
         self.assertEqual(self.bus.pending, {})
         self.assertTrue(self.bus.uncertain)  # Sent effects are not claimed undone.
+        terminal = self.grant.calls['call-1'][1]
+        self.assertTrue(terminal.done())
+        self.assertEqual(terminal.result()['code'], 'UNKNOWN')  # Receipt survives resource teardown.
         reply = await reader.readline()
-        self.assertEqual(json.loads(reply)['code'], 'UNKNOWN')
+        # Shutdown may close before a response; the CLI maps that EOF to UNKNOWN.
+        self.assertTrue(not reply or json.loads(reply)['code'] == 'UNKNOWN')
         writer.close()
         await writer.wait_closed()
 
@@ -252,6 +282,22 @@ class NativeDeviceConversationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(grant.closed)
         self.assertEqual(len(self.phone.frames), 1)
 
+    async def test_one_native_request_can_control_phone_and_laptop_audio(self):
+        speaker = device(self.registry, self.bus, 'laptop', caps={
+            'music.play': {'args': {}, 'description': 'Start music'}})
+        task, grant = await self.start('Start laptop music and turn on Room phone.')
+        common = {'token': grant.token, 'operation': 'call'}
+        results = await asyncio.gather(
+            self.agent.device_tools.dispatch({**common, 'request_id': 'phone-on', 'device_id': 'phone',
+                                               'cap': 'light', 'args': {'on': True}}),
+            self.agent.device_tools.dispatch({**common, 'request_id': 'music-start', 'device_id': 'laptop',
+                                               'cap': 'music.play', 'args': {}}))
+        self.assertTrue(all(result['ok'] for result in results))
+        self.assertEqual(len(self.phone.frames), 1)
+        self.assertEqual(len(speaker.frames), 1)
+        await self.native.finish('native-1', 'Music started and the phone light is on.')
+        self.assertEqual((await task)[-1]['text'], 'Music started and the phone light is on.')
+
     async def test_helper_cannot_act_before_successful_start_ack_or_after_native_completion(self):
         original_start = self.native.start_turn
         pre_start = []
@@ -293,7 +339,7 @@ class NativeDeviceConversationTests(unittest.IsolatedAsyncioTestCase):
         queued = asyncio.create_task(self.agent.device_tools.dispatch({'token': grant.token, 'operation': 'call',
             'request_id': 'old-queued', 'device_id': 'phone', 'cap': 'light', 'args': {'on': True}}))
         await asyncio.sleep(0)
-        self.assertTrue(grant.attempted)
+        self.assertTrue(grant.calls)
         second = self.leases.create()
         other = asyncio.create_task(self.agent.turn(second.guest_id, 'A new guest.'))
         await asyncio.sleep(0)
