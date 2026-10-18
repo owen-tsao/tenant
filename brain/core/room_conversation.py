@@ -16,6 +16,31 @@ from brain.core.conversation_results import TerminalFailure, TerminalFailureFram
 from brain.core.conversation_speech import CompletedReply, ReplyFrames
 
 
+NATIVE_RESULT_GUIDANCE = (
+    '\n[Tenant result verification rules]\n'
+    'These rules override any general expectation of continued playback above. '
+    'A light OFF/detach ACK proves ONLY the light state, never that music continues. '
+    'Before any playback-continuation claim, read program-status AFTER that operation, '
+    'using a NEW request_id and the SAME owned program_id; duplicate IDs return old snapshots. '
+    'For a selected recording require ok:true, result.state=running, result.source=selected_recording, '
+    'the exact current program/song identity, result.song_clock.state=ready and '
+    'result.song_clock.playhead_advancing=true. '
+    'Even then say only "the latest status showed it playing", not a guarantee it continues: '
+    'external playback changes can occur before your reply. Missing, malformed, pending, stale, '
+    'unavailable or different-source status means continuation is unconfirmed. '
+    'Report observed program/player status and cleanup separately: a stopped program alone '
+    'does not confirm audio stopped when audio cleanup is unconfirmed. '
+    'If no current playback check is available, report confirmed light OFF only. '
+    'A status read is never authority to resume/restart, replace the source or retry an UNKNOWN action.\n'
+    'Copy the CURRENT turn\'s supplied Helper command prefix VERBATIM for every invocation. '
+    'Do not retype/reconstruct/shorten its context path, reuse an earlier turn\'s prefix, '
+    'or glob/search/guess another context. If the supplied context is unavailable, report helper '
+    'unavailability; do not guess a replacement or resend an uncertain operation. '
+    'Keep the prefix, paths and credentials private.\n'
+    '[End Tenant result verification rules]'
+)
+
+
 @dataclass(frozen=True)
 class ConversationSettings:
     thread_id: str
@@ -328,7 +353,10 @@ class ConversationAgent:
         if self.device_tools is not None:
             grant = await self.device_tools.prepare(guest_id, generation, self.leases.current(guest_id),
                                                      self.settings.thread_id)
-            application_context = self.device_tools.context(grant)
+            # Intended continuity is not a receipt for current playback. Supply
+            # the verification rule afresh without modifying exact guest text.
+            application_context = self.device_tools.context(grant).replace(
+                'Audio continues through conversation.', '') + NATIVE_RESULT_GUIDANCE
         try:
             return await self._run_native_turn(text, guest_id, generation, grant=grant,
                                                application_context=application_context)

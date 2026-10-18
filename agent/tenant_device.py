@@ -9,29 +9,48 @@ import sys
 MAX_BYTES = 16_384
 
 
+def unavailable(*, sent):
+    if not sent:
+        return {'ok': False, 'code': 'FAILED', 'status': 'unsent',
+                'message': 'The helper could not send this request. Nothing was sent.'}
+    return {'ok': False, 'code': 'UNKNOWN', 'status': 'unknown',
+            'message': 'The helper result is unavailable. Do not retry or substitute; an action may have happened.'}
+
+
 def invoke(context_path, operation, payload=None):
-    context = json.loads(Path(context_path).read_text())
-    request = {'token': context['token'], 'operation': operation, **(payload or {})}
-    encoded = json.dumps(request, separators=(',', ':')).encode() + b'\n'
-    if len(encoded) > MAX_BYTES:
-        raise ValueError('Request too large')
-    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+    send_started = False
+    try:
+        context = json.loads(Path(context_path).read_text())
+        if (not isinstance(context, dict) or not isinstance(context.get('token'), str)
+                or not context['token'] or not isinstance(context.get('socket'), str)
+                or not context['socket']):
+            raise ValueError('Invalid helper context')
+        request = {'token': context['token'], 'operation': operation, **(payload or {})}
+        encoded = json.dumps(request, separators=(',', ':')).encode() + b'\n'
+        if len(encoded) > MAX_BYTES:
+            raise ValueError('Request too large')
         timeout = context.get('long_timeout', 122) if operation in ('light-blink', 'photo-capture') or operation.startswith('program-') else 8
         if operation == 'call' and isinstance(payload, dict) and payload.get('cap') == 'say':
             timeout = context.get('speech_timeout', 17)
         if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
             raise ValueError('Invalid helper deadline')
-        connection.settimeout(timeout)
-        connection.connect(context['socket'])
-        connection.sendall(encoded)
-        with connection.makefile('rb') as stream:
-            line = stream.readline(MAX_BYTES + 1)
-    if not line.endswith(b'\n') or len(line) > MAX_BYTES:
-        raise ValueError('Invalid reply')
-    response = json.loads(line)
-    if not isinstance(response, dict) or type(response.get('ok')) is not bool:
-        raise ValueError('Invalid reply')
-    return response
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+            connection.settimeout(timeout)
+            connection.connect(context['socket'])
+            # sendall may transmit a prefix before raising. From this point on,
+            # failure cannot prove that the controller received no request.
+            send_started = True
+            connection.sendall(encoded)
+            with connection.makefile('rb') as stream:
+                line = stream.readline(MAX_BYTES + 1)
+        if not line.endswith(b'\n') or len(line) > MAX_BYTES:
+            raise ValueError('Invalid reply')
+        response = json.loads(line)
+        if not isinstance(response, dict) or type(response.get('ok')) is not bool:
+            raise ValueError('Invalid reply')
+        return response
+    except Exception:
+        return unavailable(sent=send_started)
 
 
 def main(argv=None):
@@ -68,10 +87,15 @@ def main(argv=None):
                 (args.operation in ('program-stop', 'program-status') and set(payload) == {'request_id', 'program_id'})))
             if not valid:
                 raise ValueError('Invalid call')
-        result = invoke(args.context, args.operation, payload)
     except Exception:
-        result = {'ok': False, 'code': 'UNKNOWN',
-                  'message': 'The helper result is unavailable. Do not retry or substitute; an action may have happened.'}
+        result = {'ok': False, 'code': 'INVALID', 'status': 'unsent',
+                  'message': 'Invalid helper input. Nothing was sent.'}
+    else:
+        try:
+            result = invoke(args.context, args.operation, payload)
+        except Exception:
+            # An unexpected invocation failure has no proven transport stage.
+            result = unavailable(sent=True)
     print(json.dumps(result, separators=(',', ':')))
     return 0 if result['ok'] else 1
 

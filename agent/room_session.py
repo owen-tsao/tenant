@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
+MAX_APPLICATION_CONTEXT = 6000
+
 
 class RoomSessionError(RuntimeError):
     def __init__(self, message, *, code=None, outcome_unknown=False):
@@ -183,8 +185,8 @@ class RoomSession:
         if not isinstance(text, str) or not text.strip() or len(text) > 8000:
             raise ValueError('A room message of 1–8000 characters is required')
         if application_context is not None and (not isinstance(application_context, str)
-                                                or not 0 < len(application_context) <= 4000):
-            raise ValueError('Application context must contain 1–4000 characters')
+                                                or not 0 < len(application_context) <= MAX_APPLICATION_CONTEXT):
+            raise ValueError(f'Application context must contain 1–{MAX_APPLICATION_CONTEXT} characters')
         async with self._start_lock:
             if self._reset_required:
                 raise RoomSessionError('Room context must be reset before another user can continue')

@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from agent.beat_audio import capabilities
+from agent.room_session import MAX_APPLICATION_CONTEXT
 from agent.tenant_device import invoke, main
 from brain.config import Config
 from brain.main import create_app
@@ -54,7 +55,7 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.turn = asyncio.create_task(self.agent.turn((lease or self.lease).guest_id, text))
         await self.native.started.wait()
         self.grant = next(iter(self.agent.device_tools._grants.values()))
-        self.assertLessEqual(len(self.native.application_contexts[-1]), 4000)
+        self.assertLessEqual(len(self.native.application_contexts[-1]), MAX_APPLICATION_CONTEXT)
         return self.grant
 
     async def finish(self, text='The requested result is recorded.'):
