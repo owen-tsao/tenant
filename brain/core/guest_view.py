@@ -76,6 +76,8 @@ class GuestPublisher:
         async with self.send_lock:
             for frame in frames:
                 await self._send(frame)
+                if frame.get('type') == 'assistant':
+                    self.core.published_reply(self.guest_id, frames, frame.get('text'))
 
     async def run(self):
         while True:

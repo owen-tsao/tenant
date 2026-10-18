@@ -570,7 +570,8 @@ class AccessEndpointsTests(unittest.TestCase):
         snapshot = self.core.snapshot()
         self.assertEqual(set(snapshot), {'type', 'room', 'devices', 'guests', 'log'})
         self.assertEqual(set(snapshot['room']), {'code', 'label', 'join_url'})
-        self.assertEqual(set(snapshot['guests'][0]), {'guest_id', 'display_name', 'channel', 'expires_in', 'scopes'})
+        self.assertEqual(set(snapshot['guests'][0]), {'guest_id', 'display_name', 'channel', 'expires_in', 'scopes',
+                                                    'lease_total', 'transcript'})
         with self.client.websocket_connect('wss://testserver/ws/display', headers=HEADERS) as ws:
             self.assertEqual(ws.receive_json()['type'], 'state')
             ws.send_json({'type': 'host.revoke', 'guest_id': guest_id, 'token': 'wrong'})

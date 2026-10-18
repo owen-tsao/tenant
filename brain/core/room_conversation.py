@@ -396,6 +396,7 @@ class ConversationAgent:
                         self._clean_generation = generation
                 if not self._allowed(guest_id, generation):
                     return self._denied(guest_id)
+                self.leases.record_public(lease, 'guest', self._redact(text))
                 return await self._native_turn(text, guest_id, generation)
             except asyncio.CancelledError:
                 # A browser reconnect is not a new guest. Stop this turn without

@@ -58,10 +58,13 @@ Unexpected or extra args are errors. The manifest describes the prepared song;
 it makes no promise of arbitrary music search. Cloud-only tracks do not qualify.
 Every successful result contains `audible_verified:false`: the OS accepting an
 instruction or reporting playing is evidence of command completion, not proof of
-audible sound. Check output routing/mute physically. `say` may exceed the five
-second bus deadline for longer text; keep demo phrases short. OS subprocesses are
-limited to min(remaining request budget, four seconds), killed/reaped by subprocess.run
-on timeout, and run off the asyncio event loop. An Apple event already delivered
+audible sound. Check output routing/mute physically. Speech uses the caller's
+lease-bounded deadline (the reply path allows up to 15 seconds). It renders
+explicit AIFF/PCM, reads the actual clip duration, and refuses playback unless
+the remaining budget covers that duration plus startup and receipt allowance.
+The player receives the remaining budget less the receipt allowance. Other OS
+controls retain min(remaining request budget, four seconds). Subprocesses are
+killed/reaped by subprocess.run on timeout and run off the asyncio event loop. An Apple event already delivered
 to Music can still have taken effect even if its sender times out.
 Executor scheduling time counts against the request budget: a worker which starts
 after the deadline refuses the action before invoking the dispatcher.
@@ -71,6 +74,22 @@ speech is rendered first and played with `afplay`. Both steps share one deadline
 expiry before playback starts sends no audio, while playback timeout is UNKNOWN
 and is not retried. Human audible acceptance of this replacement is required.
 Tests must preserve Jay’s chosen volume unless he explicitly requests a change.
+
+## Conversation reply voice
+
+Each new guest/controller starts text-only. The native helper's `reply-voice`
+operation enables brief future replies only after an explicit guest request and
+selection of one exact enrolled, say-capable speaker connection. A newly enrolled
+bridge may be offered once in the next genuine turn; discovery never enables
+speech. Reconnection requires a fresh choice. There is no OS/Bluetooth route
+observer; output and volume remain those already selected on the Mac.
+
+Opt-out, revoked access and a new guest fence queued unsent narration. Already
+started speech may finish. Requested one-off `say` remains available without
+enabling future replies and suppresses automatic narration of that same turn,
+including after UNKNOWN. Text delivery precedes optional reply audio. Synthetic
+acceptance is in `tests/test_reply_voice_acceptance.py`; it explicitly drives
+helper choices and does not prove natural-language consent recognition or hearing.
 
 Speech goes through stdin and playlist/volume through argv into constant
 AppleScript. No shell, user-generated AppleScript, hard-coded voice or account.

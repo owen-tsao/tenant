@@ -21,7 +21,8 @@ class Leases:
         guest_id = str(uuid.uuid4())
         lease = Lease(guest_id, self.room.code, 'joining', set(scopes if scopes is not None else {'*'}),
                       now + self.active_ttl, channel, None, f'Guest {len(self.leases) + 1}',
-                      room_id=self.room.id, joining_until=now + self.joining_ttl)
+                      room_id=self.room.id, joining_until=now + self.joining_ttl,
+                      access_total=self.active_ttl, joining_total=min(self.active_ttl, self.joining_ttl))
         self.leases[guest_id] = lease
         self.sessions[guest_id] = Session(guest_id, last_active=now)
         return lease
@@ -43,10 +44,27 @@ class Leases:
         return (self.current(lease.guest_id) is lease and lease.state == 'active'
                 and device.room_id == self.room.id and (cap in lease.scopes or '*' in lease.scopes))
 
+    def record_public(self, lease, role, text, *, publication=None):
+        """Append only live, explicitly selected public text; never inspect history."""
+        if (self.current(lease.guest_id) is not lease or role not in ('guest', 'room')
+                or not isinstance(text, str) or not text.strip()):
+            return
+        session = self.sessions[lease.guest_id]
+        if publication is not None:
+            if publication in session.published_turns:
+                return
+            session.published_turns.add(publication)
+        session.transcript.append({'role': role, 'text': text, 't': self.clock()})
+        del session.transcript[:-10]
+
     def revoke(self, guest_id, *, expired=False, persist=True):
         lease = self.leases.get(guest_id)
         if lease and lease.state in ('joining', 'active'):
             lease.state = 'expired' if expired else 'released'
+            session = self.sessions.get(guest_id)
+            if session:
+                session.transcript.clear()
+                session.published_turns.clear()
             self.room.epoch += 1
             if persist and self.on_change:
                 self.on_change()

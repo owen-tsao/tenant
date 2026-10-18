@@ -461,6 +461,7 @@ class PhotonChannel:
             await self.client.send(message['space']['id'], message['receivedBy']['id'], text,
                                            'tenant-reply-' + message_id)
             accepted = True
+            self.core.published_reply(guest_id, frames, text)
             self.store.outcome(message_id, 'ACCEPTED')
             self._log('ACCEPTED_NOT_DELIVERED', guest_id)
             if getattr(self.core, 'speech', None) is not None and self._can_reply(frames, lease):

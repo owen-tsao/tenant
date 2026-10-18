@@ -1,0 +1,104 @@
+{
+  "recorded_at_utc": "2026-10-18T03:00:25.661541+00:00",
+  "base_revision": "2c9fe5f35b4b10a0dcb8e33e334fa745fa493e46",
+  "status": "PASS_SYNTHETIC_POLICY_ACCEPTANCE_LIVE_SEMANTICS_PENDING",
+  "owned_files_sha256": {
+    "agent/AUDIO.md": "ff0d237c5e82c8c8c3c92892c8a224399d57c8fc6182cab1c819a6e84a3e7fc4",
+    "tests/test_reply_voice_acceptance.py": "73a5f6583cc5c8229395f061a5bfa777229f930e19eb9edf7c7b7f4e578acda1"
+  },
+  "source_snapshot_sha256": {
+    "agent/laptop.py": "d5d58ba1192163d63f94ad8aba13c36f7f8f8fd00b2b3d7d0c05b966330b8446",
+    "agent/beat_audio.py": "9bbcadf7d0c1d3ef650ddd55c2b759b649aa61ff042f78ec049cfd6354872de4",
+    "agent/tenant_device.py": "a0724a664d8deb4ad496ca3d5eac293d7fe7582f8e455ce762a5a5ec49f4760e",
+    "brain/core/conversation_speech.py": "9e9371f6dd019e6675fb1eadb1f10a8606fb5485ce40d88ea56bb1e0860285a0",
+    "brain/core/native_devices.py": "5919e6de488ca6a6bfd5a286a189e3c6dc18d9a086b66a52391d3856ca9e683a",
+    "brain/core/room_conversation.py": "8534021edb56e10f513720c4b0f435fa758db1c6ae4703cf84f434f2a6520d6b",
+    "brain/core/integration.py": "056bf7535c55f589527226785eb9f0f95ebf508561dd77d4a114f0d3beb48078",
+    "brain/channels/webchat.py": "e6efed70d9c593fe0a0a79bde56a75a5f9f66843160c922c8641e4cc94fff2ae",
+    "brain/channels/photon.py": "ae62bf6577974f26011a77df7338421c76bc28ad2acce5107aeb80d095f28889"
+  },
+  "independent_review": {
+    "production_contract": "No scoped blockers at f228b39963958bc2911b13f8e933ae5aeb4d800d",
+    "owned_final_files": "Hashes matched independent reviewer; no blocker; acceptance module 1 test PASS"
+  },
+  "checks": {
+    "focused": {
+      "command": ".venv/bin/python -m unittest tests.test_reply_voice_acceptance tests.test_reply_voice_helper tests.test_reply_voice_policy tests.test_conversation_speech tests.test_laptop_audio tests.test_beat_audio",
+      "tests": 107,
+      "failures": 0,
+      "skips": 0,
+      "seconds": 2.035
+    },
+    "full_shared_checkout": {
+      "command": ".venv/bin/python -m unittest discover -s tests -p 'test_*.py'",
+      "tests": 496,
+      "failures": 0,
+      "skips": 0,
+      "seconds": 17.417,
+      "limit": "Includes concurrently owned, uncommitted display projection changes. This is not an independently reviewed/deployed combined revision."
+    },
+    "unchanged_phone_protocol": {
+      "command": "node --test tests/device-runtime.test.cjs",
+      "tests": 12,
+      "failures": 0,
+      "skips": 0
+    },
+    "diff_check": "PASS",
+    "earlier_invocation": "Explicit program integration module import required tests on sys.path; canonical discovery passed. Earlier 490 count included five duplicate fixture tests, removed before final check."
+  },
+  "compact_journey": {
+    "test": "tests.test_reply_voice_acceptance.ReplyVoiceAcceptanceTests.test_default_opt_in_opt_out_one_off_and_new_guest_without_unsolicited_voice",
+    "cumulative_say_counts": [
+      0,
+      1,
+      2,
+      2,
+      3,
+      3,
+      4,
+      4
+    ],
+    "stages": [
+      "new guest text",
+      "explicit helper consent",
+      "follow-up",
+      "opt-out plus follow-up",
+      "requested one-off say",
+      "following text reply",
+      "opt-in again",
+      "new guest text default"
+    ],
+    "also_asserts": [
+      "unchanged lease expiry",
+      "prior context marker cleared",
+      "old guest denied with zero added native turns or say dispatches",
+      "all device requests are say, no volume or route mutation",
+      "zero uncertain requests"
+    ],
+    "limit": "Natural user text crosses real in-memory web channel unchanged; synthetic native fixture explicitly drives helper operations via the real temporary private Unix socket. Does not prove model interpretation or human audibility."
+  },
+  "live_voice_evidence": {
+    "file": "tests/evidence/2026-10-17-reply-voice-default-live.json",
+    "deployed_revision": "f228b39",
+    "result": "PASS_TEXT_DEFAULT",
+    "say_requests": 0,
+    "leave_http": 200,
+    "natural_opt_in_opt_out_one_off_new_guest": "PENDING_LOCAL_TESTER_BATCH"
+  },
+  "beat_phone_evidence": {
+    "file": "tests/evidence/2026-10-17-stop-recovery-live.json",
+    "runtime_revision": "0b4a1ec",
+    "edges": 21,
+    "failed_edges": 0,
+    "rtt_median_ms": 192.774,
+    "rtt_max_ms": 575.715,
+    "phone_off_to_requested_beat_stop_seconds": 98.689,
+    "physical_observation": "Phone stayed OFF while beat continued; final beat stop and phone OFF separately confirmed by Jay.",
+    "cadence": "Observed 30 BPM with explicitly requested 1s ON/1s OFF (0.5 beats per state); configured 1 beat per state yields 2s/2s and is source-tested only.",
+    "synchronization": "Optical/acoustic offset unmeasured; no fixed transport-derived correction justified.",
+    "automatic_expiry": "Physically UNVERIFIED; no additional run started."
+  },
+  "tester_as_of": "2026-10-18T02:59:49Z: batch1 joined actual UI; first native turn pending. Gated-photo entry-copy failure belongs to Owen; no audio failure recorded yet.",
+  "next_step": "Review tester native/dispatch receipts for natural consent, opt-out, one-off and new guest before any production audio correction. Finite 20s performance is blocked without a supported bound; program-start currently accepts request_id/device_id/bpm only.",
+  "actions": "No live probes, runtime restarts, output/volume changes, staging, commits or messages to other chats by this owner."
+}

@@ -53,6 +53,9 @@ class Lease:
     display_name: str
     room_id: str | None = None
     joining_until: float | None = None
+    # Issued durations, never recomputed/renewed on activation or reconnect.
+    access_total: float = 600
+    joining_total: float = 120
 
 
 @dataclass
@@ -60,3 +63,6 @@ class Session:
     guest_id: str
     messages: list[dict] = field(default_factory=list)
     last_active: float = field(default_factory=time.time)
+    # Public publication projection, deliberately separate from model history.
+    transcript: list[dict] = field(default_factory=list)
+    published_turns: set[tuple] = field(default_factory=set)

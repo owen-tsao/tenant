@@ -1,5 +1,6 @@
 """Install the small guest/access core before the app's static mount."""
 import asyncio
+import copy
 import hashlib
 import os
 import secrets
@@ -112,6 +113,10 @@ class Core:
     def snapshot(self):
         self.sweep()
         room = self.registry.room
+        controller = getattr(self.agent, '_controller', None)
+        guests = [lease for lease in self.leases.leases.values()
+                  if self.leases.current(lease.guest_id) is lease]
+        guests.sort(key=lambda lease: (lease.guest_id != controller, lease.state != 'active'))
         return {'type': 'state',
                 'room': {'code': room.code, 'label': room.label,
                          'join_url': self.config.public_url.rstrip('/') + '/j/' + room.code},
@@ -119,12 +124,23 @@ class Core:
                             for d in self.registry.devices.values() if d.room_id == room.id],
                 'guests': [{'guest_id': lease.guest_id, 'display_name': lease.display_name,
                             'channel': lease.channel,
+                            'lease_total': lease.joining_total if lease.state == 'joining' else lease.access_total,
+                            'transcript': copy.deepcopy(self.leases.sessions[lease.guest_id].transcript),
                             'expires_in': max(0, int(min(lease.expires_at, lease.joining_until)
                                                      - self.leases.clock())) if lease.state == 'joining'
                                            else max(0, int(lease.expires_at - self.leases.clock())),
                             'scopes': sorted(lease.scopes)}
-                           for lease in self.leases.leases.values() if lease.state in ('joining', 'active')],
+                           for lease in guests],
                 'log': list(self.log.rows)}
+
+    def published_reply(self, guest_id, frames, text):
+        """Called after transport acceptance; receipts/private native history stay internal."""
+        receipt = getattr(frames, 'completed_reply', None)
+        if (receipt is None or receipt.guest_id != guest_id or receipt.text != text
+                or not self.agent.allows_reply(receipt)):
+            return
+        self.leases.record_public(receipt.lease, 'room', text,
+                                  publication=(receipt.generation, receipt.thread_id, receipt.turn_id))
 
     async def host_do(self, body):
         if not isinstance(body, dict) or not isinstance(body.get('device_id'), str) or not isinstance(body.get('cap'), str):
