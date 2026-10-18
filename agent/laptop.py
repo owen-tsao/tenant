@@ -162,7 +162,11 @@ class AudioDispatcher:
             with tempfile.TemporaryDirectory(prefix="tenant-speech-") as directory:
                 audio = str(Path(directory) / 'speech.aiff')
                 try:
-                    self._run(["/usr/bin/say", "-o", audio], timeout, input=text)
+                    # macOS's default AIFF-C 'twos' encoding is unsupported by
+                    # Python's aifc reader. Request standard AIFF/PCM explicitly
+                    # so the duration preflight reads the actual rendered file.
+                    self._run(["/usr/bin/say", "-o", audio,
+                               "--file-format=AIFF", "--data-format=BEI16"], timeout, input=text)
                 except AudioError as exc:
                     if exc.code == 'UNKNOWN':
                         raise AudioError('FAILED', 'Speech rendering did not finish; no audio started.') from None

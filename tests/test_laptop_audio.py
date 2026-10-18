@@ -160,6 +160,29 @@ class DispatchTests(unittest.TestCase):
         self.assertTrue(result['spoken'])
         self.assertFalse(result['audible_verified'])
 
+    def test_actual_macos_pcm_render_is_duration_checked_with_explicit_format_flags(self):
+        # Captured using render-only say on the room Mac; the default AIFF-C
+        # twos file failed aifc. This real standard-AIFF fixture avoids testing
+        # only the synthetic writer's supported format. Neither OS tool runs.
+        fixture = Path(__file__).parent / 'fixtures' / 'say-pcm-bei16.aiff'
+        calls = []
+        def runner(argv, **options):
+            calls.append((argv, options))
+            if argv[:2] == ['/usr/bin/say', '-o']:
+                self.assertIn('--file-format=AIFF', argv)
+                self.assertIn('--data-format=BEI16', argv)
+                Path(argv[2]).write_bytes(fixture.read_bytes())
+            else:
+                self.assertEqual(argv[0], '/usr/bin/afplay')
+            return subprocess.CompletedProcess(argv, 0, '', '')
+        result = self.make(runner).dispatch('say', {'text': 'Tenant can coordinate'}, timeout=15)
+        self.assertEqual(fixture.read_bytes()[8:12], b'AIFF')
+        self.assertEqual(result['rendered_duration_ms'], 1139)
+        self.assertEqual([argv[0] for argv, _options in calls], ['/usr/bin/say', '/usr/bin/afplay'])
+        self.assertAlmostEqual(calls[1][1]['timeout'], 1.138548752834467 + 1)
+        self.assertFalse(result['audible_verified'])
+        self.assertFalse(Path(calls[0][0][2]).parent.exists())
+
     def test_actual_clip_that_cannot_fit_is_refused_before_playback(self):
         for duration, elapsed in ((5, .1), (3, 1), (.05, 3.9)):
             with self.subTest(duration=duration, elapsed=elapsed):

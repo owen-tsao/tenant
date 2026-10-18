@@ -1,0 +1,98 @@
+{
+  "recorded_at": "2026-10-18T02:03:37.049074+00:00",
+  "status": "PASS_REAL_MAC_RENDER_ONLY_PHYSICAL_AUDIO_RECHECK_PENDING",
+  "scope": [
+    "agent/laptop.py",
+    "tests/test_laptop_audio.py",
+    "tests/fixtures/say-pcm-bei16.aiff"
+  ],
+  "live_trigger": {
+    "deployed_revision": "6cb644a",
+    "machine_result": "FAILED",
+    "elapsed_ms": 988,
+    "automatic_followup": "EXPLICIT_SPEECH_ATTEMPTED (suppressed)",
+    "human_audio_acceptance": "NOT_ESTABLISHED; ambiguous yes-it-works did not override FAILED"
+  },
+  "measured_root_cause": {
+    "original_command": "/usr/bin/say -o private speech.aiff, text via stdin",
+    "original_form_type": "AIFC",
+    "original_compression": "twos",
+    "duration_reader_error": {
+      "type": "Error",
+      "message": "unsupported compression type"
+    },
+    "production_error_before_fix": {
+      "code": "FAILED",
+      "message": "Speech duration could not be verified; no audio started."
+    },
+    "physical_playback_before_fix": false
+  },
+  "fix": {
+    "source": "Installed macOS say(1), AUDIO FORMATS: --file-format and --data-format with explicit big-endian 16-bit integer PCM.",
+    "render_flags": [
+      "--file-format=AIFF",
+      "--data-format=BEI16"
+    ],
+    "actual_corrected_file": {
+      "form_type": "AIFF",
+      "compression": "NONE",
+      "channels": 1,
+      "sample_width": 2,
+      "sample_rate": 22050,
+      "frames": 25105,
+      "duration_seconds": 1.138548752834467
+    },
+    "production_result_with_mocked_afplay": {
+      "spoken": true,
+      "audible_verified": false,
+      "rendered_duration_ms": 1139
+    },
+    "result_limit": "The player was mocked for this result; it is format/duration verification only, not spoken/audio acceptance.",
+    "preserved": "Same stdin text, aifc actual-duration preflight, coherent 15-second/live-lease budget, no word cap, no automatic repeat, default output and volume."
+  },
+  "regression": {
+    "fixture": "tests/fixtures/say-pcm-bei16.aiff",
+    "fixture_kind": "Actual macOS say-rendered standard AIFF, unmodified; public test phrase Tenant can coordinate.",
+    "fixture_bytes": 54306,
+    "case": "Production dispatch requests both explicit format flags, loads the captured real PCM file through its duration reader, supplies the nominal duration plus existing player margin to a mocked afplay, and cleans the temporary directory.",
+    "test_command": ".venv/bin/python -m unittest tests.test_laptop_audio tests.test_conversation_speech -q",
+    "passed": 63,
+    "failed": 0,
+    "skipped": 0,
+    "source_sha256": {
+      "agent/laptop.py": "b7977ef14ad799d0a5c35f0cf56d9cb6d9190aff708af13570d1cba87de1d909",
+      "tests/test_laptop_audio.py": "d3cb1c50bf12120216035ea187978d53c8762ce504ad8c55a6ae7c3df4f0496a",
+      "tests/fixtures/say-pcm-bei16.aiff": "328af174874fd08b2552842389ffdbfe57933d4843997b37fea03b8dbdb57e0b"
+    }
+  },
+  "effects": {
+    "real_os_rendering": true,
+    "real_playback": false,
+    "model_calls": false,
+    "device_bus_commands": false,
+    "runtime_restart": false,
+    "web_edits": false,
+    "volume_or_output_changes": false
+  },
+  "independent_review": {
+    "reviewer": "speech_request_regression",
+    "result": "PASS; minimal explicit PCM render flags, real fixture independently parsed as AIFF/NONE at22050Hz/25105frames; no playback ran.",
+    "fixture_metadata_check": "No /Users/, /private/, /var/folders/ or credential-label markers found."
+  },
+  "remaining": [
+    "Root deploys the format fix and obtains an unambiguous human observation for fresh requested speech; no prior UNKNOWN or FAILED physical command is automatically replayed."
+  ],
+  "final_regression": {
+    "python_discovery": {
+      "passed": 385,
+      "failed": 0,
+      "skipped": 0
+    },
+    "node_device_runtime": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "physical_audibility": "NOT_PERFORMED; root owns fresh live acceptance."
+  }
+}
