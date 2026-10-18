@@ -15,5 +15,10 @@
   "live_state_accessed": false,
   "native_or_ocr_suite_rerun": false,
   "camera_microphone_status": "Lighting reports idle, Start unclicked, no current.json; waiting for existing user readiness answer.",
-  "lock_cleanup": "Lighting reports original owned session40487 released PID73796; process gone, nonblocking exclusive flock free, inode66986344 preserved; gate waiting-for-user."
+  "lock_cleanup": "Lighting reports original owned session40487 released PID73796; process gone, nonblocking exclusive flock free, inode66986344 preserved; gate waiting-for-user.",
+  "subsequent_static_review": {
+    "same_batch_finality": "Actionable: an identical final following a pause in the same poll leaves the returned pending envelope provisional. Owner asked to fix/coalesce final metadata and add regression.",
+    "queued_freshness": "Still_current does not refresh evidence age; separate caller fence explicitly required in main contract. Owner asked to clarify reader API docs and clock case.",
+    "status": "software fix pending with Lighting; no physical test/model bridge accepted"
+  }
 }

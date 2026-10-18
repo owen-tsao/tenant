@@ -1,11 +1,12 @@
 # Celsius — main / Lighting interface agreement
 
-2026-10-18. This is an ownership and integration contract, **not a connected model bridge or an accepted live scene**. Read the sibling `tenant-celsius-lab/README.md` and `TRANSFER-TO-LIGHTING.md` for the source and acceptance inventory.
+2026-10-18. **Latest ownership update from Jay: main owns drawing; Lighting owns Celsius end to end, including the room bridge.** Earlier references below to main implementing the receiver are superseded by this update; the lifecycle/evidence requirements remain. This is an integration contract, **not a connected model bridge or an accepted live scene**. Read the sibling `tenant-celsius-lab/README.md` and `TRANSFER-TO-LIGHTING.md` for the source and acceptance inventory.
 
 ## Ownership and resources
 
 - **Lighting & Device Runtime (Local):** isolated capture app, camera/OCR, local ASR/transcript, lab commands/receipts, input calibration and lab-side event reader/coalescer/cursor. Do not edit shared Tenant conversation/session seams without main's agreement.
-- **Main / Access & Device Adaptation:** the entry into the same existing room conversation, controller/lease/room-generation checks, observation context, native turn ordering/steering, model selection and integrated effects acceptance. No new chat or separate model process.
+- **Lighting & Device Runtime (Local), Celsius integration:** owns the same-room event bridge, controller/lease/room-generation checks, observation context, native turn ordering/steering, contained model settings and integrated effects acceptance. Coordinate exact shared-source edits before touching main/drawing-owned files. No new chat or separate model process.
+- **Main / Access & Device Adaptation:** drawing lab, TV album, drawing-agent guide and drawing demo script; coordinates only actionable shared source/resource conflicts and reviews a completed Celsius integration handoff when needed. Routine Celsius work/user questions stay in Lighting’s chat.
 - **Tester:** independent review and one coordinated live test at a time. Finish/release its exact stale old test lock before Lighting acquires a new one; do not unlink an actively locked file.
 - **TV:** stays on main's accepted drawing/photo album until separately released. No evidence projection or window movement in the first input-only check. Main is not using the camera or microphone.
 
