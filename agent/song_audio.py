@@ -104,13 +104,13 @@ def load_recording(manifest):
     return result
 
 
-def capabilities(recording):
+def capabilities(recording, *, live_visual=False):
     identifier = {'type': 'string', 'maxLength': 80}
     label = recording['artist'] + ' — ' + recording['title']
     visual = recording.get('visual')
     if visual:
         label += '; prepared ambient beat-ring video: ' + visual['description']
-    return {
+    result = {
         'song.prepare': {'description': 'Prepare selected real recording: ' + label + '; never plays.',
             'args': {'program_id': identifier, 'song_id': {**identifier, 'enum': [recording['song_id']]},
                      'expires_at_ms': {'type': 'number', 'minimum': 0}}},
@@ -119,6 +119,10 @@ def capabilities(recording):
                ('start', 'Play only the prepared real recording, once, through the current default output.'),
                ('status', 'Read selected-source identity, buffering/pause and actual audio playhead; no audibility claim.'),
                ('stop', 'Stop only this owned selected recording and close its player.'))}}
+    if live_visual:
+        result['song.visual'] = {'description': 'Show or hide the live transparent orb on this already-playing owned song; canonical audio energy follows its verified playhead. Music and phone lights continue.',
+            'args': {'program_id': identifier, 'visible': {'type': 'boolean'}}}
+    return result
 
 
 class MpvPlayer:
@@ -246,24 +250,54 @@ class SongJob:
     lock: object = field(default_factory=threading.RLock)
     cancelled: object = field(default_factory=threading.Event)
     close_lock: object = field(default_factory=threading.Lock)
+    visual: object = None
+    visual_pending: bool = False
+    visual_lock: object = field(default_factory=threading.RLock)
+    visual_stop: object = field(default_factory=threading.Event)
+    visual_position: float | None = None
+    visual_progress: float = 0
+    audio_closed: bool = False
 
 
 class SongAudio:
     def __init__(self, manifest=None, *, factory=MpvPlayer, clock=time.monotonic,
-                 wall_clock=time.time, watch=True, binary=None):
+                 wall_clock=time.time, watch=True, binary=None, visual_factory=None,
+                 energy_factory=None, visual_available=None):
         self.factory, self.clock, self.wall_clock, self.watch = factory, clock, wall_clock, watch
         self.binary = binary or shutil.which('mpv')
         self.recording, self.note = None, 'No selected recording is prepared.'
         self.jobs, self.lock = {}, threading.RLock()
+        self.visual_factory, self.visual_energy = visual_factory, None
+        self.visual_available = visual_available or (lambda: visual_factory is not None)
         if manifest and self.binary:
             try:
                 self.recording = load_recording(manifest)
                 self.manifest = manifest
             except Exception:
                 self.note = 'Selected recording validation failed; no song capability advertised.'
+        if self.recording and 'visual' not in self.recording:
+            try:
+                if __package__:
+                    from .song_visual import EnergyEnvelope, OrbHost
+                else:
+                    from song_visual import EnergyEnvelope, OrbHost
+                if visual_factory is None:
+                    self.visual_factory = OrbHost
+                    self.visual_available = visual_available or OrbHost.available
+                if self.visual_available():
+                    self.visual_energy = (energy_factory or EnergyEnvelope.from_recording)(self.recording)
+            except Exception:
+                # Missing optional renderer/analysis must not disable music.
+                self.visual_energy = None
 
     def capabilities(self):
-        return capabilities(self.recording) if self.recording else {}
+        if not self.recording:
+            return {}
+        try:
+            ready = self.visual_energy is not None and self.visual_available() is True
+        except Exception:
+            ready = False
+        return capabilities(self.recording, live_visual=ready)
 
     def _public(self, recording):
         result = {key: recording[key] for key in ('song_id', 'artist', 'title', 'sha256',
@@ -326,6 +360,10 @@ class SongAudio:
             raise SongError('INVALID', 'That selected-song program does not exist.')
         if cap == 'song.stop':
             return self.stop(identifier)
+        if cap == 'song.visual':
+            if type(args['visible']) is not bool:
+                raise SongError('INVALID', 'Visual visibility must be a boolean.')
+            return self._visual(identifier, job, args['visible'], deadline)
         with job.lock:
             if self.clock() >= job.expires:
                 self.stop(identifier)
@@ -350,6 +388,146 @@ class SongAudio:
             return {'program_id': identifier, 'song_id': job.recording['song_id'],
                     'sha256': job.recording['sha256'], **sample, 'audible_verified': False}
 
+    @staticmethod
+    def _visual_result(identifier, attached):
+        return {'program_id': identifier, 'visible': attached, 'visual_state': 'attached' if attached else 'hidden',
+                'visual_ready': attached, 'physical_visibility_verified': False}
+
+    def _hide_visual(self, job, token=None):
+        with job.visual_lock:
+            if token is not None and token is not job.visual_stop:
+                return True
+            job.visual_stop.set()
+            host = job.visual
+            try:
+                confirmed = host is None or host.close() is True
+            except Exception:
+                confirmed = False
+            if confirmed and job.visual is host:
+                job.visual = None
+            return confirmed and not job.visual_pending
+
+    def _playing_sample(self, job, deadline):
+        if (job.cancelled.is_set() or job.stopped or self.clock() >= min(deadline, job.expires)
+                or not job.attempted or job.player is None):
+            raise SongError('PERMISSION', 'A live visual needs the current owned playing song.')
+        sample = job.player.snapshot(min(deadline, job.expires))
+        position = sample.get('position_seconds')
+        if (sample.get('state') != 'playing' or not finite(sample.get('rate')) or sample['rate'] != 1
+                or not finite(position) or not 0 <= position < job.recording['duration_seconds']):
+            raise SongError('FAILED', 'The owned song has no verified advancing audio playhead.')
+        return sample
+
+    def _visual_frame(self, job, sample, now):
+        position = sample['position_seconds']
+        if job.visual_position is not None:
+            if position < job.visual_position - .025:
+                raise SongError('FAILED', 'The audio playhead moved backwards; the visual was detached.')
+            if position > job.visual_position + .001:
+                job.visual_progress = now
+            elif now - job.visual_progress >= .75:
+                raise SongError('FAILED', 'The audio playhead is stale; the visual was detached.')
+        else:
+            job.visual_progress = now
+        job.visual_position = position
+        level = self.visual_energy.level_at(position)
+        if not finite(level) or not 0 <= level <= 1:
+            raise SongError('FAILED', 'Canonical audio energy is unavailable.')
+        return {'playhead_seconds': position, 'level': level, 'playing': True}
+
+    def _visual(self, identifier, job, visible, deadline):
+        if not visible:
+            if not self._hide_visual(job):
+                raise SongError('UNKNOWN', 'Visual cleanup is pending; music was not changed.')
+            return self._visual_result(identifier, False)
+        with job.lock:
+            self._playing_sample(job, deadline)
+            with job.visual_lock:
+                if job.visual is not None:
+                    if not job.visual_stop.is_set() and job.visual.alive():
+                        return self._visual_result(identifier, True)
+                    raise SongError('BUSY', 'Prior visual cleanup needs confirmation before another overlay.')
+                if job.visual_pending:
+                    raise SongError('BUSY', 'The owned visual is already being prepared.')
+                token = job.visual_stop = threading.Event()
+                job.visual_pending = True
+        host, published = None, False
+        try:
+            if (token.is_set() or job.cancelled.is_set() or job.stopped
+                    or self.clock() >= min(deadline, job.expires)):
+                raise SongError('PERMISSION', 'Visual attachment ended before the host could open.')
+            # Native shader startup is outside the song lock: music clock/status
+            # and phone timing can continue while this independent window loads.
+            host = self.visual_factory(deadline=min(deadline, job.expires))
+            with job.lock:
+                sample = self._playing_sample(job, deadline)
+                job.visual_position = None
+                sampled_at = self.clock()
+                frame = self._visual_frame(job, sample, sampled_at)
+            with job.visual_lock:
+                if (token.is_set() or job.cancelled.is_set() or job.stopped
+                        or self.clock() >= min(deadline, job.expires)
+                        or self.clock() - sampled_at > .25):
+                    raise SongError('PERMISSION', 'Visual attachment was cancelled before publication.')
+                if not host.alive():
+                    raise SongError('FAILED', 'The transparent visual host ended during preparation.')
+                host.send(frame)
+                job.visual = host
+                published = True
+            if self.watch:
+                threading.Thread(target=self._visual_watch, args=(job, token), daemon=True).start()
+            return self._visual_result(identifier, True)
+        except SongError:
+            raise
+        except Exception as error:
+            if host is None:
+                host = getattr(error, 'owned_host', None)
+            raise SongError('UNKNOWN', 'The live visual did not confirm attachment; music was not changed.') from None
+        finally:
+            if host is not None and not published:
+                try:
+                    confirmed = host.close() is True
+                except Exception:
+                    confirmed = False
+                if not confirmed:
+                    # Keep exact ownership even when cancellation won the race
+                    # before publication; later cleanup must not claim absence.
+                    with job.visual_lock:
+                        job.visual = host
+                        token.set()
+            with job.visual_lock:
+                job.visual_pending = False
+            if job.cancelled.is_set():
+                self.stop(identifier)
+
+    def _visual_tick(self, job, token=None):
+        token = token or job.visual_stop
+        try:
+            with job.lock:
+                if token is not job.visual_stop or token.is_set():
+                    return False
+                sample = self._playing_sample(job, min(self.clock() + .25, job.expires))
+                sampled_at = self.clock()
+                frame = self._visual_frame(job, sample, sampled_at)
+            with job.visual_lock:
+                if token is not job.visual_stop:
+                    return False
+                if (token.is_set() or job.cancelled.is_set() or job.stopped or self.clock() >= job.expires
+                        or self.clock() - sampled_at > .25 or job.visual is None or not job.visual.alive()):
+                    raise SongError('FAILED', 'The visual host is unavailable.')
+                job.visual.send(frame)
+            return True
+        except Exception:
+            # Visual errors detach only the overlay; never pause/restart audio
+            # or send any phone operation. Close outside the song status lock.
+            self._hide_visual(job, token)
+            return False
+
+    def _visual_watch(self, job, token):
+        while not token.wait(.1):
+            if not self._visual_tick(job, token):
+                return
+
     def _watch(self, identifier):
         job = self.jobs[identifier]
         while not job.stopped:
@@ -372,9 +550,13 @@ class SongAudio:
                     if not acquired:
                         return {'program_id': identifier, 'state': 'stopping', 'stopped': False}
                     job.lock.release()
-                confirmed = job.player is None or job.player.close()
-                if not confirmed:
-                    raise SongError('UNKNOWN', 'Owned song shutdown was not confirmed.')
+                if not job.audio_closed:
+                    confirmed = job.player is None or job.player.close()
+                    if not confirmed:
+                        raise SongError('UNKNOWN', 'Owned song shutdown was not confirmed.')
+                    job.audio_closed = True
+                if not self._hide_visual(job):
+                    return {'program_id': identifier, 'state': 'stopping', 'stopped': False}
                 job.stopped, job.state = True, 'stopped'
             return {'program_id': identifier, 'state': 'stopped', 'stopped': True}
 

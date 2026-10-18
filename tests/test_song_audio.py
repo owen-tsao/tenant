@@ -52,6 +52,9 @@ class FakePlayer:
 
 class SongAudioTests(unittest.TestCase):
     def setUp(self):
+        # Baseline audio-only cases do not depend on a separately built native
+        # overlay happening to be installed on the development machine.
+        self.enterContext(patch('agent.song_visual.OrbHost.available', return_value=False))
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
         self.path = Path(self.directory.name) / 'selected.wav'

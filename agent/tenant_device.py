@@ -81,6 +81,8 @@ def main(argv=None):
                           and isinstance(payload['device_id'], str) and isinstance(payload['speaker_ref'], str)))) or
                 (args.operation == 'program-start' and set(payload) in (
                     {'request_id', 'device_id', 'bpm'}, {'request_id', 'device_id', 'song_id'})) or
+                (args.operation == 'program-update' and set(payload) == {'request_id', 'program_id', 'visual'}
+                 and type(payload.get('visual')) is bool) or
                 (args.operation == 'program-update' and {'request_id', 'program_id'} < set(payload)
                  and set(payload) <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
                  and ('light_beats_per_state' not in payload or 'light_device_id' in payload)) or

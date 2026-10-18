@@ -40,5 +40,13 @@
     "read_luminance": "DDC communication failure",
     "read_max_luminance": "DDC communication failure",
     "conclusion": "No hardware brightness capability established; no backlight changes attempted."
+  },
+  "production_host_wrapper": {
+    "actual_native_constructor_ready_ms": 1594,
+    "recording_derived_updates": 49,
+    "duration_seconds": 5,
+    "alive_after_constructor_deadline": true,
+    "close_confirmed": true,
+    "note": "Canonical WAV-derived energy sent at advancing synthetic positions; no song played during this wrapper probe."
   }
 }

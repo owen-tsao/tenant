@@ -87,6 +87,7 @@ class Program:
     song_timeline: object = None
     audio_metadata_guard: object = None
     light_metadata_guards: dict = field(default_factory=dict)
+    visual: dict = field(default_factory=dict)
 
 
 class RoomPrograms:
@@ -141,9 +142,21 @@ class RoomPrograms:
                 'missed_ticks': program.missed_ticks,
                 'reason': program.reason, 'cleanup': dict(program.cleanup), 'recovery': dict(program.recovery),
                 'recent_dispatch_timings': list(program.timings[-12:]),
+                'visual': {**program.visual, 'update_available': self._visual_available(program),
+                           'physical_rendering_verified': False},
                 'physical_sync_measured': False, 'audio_light_clock_alignment': (
                     'live playhead bracket uncertainty reported; optical/acoustic offset unmeasured' if program.song_id else
                     'assumed same host clock; optical/acoustic offset unmeasured')}
+
+    def _visual_available(self, program):
+        return bool(program.song_id and program.active and program.state == 'running'
+                    and program.visual.get('state') != 'unknown'
+                    and self.programs.get(program.id) is program
+                    and self._allowed(program.owner)
+                    and self._connection(program.audio, program.audio_connection)
+                    and program.audio_metadata_guard is not None and program.audio_metadata_guard()
+                    and self.registry.metadata.available(program.audio, 'song.visual')
+                    and self.leases.allows(program.owner.lease, program.audio, 'song.visual'))
 
     def device_busy(self, device_id):
         program = self._light_owners.get(device_id)
@@ -170,6 +183,7 @@ class RoomPrograms:
             return {'audio_devices': [], 'programs': []}
         return {'audio_devices': [{'device_id': dev.id, 'label': dev.label, 'online': dev.online,
                                   'generated_beat': all(self.registry.metadata.available(dev, cap) for cap in ('beat.prepare', 'beat.start', 'beat.stop', 'beat.status')),
+                                  'song_visual': self.registry.metadata.available(dev, 'song.visual') and self.leases.allows(owner.lease, dev, 'song.visual'),
                                   'songs': ([{'song_id': identifier, 'label': dev.caps['song.prepare'].description} for identifier in
                                              dev.caps['song.prepare'].args.get('song_id', {}).get('enum', [])]
                                             if all(self.registry.metadata.available(dev, 'song.' + name) for name in ('prepare', 'start', 'stop', 'status')) else [])}
@@ -204,12 +218,15 @@ class RoomPrograms:
         keys = set(payload)
         song_start = operation == 'program-start' and keys == {'request_id', 'device_id', 'song_id'}
         start = operation == 'program-start' and (keys == {'request_id', 'device_id', 'bpm'} or song_start)
-        update = (operation == 'program-update' and {'request_id', 'program_id'} < keys
+        visual_update = operation == 'program-update' and keys == {'request_id', 'program_id', 'visual'}
+        update = visual_update or (operation == 'program-update' and {'request_id', 'program_id'} < keys
                   and keys <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
                   and ('light_beats_per_state' not in keys or 'light_device_id' in keys))
         simple = operation in ('program-stop', 'program-status') and keys == {'request_id', 'program_id'}
         if not (start or update or simple):
             return failure('INVALID', 'Invalid room program operation.')
+        if visual_update and type(payload['visual']) is not bool:
+            return failure('INVALID', 'Visual visibility must be a boolean.')
         if 'bpm' in payload and not positive_finite(payload['bpm']):
             return failure('INVALID', 'Tempo must be a positive finite BPM.')
         if 'light_beats_per_state' in payload and not positive_finite(payload['light_beats_per_state']):
@@ -227,17 +244,23 @@ class RoomPrograms:
         # Preserve request-time targets through the room-program mutation queue.
         # Status/stop/detach own fresh cleanup authority, not the old run's fence.
         targets = set()
+        program_guard = lambda: True
         if start and isinstance(payload.get('device_id'), str):
             targets.add(payload['device_id'])
         elif update:
             prior = self.programs.get(payload.get('program_id')) if isinstance(payload.get('program_id'), str) else None
-            if 'bpm' in payload and prior is not None:
+            if visual_update and prior is not None:
+                prior_run, prior_song, prior_connection = prior.run_id, prior.song_id, prior.audio_connection
+                program_guard = lambda: (self.programs.get(prior.id) is prior
+                                         and prior.run_id == prior_run and prior.song_id == prior_song
+                                         and prior.audio_connection is prior_connection)
+            if ('bpm' in payload or visual_update) and prior is not None:
                 targets.add(prior.audio.id)
             if isinstance(payload.get('light_device_id'), str):
                 targets.add(payload['light_device_id'])
         metadata_guard = self.registry.metadata.guard(targets)
         caller_authorized = authorized
-        authorized = lambda: caller_authorized() and metadata_guard()
+        authorized = lambda: caller_authorized() and metadata_guard() and program_guard()
         async with self._control:
             if not self._allowed(owner) or not authorized():
                 return failure('PERMISSION', 'This turn can no longer change a room program.')
@@ -273,6 +296,9 @@ class RoomPrograms:
                         'result': self._status(program), 'message': 'Future program steps stopped; cleanup status is reported separately.'}
             if program.state != 'running':
                 return failure('STOPPED', 'That program is not running. It was not restarted or replayed.')
+            if visual_update:
+                # Own no cadence, phase, audio preparation or restart on this path.
+                return await self._update_visual(program, payload['visual'], authorized)
             if program.song_id and 'bpm' in payload:
                 return failure('UNSUPPORTED', 'A recording follows its analyzed beats. Tempo edits require time stretching and are unavailable; no audio changed.')
             cadences = dict(program.light_cadences)
@@ -351,6 +377,65 @@ class RoomPrograms:
         # Waiting is read-only: release mutation serialization so a later stop
         # or detach can settle a pending first cycle immediately.
         return await self._await_first_cycles(program, grant, authorized, wait_ids)
+
+    async def _update_visual(self, program, visible, authorized):
+        if not program.song_id:
+            return failure('UNSUPPORTED', 'Visual updates require an existing selected-recording program.')
+        if 'song.visual' not in program.audio.caps:
+            return failure('UNSUPPORTED', 'That audio bridge does not advertise live song visuals.')
+        if program.visual.get('state') == 'unknown':
+            return failure('UNKNOWN', 'An earlier visual outcome is unknown. Do not retry or restart the song.')
+        if not self._connection(program.audio, program.audio_connection):
+            return failure('OFFLINE', 'The original selected-song bridge changed; no visual command was sent.')
+        if not self._visual_available(program) or not authorized():
+            return failure('PERMISSION', 'Current song ownership, visual scope and host allowance are required.')
+        run_id, song_id = program.run_id, program.song_id
+        metadata_guard = self.registry.metadata.guard((program.audio.id,))
+        previous = dict(program.visual)
+        def current():
+            return (authorized() and metadata_guard() and self._visual_available(program)
+                    and program.run_id == run_id and program.song_id == song_id)
+        def permitted(dev, cap, args):
+            return (current() and dev is program.audio and cap == 'song.visual'
+                    and args == {'program_id': run_id, 'visible': visible})
+        def dispatched(*_):
+            program.visual = {'state': 'pending', 'requested_visible': visible,
+                              'acknowledged_visible': None}
+        try:
+            result = await self.bus.call(program.audio.id, 'song.visual',
+                {'program_id': run_id, 'visible': visible}, timeout=self.action_timeout,
+                authorize=permitted, on_dispatch=dispatched)
+        except BaseException as exc:
+            if program.visual.get('state') == 'pending':
+                program.visual['state'] = 'unknown'
+            if isinstance(exc, asyncio.CancelledError):
+                raise
+            return failure('UNKNOWN', 'The visual outcome is unknown; no retry or song restart was attempted.')
+        data = result.result if isinstance(result.result, dict) else {}
+        if not result.ok:
+            if result.code == 'UNKNOWN':
+                program.visual = {'state': 'unknown', 'requested_visible': visible,
+                                  'acknowledged_visible': None}
+            else:
+                program.visual = previous
+            return dict(failure(result.code or 'UNKNOWN',
+                        'The visual change was not confirmed; the song was not restarted.'),
+                        result=self._status(program), status='unknown' if result.code == 'UNKNOWN' else 'unconfirmed')
+        if (data.get('program_id') != run_id or type(data.get('visible')) is not bool
+                or data['visible'] is not visible):
+            program.visual = {'state': 'unknown', 'requested_visible': visible,
+                              'acknowledged_visible': None}
+            return dict(failure('UNKNOWN', 'The bridge did not confirm this visual change. Do not retry or restart the song.'),
+                        result=self._status(program))
+        if not current():
+            program.visual = {'state': 'unknown', 'requested_visible': visible,
+                              'acknowledged_visible': None}
+            return dict(failure('PERMISSION', 'The visual reply arrived after access, connection or the running song changed.'),
+                        result=self._status(program))
+        program.visual = {'state': 'shown' if visible else 'hidden', 'requested_visible': visible,
+                          'acknowledged_visible': visible}
+        return {'ok': True, 'result': self._status(program),
+                'message': 'Visual visibility acknowledged on the existing song player; physical rendering is unverified.'}
 
     def _begin_first_cycle(self, program, device_id):
         beats_per_state = program.light_cadences.get(device_id, 1 if program.song_id else .5)

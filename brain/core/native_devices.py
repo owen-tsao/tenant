@@ -168,6 +168,11 @@ class NativeDevices:
                 'For non-OFF phone CONFLICT, detach with program-update/remove_light_device_id, '
                 'then the original raw action with fresh request_id after confirmed detach; music may continue. '
                 'Never retry UNKNOWN detach. BPM update restarts generated phase; song tempo edits unavailable. '
+                'For a later request to show/hide the orb while a selected song already plays, check '
+                'program.visual.update_available and audio_devices[].song_visual; use program-update with only '
+                'request_id,program_id,visual (boolean). This toggles existing live visuals without reprepare/restart '
+                'or light changes; no visual/timing mixed request. Do not start music again. Visual ACK does not '
+                'prove physical rendering. Missing capability is UNSUPPORTED; UNKNOWN is no retry. '
                 'Programs end with access; process/ACK timing never proves physical sync.')
         if self.reply_voice is not None:
             text += ('\nReply voice context: '
@@ -268,6 +273,8 @@ class NativeDevices:
         fields = set(request) - {'token', 'operation'}
         valid_program = self.programs is not None and (
             (operation == 'program-start' and fields in ({'request_id', 'device_id', 'bpm'}, {'request_id', 'device_id', 'song_id'})) or
+            (operation == 'program-update' and fields == {'request_id', 'program_id', 'visual'}
+             and type(request.get('visual')) is bool) or
             (operation == 'program-update' and {'request_id', 'program_id'} < fields
              and fields <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
              and ('light_beats_per_state' not in fields or 'light_device_id' in fields)) or
@@ -380,7 +387,7 @@ class NativeDevices:
                         if row['program_id'] == payload.get('program_id')), None)
         if program is None:
             return set()
-        targets = {program['audio_device_id']} if 'bpm' in payload else set()
+        targets = {program['audio_device_id']} if 'bpm' in payload or 'visual' in payload else set()
         if isinstance(payload.get('light_device_id'), str):
             targets.add(payload['light_device_id'])
         return targets

@@ -192,7 +192,30 @@ Brain → Mac remains dependent on the coordinator's access flow and lighting
 runtime; none of the simulated tests establishes that end-to-end physical path.
 
 
-## Prepared ambient TV window
+## Live transparent orb (current)
+
+The requested overlay now uses the supplied orb shader in a transparent native
+window, attached to an already-playing owned song. `song.visual` accepts exactly
+`{program_id, visible:boolean}` and acknowledges the same run ID and visibility.
+The coordinator routes this through the current owned program; generic calls
+must not bypass its ownership/lease checks. Showing or hiding never reprepares,
+restarts, seeks, pauses or replaces music, and sends no phone-light command.
+
+Checksum-verified 25ms RMS windows from the canonical WAV supply genuine energy
+at each verified live audio playhead, updated about ten times per second. No
+microphone, loopback capture, automatic volume animation or MP4 is used by this
+path. Frozen/invalid playheads and renderer failures detach the orb; hide, stop,
+EOF, lease end and bridge cleanup close the owned host. The renderer also fades
+stale data. Frame delivery and shader readiness do not prove physical visibility.
+
+Native binary and local assets must exist before advertising the capability.
+Use the audio-only manifest with `visual` omitted before the idle audio refresh;
+the previous automatic MP4 attachment below is superseded for this trial. Keep
+Mac speakers at Jay's chosen 20%; the overlay is a normal transparent external
+display window, never fullscreen. Actual later attachment to playing music and
+lights remains a coordinated live acceptance check.
+
+## Previous prepared ambient TV window (superseded)
 
 `python -m agent.prepare_visual --manifest .venv/song-assets/cyanide/song.json`
 prepares a silent1280×720/60fps MP4 using the existing recording and beat map.
