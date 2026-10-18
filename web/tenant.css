@@ -208,9 +208,9 @@ a { color: inherit; }
 /* photo: pink-on-plum halftone at up to 40% of the ledger region for 8 s, then a 48px thumb beside the headline */
 .region.ledger { container-type: size; }
 .hl { position: relative; }
-.hl-photo { display: block; width: 100%; height: 0; color: var(--accent); transition: height 320ms cubic-bezier(.2,.8,.2,1); }
+.hl-photo { display: block; width: 100%; height: 0; color: var(--accent); transition: height 320ms cubic-bezier(.2,.8,.2,1); border-radius: 6px; }
 .hl.has-photo .hl-photo { height: 40cqh; margin-bottom: var(--s2); }
-.hl.thumbed .hl-photo { position: absolute; right: var(--s4); top: var(--s2); height: 48px; width: 64px; }
+.hl.thumbed .hl-photo { position: absolute; right: var(--s4); top: var(--s2); height: 48px; width: 64px; border-radius: 0; }
 .hl.thumbed .hl-text { padding-right: 80px; }
 
 .evrail { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; position: relative; padding: var(--s2) 0; }

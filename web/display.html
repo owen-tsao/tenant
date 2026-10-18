@@ -215,12 +215,19 @@
     $("hl-text").innerHTML = `<b>${esc(sub)}</b>${esc(rest)}`;
     $("hl-t").textContent = T.fmtTime(top.t);
 
-    // photo: render pink-on-plum halftone in the headline slot for 8 s, then collapse it to a 48px thumb.
+    // photo: the real still in the headline slot for 8 s (people want to see faces), then it collapses to a
+    // 48px pink halftone thumb — the dither says "a photo happened" in the rail without pretending to be the picture.
     // The viewer hands rows a decoded `_img`; a photo attaching to a headline already on screen counts as new.
-    const fit = () => { photo.style.width = Math.min($("hl").clientWidth - 32, Math.round(photo.clientHeight * photo._img.naturalWidth / photo._img.naturalHeight)) + "px"; T.halftone(photo, photo._img); };
+    const real = () => {                            // draw the decoded image 1:1 into the canvas box, crisp on 2x screens
+      const dpr = Math.min(2, devicePixelRatio || 1), w = photo.clientWidth, h = photo.clientHeight; if (!w || !h) return;
+      photo.width = Math.round(w * dpr); photo.height = Math.round(h * dpr);
+      photo.getContext("2d").drawImage(photo._img, 0, 0, photo.width, photo.height);
+    };
+    const fit = () => { photo.style.width = Math.min($("hl").clientWidth - 32, Math.round(photo.clientHeight * photo._img.naturalWidth / photo._img.naturalHeight)) + "px"; real(); };
     const show = (img) => {
       if (hlKey !== k) return;                       // something newer landed while the image loaded
-      photoKey = k; photoBig = true; photo._img = img; photo.hidden = false; hl.classList.add("has-photo"); hl.classList.remove("thumbed"); fit();
+      photoKey = k; photoBig = true; photo._img = img; photo.hidden = false; hl.classList.add("has-photo"); hl.classList.remove("thumbed");
+      fit(); setTimeout(() => { if (photoKey === k && photoBig) fit(); }, 360);   // again once the 320ms height transition has landed
       clearTimeout(photoTimer);
       photoTimer = setTimeout(() => { photoBig = false; hl.classList.remove("has-photo"); hl.classList.add("thumbed"); photo.style.width = ""; T.halftone(photo, photo._img); }, 8000);
     };
@@ -230,12 +237,14 @@
     } else if (photoKey !== k) { clearTimeout(photoTimer); photo.hidden = true; photo.style.width = ""; }   // a newer headline: the old photo's 8 s timer must not restyle this one
 
     // rail: events after the headline, newest on top. Guest asks pair with their result.
+    // The Brain logs a guest's ask as kind "cmd" (brain/core/agent.py); the mock and ARCHITECTURE's older name is "do".
+    const isAsk = (r) => r.kind === "cmd" || r.kind === "do";
     const rows = log.slice(1);
     rail.innerHTML = rows.map((r, i) => {
       const [sb, rs] = split(r, devices);
-      // pairing: an ask ("do") whose result is the row above it (newer) draws a connector up
-      const paired = r.kind === "do" && (i === 0 ? ["ok", "err", "denied"].includes(top.kind) : ["ok", "err", "denied"].includes(rows[i - 1].kind));
-      const dotCls = r.kind === "denied" ? "sq" : r.kind === "do" || r.kind === "guest.join" || r.kind === "guest.leave" ? "ask" : "rest";
+      // pairing: an ask whose result is the row above it (newer) draws a connector up
+      const paired = isAsk(r) && (i === 0 ? ["ok", "err", "denied"].includes(top.kind) : ["ok", "err", "denied"].includes(rows[i - 1].kind));
+      const dotCls = r.kind === "denied" ? "sq" : isAsk(r) || r.kind === "guest.join" || r.kind === "guest.leave" ? "ask" : "rest";
       const thumb = r.image_url ? `<canvas class="thumb" data-i="${i}"></canvas>` : "";
       return `<div class="ev k-${esc(r.kind)} ${paired ? "paired" : ""} ${i === 0 && fresh ? "settle" : ""}">
         <span class="ev-dot ${dotCls}"></span>
@@ -268,6 +277,9 @@
   function render(s) {
     // Normalise once so a frame missing a list never throws halfway through a paint (errors here used to be swallowed and froze the screen).
     s.room = s.room || {}; s.devices = Array.isArray(s.devices) ? s.devices : []; s.guests = Array.isArray(s.guests) ? s.guests : []; s.log = Array.isArray(s.log) ? s.log : [];
+    // The Brain's log is oldest-first (EventLog appends; snapshot sends the list as is); the mock is newest-first.
+    // Everything below wants the newest row at index 0, so flip when the first row is older than the last.
+    if (s.log.length > 1 && (s.log[0].t || 0) < (s.log[s.log.length - 1].t || 0)) s.log = s.log.slice().reverse();
     lastState = s;
     $("code").textContent = s.room.code || "";
     const log = withPhoto(s.log.slice(0, 40));
