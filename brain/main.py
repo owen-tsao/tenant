@@ -117,6 +117,16 @@ def create_app(config=None, *, planner=None, log_path=None, state_path=None, con
     async def shared_style():
         return page('tenant.css')
 
+    @app.get('/j/dots.js')
+    @app.get('/g/dots.js')
+    async def dots_script():
+        return page('dots.js')
+
+    @app.get('/j/fonts/InterTight-latin.woff2')
+    @app.get('/g/fonts/InterTight-latin.woff2')
+    async def shared_font():
+        return page('fonts/InterTight-latin.woff2')
+
     @app.get('/qr.svg')
     async def guest_qr():
         url = config.public_url.rstrip('/') + '/j/' + registry.room.code

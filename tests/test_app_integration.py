@@ -72,14 +72,19 @@ class AppIntegrationTests(unittest.TestCase):
         for route in ['/j/TEST', '/g/example-guest']:
             page = self.client.get(route)
             self.assertEqual(page.status_code, 200)
-            assets = re.findall(r'(?:href|src)="(tenant\.css|shared\.js)"', page.text)
-            self.assertEqual(set(assets), {'tenant.css', 'shared.js'})
+            assets = re.findall(r'<(?:script|link)\b[^>]*(?:href|src)="([^"]+)"', page.text)
+            self.assertTrue({'tenant.css', 'shared.js'} <= set(assets))
             for name in assets:
                 response = self.client.get(urljoin(route, name))
                 self.assertEqual(response.status_code, 200)
                 expected = 'text/css' if name.endswith('.css') else 'javascript'
                 self.assertIn(expected, response.headers['content-type'])
                 self.assertNotIn('<!doctype html>', response.text.lower())
+                if name.endswith('.css'):
+                    for font in re.findall(r'url\(["\']?([^"\')]+\.woff2)["\']?\)', response.text):
+                        font_response = self.client.get(urljoin(urljoin(route, name), font))
+                        self.assertEqual(font_response.status_code, 200)
+                        self.assertNotIn('text/html', font_response.headers['content-type'])
 
     def test_guest_qr_is_real_svg_and_changes_with_reset(self):
         before = self.client.get('/qr.svg')
