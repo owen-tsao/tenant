@@ -54,6 +54,12 @@
     log(`reach hash=${location.hash}`);
     key("ArrowRight"); await sleep(800);
     log(`scan hash=${location.hash} qr=${document.querySelectorAll("#qr svg, #qr img").length} active=${active()}`);
+    // Owen's bounce (05:56): run past the first slide with queued ← presses, then one →. Must land on #2 and stay.
+    key("End"); await sleep(900);
+    for (let i = 0; i < 14; i++) { key("ArrowLeft"); await sleep(90); }
+    await sleep(2500);
+    key("ArrowRight"); await sleep(1500);
+    log(`edge-queue hash=${location.hash} (expect #2) active=${active()}`);
     key("Home"); await sleep(600);
     log(`home hash=${location.hash} active=${active()} errors=${JSON.stringify(errs)}`);
     log("DONE");

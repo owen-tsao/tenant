@@ -22,18 +22,27 @@
 
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
-  const tracePane = TRACE ? Object.assign(document.body.appendChild(document.createElement("pre")), { id: "trace", style: "position:fixed;left:8px;bottom:8px;z-index:99;font:11px ui-monospace,monospace;color:#fff;background:#000b;margin:0;padding:6px 8px;border-radius:6px;pointer-events:none" }) : null;
+  // The trace always records (ring buffer of the last 40 input/navigation events); it is only *shown* with
+  // ?trace=1 or by pressing T. So when a navigation misbehaves, press T right then and read what led to it.
+  let tracePane = null, traceOn = TRACE;
   const traceLines = [];
-  function trace(s) { if (!TRACE) return; traceLines.push(`${(performance.now() / 1000).toFixed(2)}s ${s}`); if (traceLines.length > 10) traceLines.shift(); tracePane.textContent = traceLines.join("\n"); }
-  if (TRACE) {
-    window.addEventListener("keydown", e => trace(`key ${e.key}${e.repeat ? " (repeat)" : ""}`), true);
-    window.addEventListener("click", e => trace(`click ${e.button} on ${e.target.tagName}`), true);
-    window.addEventListener("auxclick", e => trace(`auxclick button=${e.button}`), true);
-    window.addEventListener("contextmenu", () => trace("contextmenu (= back)"), true);
-    window.addEventListener("hashchange", () => trace(`hashchange ${location.hash}`), true);
-    window.addEventListener("pageshow", e => trace(`pageshow persisted=${e.persisted}`));
-    trace(`load ${location.hash || "(no hash)"}`);
+  function showTrace(on) {
+    traceOn = on;
+    if (on && !tracePane) tracePane = Object.assign(document.body.appendChild(document.createElement("pre")), { id: "trace", style: "position:fixed;left:8px;bottom:8px;z-index:99;font:11px ui-monospace,monospace;color:#fff;background:#000b;margin:0;padding:6px 8px;border-radius:6px;pointer-events:none;white-space:pre" });
+    if (tracePane) { tracePane.hidden = !on; if (on) tracePane.textContent = traceLines.join("\n"); }
   }
+  function trace(s) { traceLines.push(`${(performance.now() / 1000).toFixed(2)}s ${s}`); if (traceLines.length > 40) traceLines.shift(); if (traceOn && tracePane) tracePane.textContent = traceLines.join("\n"); }
+  window.deckTrace = () => traceLines.join("\n");
+  window.addEventListener("keydown", e => trace(`key ${e.key}${e.repeat ? " (repeat)" : ""}${e.metaKey ? " meta" : ""}${e.ctrlKey ? " ctrl" : ""}${e.altKey ? " alt" : ""}`), true);
+  window.addEventListener("click", e => trace(`click ${e.button} on ${e.target.tagName}`), true);
+  window.addEventListener("auxclick", e => trace(`auxclick button=${e.button}`), true);
+  window.addEventListener("contextmenu", () => trace("contextmenu"), true);
+  window.addEventListener("hashchange", () => trace(`hashchange ${location.hash}`), true);
+  window.addEventListener("popstate", () => trace(`popstate ${location.hash}`), true);
+  window.addEventListener("pageshow", e => trace(`pageshow persisted=${e.persisted}`));
+  window.addEventListener("wheel", e => trace(`wheel dx=${Math.round(e.deltaX)} dy=${Math.round(e.deltaY)}`), { capture: true, passive: true });
+  trace(`load ${location.hash || "(no hash)"}`);
+  if (TRACE) showTrace(true);
   function settle() {
     if (!STILL) return;
     requestAnimationFrame(() => {
@@ -248,16 +257,27 @@
     setTimeout(() => { if (!done) finish(); }, 420);
   }
 
-  function drain() { if (pending > 0) { pending--; advance(); } else if (pending < 0) { pending++; retreat(); } }
+  // Presses that arrived mid-transition are replayed one per completed transition. If a replayed press
+  // can't move (we're already on the first or last slide) nothing would ever drain the rest, and the
+  // leftover count would fire after the *next* press in the other direction — Owen's "bounce back"
+  // (trace 05:56: End, hold ←, then → went 1→2→1). So a press that goes nowhere clears the queue.
+  function drain() {
+    if (!pending) return;
+    trace(`drain pending=${pending}`);
+    const moved = pending > 0 ? (pending--, advance()) : (pending++, retreat());
+    if (!moved) { pending = 0; trace("drain: at the edge, queue cleared"); }
+  }
 
-  function advance() {
+  function advance() { // → true if a move was started
     const el = slides[index];
-    if (step < stepsOf(el)) go(index, step + 1, 1);
-    else if (index < slides.length - 1) go(index + 1, 0, 1);
+    if (step < stepsOf(el)) { go(index, step + 1, 1); return true; }
+    if (index < slides.length - 1) { go(index + 1, 0, 1); return true; }
+    return false;
   }
   function retreat() {
-    if (step > 0) go(index, step - 1, -1);
-    else if (index > 0) go(index - 1, stepsOf(slides[index - 1]), -1);
+    if (step > 0) { go(index, step - 1, -1); return true; }
+    if (index > 0) { go(index - 1, stepsOf(slides[index - 1]), -1); return true; }
+    return false;
   }
 
   window.addEventListener("keydown", (e) => {
@@ -269,11 +289,12 @@
       case "End": go(slides.length - 1, 0, 1); break;
       case "d": case "D": handOff(); break;
       case "f": case "F": document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); break;
+      case "t": case "T": showTrace(!traceOn); break;
     }
   });
   window.addEventListener("click", advance);
   window.addEventListener("contextmenu", (e) => e.preventDefault()); // no menu over the projector; a trackpad two-finger tap used to read as "back"
-  window.addEventListener("hashchange", () => { const [i, s] = fromHash(); if (i !== index) go(i, s, i > index ? 1 : -1); else if (s !== step) go(i, s, s > step ? 1 : -1); });
+  window.addEventListener("hashchange", () => { const [i, s] = fromHash(); trace(`hash -> ${i + 1}.${s} (at ${index + 1}.${step}${busy ? ", busy" : ""})`); if (i !== index) go(i, s, i > index ? 1 : -1); else if (s !== step) go(i, s, s > step ? 1 : -1); });
 
   let idle = null;
   const wake = () => { document.body.classList.remove("idle"); clearTimeout(idle); idle = setTimeout(() => document.body.classList.add("idle"), 1400); };

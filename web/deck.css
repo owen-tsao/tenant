@@ -85,8 +85,8 @@ p, h1, h2 { margin: 0; }
 .beats > .beat[hidden] { display: none; }
 
 /* ---- slide 1 ---- */
-.s-title .copy { max-width: 100%; padding-top: 0; padding-bottom: 12vh; justify-content: center; }
-.s-title .copy > .t-sub { margin-top: 2.4vh; margin-left: .08em; font-size: min(2.45vw, 4.4vh); color: var(--muted); font-weight: 700; letter-spacing: -.03em; }
+.s-title .copy { width: fit-content; max-width: 100%; padding-top: 0; padding-bottom: 12vh; justify-content: center; align-items: center; text-align: center; } /* the pair is one centered block: tagline centered under the word */
+.s-title .copy > .t-sub { margin-top: 2.4vh; font-size: min(2.45vw, 4.4vh); color: var(--muted); font-weight: 700; letter-spacing: -.03em; }
 
 /* ---- slide 2: the stack ---- */
 .s-problem .copy { max-width: 56%; }
@@ -126,7 +126,9 @@ p, h1, h2 { margin: 0; }
 @keyframes caret { to { opacity: 0; } }
 
 /* ---- slide 4: the lease — the one pink block; inverted once when it ends ---- */
-.s-lease .copy { width: fit-content; padding-top: 8vh; } /* the column is exactly as wide as the headline; starts higher to make room for the clock */
+.s-lease .copy { width: fit-content; padding-top: 7vh; } /* the column is exactly as wide as the headline; starts higher to make room for the clock */
+.s-lease .t-headline { font-size: min(6.4vw, 10vh); } /* height-aware here: the block and clock follow the headline's width, so a short window must shrink the whole column, not push it off the bottom */
+.s-lease .beats > .beat { right: auto; min-width: max-content; } /* the subheader may run wider than the headline column; don't clip it */
 .s-lease .block {
   display: flex; flex-direction: column; align-items: flex-start; gap: 1.2vh;
   background: var(--accent); color: var(--bg); padding: 2.2vh 2vw 2.4vh; border-radius: var(--r); align-self: stretch; /* ...and the block fills it */
@@ -135,7 +137,7 @@ p, h1, h2 { margin: 0; }
 }
 .s-lease .block.ended { background: var(--fg); color: var(--bg); }
 .s-lease .block .who { font-size: var(--t-small); font-weight: 800; color: inherit; letter-spacing: .02em; text-transform: uppercase; opacity: .8; }
-.s-lease .block .left { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: min(100cqw / 2.2, 32vh); line-height: 1; letter-spacing: -.04em; } /* "9:59" = 4 mono glyphs ≈ 2.25em: the clock spans the block (the display starts at 9:59, never shows 10:00) */
+.s-lease .block .left { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: min(100cqw / 2.2, 27vh); line-height: 1; letter-spacing: -.04em; } /* "9:59" = 4 mono glyphs ≈ 2.25em: the clock spans the block (the display starts at 9:59, never shows 10:00) */
 
 
 /* ---- slide 5: the vision — copy left, the block of rooms right (drawn by the stage) ---- */

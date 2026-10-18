@@ -49,14 +49,14 @@
 
   // Slide 5 ("Every room you don't own"): the same room, eight more times, in a 3×3 block around this one.
   // Nearest neighbours first so the block grows outward. Each clone gets a label at its front edge.
-  const GAP = 3.2;
+  const GAP = 2.8;
   const CLONES = [
     { dx:  1, dz:  0, label: "Hotel" },     { dx: -1, dz:  0, label: "Hospital" },
     { dx:  0, dz:  1, label: "Airbnb" },    { dx:  0, dz: -1, label: "Classroom" },
     { dx:  1, dz:  1, label: "Office" },    { dx: -1, dz:  1, label: "Clinic" },
     { dx:  1, dz: -1, label: "Dorm" },      { dx: -1, dz: -1, label: "Gym" },
   ].map(c => Object.assign(c, { ox: c.dx * (ROOM.w + GAP), oz: c.dz * (ROOM.d + GAP) }));
-  const FAR_GUEST = [-9.5, 5.2, 13.5];  // one guest, standing outside the whole block
+  const FAR_GUEST = [0.40, 0.80];  // one guest, outside the whole block: anchored in SCREEN space (fractions of W, H) so the camera drift can't carry it off
 
   /* ---------- camera shots ---------- */
   // theta: orbit angle around Y (radians); phi: elevation; dist: metres; target: look-at; drift: rad/s
@@ -67,7 +67,7 @@
     lease:  { theta: -0.95, phi: 0.46, dist: 10.0, target: [0.0, 1.0, 0.0], drift: 0.02,  offset: [0.36, 0.06] },
     corner: { theta: -0.6,  phi: 0.62, dist: 22.0, target: [0.0, 1.0, 0.0], drift: 0.025, offset: [-0.62, -0.62] },
     behind: { theta: -0.55, phi: 0.58, dist: 9.5,  target: [0.2, 0.9, 0.0], drift: 0.022, offset: [0.02, 0.04] },
-    city:   { theta: -0.50, phi: 0.74, dist: 40.0, target: [0.0, 0.4, 0.0], drift: 0.012, offset: [0.36, 0.10] },
+    city:   { theta: -0.50, phi: 0.74, dist: 43.0, target: [0.0, 0.4, 0.0], drift: 0.006, offset: [0.46, 0.10] },
   };
   // offset = where on screen the room sits (fraction of half-width/half-height; + = right/down)
 
@@ -102,10 +102,12 @@
   plane(1500, (u, v) => [-hw + u * ROOM.w, v * v * ROOM.h, -hd], 0.42);
   plane(900, (u, v) => [-hw, v * v * ROOM.h, -hd + u * ROOM.d], 0.38);
   plane(900, (u, v) => [hw, v * v * ROOM.h, -hd + u * ROOM.d], 0.38);
-  // floor edge + wall top edges as denser lines so the box reads
-  for (let i = 0; i < 420; i++) { const t = i / 420; pts.push([-hw + t * ROOM.w, 0, -hd, 0.9], [-hw + t * ROOM.w, 0, hd, 0.9], [-hw, 0, -hd + t * ROOM.d, 0.9], [hw, 0, -hd + t * ROOM.d, 0.9]); }
-  for (let i = 0; i < 300; i++) { const t = i / 300; pts.push([-hw + t * ROOM.w, ROOM.h, -hd, 0.5], [-hw, ROOM.h, -hd + t * ROOM.d, 0.45], [hw, ROOM.h, -hd + t * ROOM.d, 0.45]); }
-  for (let i = 0; i < 160; i++) { const t = i / 160; pts.push([-hw, t * ROOM.h, -hd, 0.7], [hw, t * ROOM.h, -hd, 0.7], [-hw, t * ROOM.h, hd, 0.6], [hw, t * ROOM.h, hd, 0.6]); }
+  // floor edge + wall top edges as denser lines so the box reads. Edge points are tagged (p[5]) so distance
+  // thinning can skip surface stipple but never break a line.
+  const edge = (...ps) => { for (const q of ps) { q[5] = 1; pts.push(q); } };
+  for (let i = 0; i < 420; i++) { const t = i / 420; edge([-hw + t * ROOM.w, 0, -hd, 0.9], [-hw + t * ROOM.w, 0, hd, 0.9], [-hw, 0, -hd + t * ROOM.d, 0.9], [hw, 0, -hd + t * ROOM.d, 0.9]); }
+  for (let i = 0; i < 300; i++) { const t = i / 300; edge([-hw + t * ROOM.w, ROOM.h, -hd, 0.5], [-hw, ROOM.h, -hd + t * ROOM.d, 0.45], [hw, ROOM.h, -hd + t * ROOM.d, 0.45]); }
+  for (let i = 0; i < 160; i++) { const t = i / 160; edge([-hw, t * ROOM.h, -hd, 0.7], [hw, t * ROOM.h, -hd, 0.7], [-hw, t * ROOM.h, hd, 0.6], [hw, t * ROOM.h, hd, 0.6]); }
   // furniture: points on the five visible faces of each box
   for (const b of FURNITURE) {
     const area = b.w * b.d + 2 * b.w * b.h + 2 * b.d * b.h;
@@ -123,13 +125,13 @@
     const ex = [b.x - b.w / 2, b.x + b.w / 2], ez = [b.z - b.d / 2, b.z + b.d / 2], ey = [b.y, b.y + b.h];
     for (let i = 0; i < 40; i++) {
       const t = i / 40;
-      for (const z of ez) for (const y of ey) pts.push([ex[0] + t * b.w, y, z, 1]);
-      for (const x of ex) for (const y of ey) pts.push([x, y, ez[0] + t * b.d, 1]);
-      for (const x of ex) for (const z of ez) pts.push([x, b.y + t * b.h, z, 1]);
+      for (const z of ez) for (const y of ey) edge([ex[0] + t * b.w, y, z, 1]);
+      for (const x of ex) for (const y of ey) edge([x, y, ez[0] + t * b.d, 1]);
+      for (const x of ex) for (const z of ez) edge([x, b.y + t * b.h, z, 1]);
     }
   }
 
-  for (const p of pts) p[4] = order(p);
+  for (const p of pts) { p[4] = order(p); p[6] = Math.floor(R() * 4); } // p[6]: thinning key, so distance thinning drops a random quarter/half, never a whole line
 
   /* ---------- state ---------- */
   let canvas, ctx, W = 0, H = 0, DPR = 1, raf = 0, last = 0, running = false;
@@ -181,7 +183,10 @@
     for (let i = 0; i < 3; i++) cam.target[i] = damp(cam.target[i], shot.target[i], k, dt);
     cam.ox = damp(cam.ox, shot.offset[0], k, dt); cam.oy = damp(cam.oy, shot.offset[1], k, dt);
     if (!reduced) driftAngle += shot.drift * dt;
-    for (const key in level) level[key] = damp(level[key], target[key], reduced ? 1e9 : SPEED[key], dt);
+    for (const key in level) {
+      const sp = key === "rooms" && target.rooms === 0 ? 3.2 : SPEED[key]; // clones arrive slowly, leave quickly: the slide after must not pay for them
+      level[key] = damp(level[key], target[key], reduced ? 1e9 : sp, dt);
+    }
     if (pulseT >= 0) { pulseT += dt / 1.1; if (pulseT > 1.25) pulseT = -1; }
 
     setupCamera();
@@ -203,8 +208,10 @@
     const near = cam.dist - 4.5, far = cam.dist + 4.5;
     const sq = Math.max(1.5, Math.round(DPR * 1.5)) / DPR;
     const buckets = new Array(8).fill(null).map(() => []);
+    const far_ = cam.dist > 24; // far shots: every other surface point — the room is a quarter the size, full density is pure overdraw. Edges stay solid.
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i]; if (p[4] > level.build) continue;
+      if (far_ && !p[5] && (p[6] & 1)) continue;
       const s = project(p[0], p[1], p[2]); if (!s) continue;
       const depth = Math.min(1, Math.max(0, (s[2] - near) / (far - near)));
       const a = p[3] * (0.62 - 0.42 * depth) * level.presence;
@@ -218,18 +225,21 @@
 
     // --- the neighbouring rooms (slide 5): the same cloud, offset, each sweeping in a little after the last
     const cloneF = CLONES.map((c, k) => Math.min(1, Math.max(0, level.rooms * 1.7 - k * 0.09)));
-    if (level.rooms > 0.005) {
+    if (level.rooms > 0.02) {
       const cnear = cam.dist - 14, cfar = cam.dist + 14;
       for (let b = 0; b < 8; b++) buckets[b].length = 0;
+      // clones are context, not the subject: a quarter of the surface stipple and half the edge points read the same at this distance
       for (let k = 0; k < CLONES.length; k++) {
         const fk = cloneF[k]; if (fk <= 0) continue;
         const c = CLONES[k];
         for (let i = 0; i < pts.length; i++) {
           const p = pts[i]; if (p[4] > fk) continue;
-          const s = project(p[0] + c.ox, p[1], p[2] + c.oz); if (!s) continue;
+          if (p[5] ? (p[6] & 1) : p[6]) continue;
+          const s = project(p[0] + c.ox, p[1], p[2] + c.oz); if (!s || s[0] < -2 || s[0] > W + 2 || s[1] < -2 || s[1] > H + 2) continue;
           const depth = Math.min(1, Math.max(0, (s[2] - cnear) / (cfar - cnear)));
           const a = p[3] * (0.6 - 0.4 * depth) * level.presence * (0.55 + 0.45 * fk);
-          buckets[Math.min(7, Math.floor(a * 8))].push(s[0], s[1]);
+          const b = Math.min(7, Math.floor(a * 8)); if (b === 0) continue; // < 1/8 alpha: invisible on the projector, not free to draw
+          buckets[b].push(s[0], s[1]);
         }
       }
       for (let b = 0; b < 8; b++) {
@@ -282,7 +292,7 @@
       ctx.strokeStyle = rgba(pink, 0.3 * b); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(brain[0], brain[1], 11, 0, Math.PI * 2); ctx.stroke();
     }
     // --- slide 5: each neighbour's devices and Brain light as it lands; labels; one guest reaching every room
-    if (level.rooms > 0.005 && brain) {
+    if (level.rooms > 0.02 && brain) {
       const lbl = Math.max(11, Math.min(26, f / cam.dist * 0.95));
       ctx.font = `700 ${lbl}px "Inter Tight", Inter, system-ui, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "top";
       const brains = [brain];
@@ -301,18 +311,19 @@
       const hp = project(0, 0, hd + 0.5);
       if (hp) label("This room", hp, pink, 0.95 * Math.min(1, level.rooms * 2) * level.presence, lbl);
       // one guest, every room: dashed hairlines from a single far point to each Brain, nearest first
-      const g = project(FAR_GUEST[0], FAR_GUEST[1], FAR_GUEST[2]);
-      if (g && level.reach > 0.005) {
-        ctx.setLineDash([3, 6]); ctx.lineWidth = 1;
+      const g = [W * FAR_GUEST[0], H * FAR_GUEST[1]];
+      if (level.reach > 0.005) {
+        ctx.setLineDash([4, 6]); ctx.lineWidth = 1.25;
         brains.forEach((b, k) => {
           const prog = Math.min(1, Math.max(0, level.reach * 1.35 - k * 0.04));
           if (prog <= 0) return;
-          ctx.strokeStyle = rgba(pink, 0.5 * prog * level.presence);
+          ctx.strokeStyle = rgba(pink, 0.75 * prog * level.presence);
           ctx.beginPath(); ctx.moveTo(g[0], g[1]); ctx.lineTo(g[0] + (b[0] - g[0]) * prog, g[1] + (b[1] - g[1]) * prog); ctx.stroke();
         });
         ctx.setLineDash([]);
-        ctx.fillStyle = rgba(pink, 0.95 * level.reach * level.presence); ctx.beginPath(); ctx.arc(g[0], g[1], 4.5, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = rgba(pink, 0.35 * level.reach * level.presence); ctx.beginPath(); ctx.arc(g[0], g[1], 11, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = rgba(pink, 0.95 * level.reach * level.presence); ctx.beginPath(); ctx.arc(g[0], g[1], 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = rgba(pink, 0.4 * level.reach * level.presence); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(g[0], g[1], 14, 0, Math.PI * 2); ctx.stroke();
+        label("One guest", [g[0], g[1] + 18], pink, 0.95 * level.reach * level.presence, lbl);
       }
     }
 
