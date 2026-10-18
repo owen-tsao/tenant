@@ -10,7 +10,7 @@
 <body>
 <main class="stage" id="stage" aria-live="polite">
   <header class="topbar">
-    <div class="room"><span class="eyebrow">Room</span><span class="code" id="code">····</span></div>
+    <div class="room"><span class="mark" aria-hidden="true"></span><span class="eyebrow">Room</span><span class="code" id="code">····</span></div>
     <div class="sentence" id="statement">Connecting…</div>
     <div class="clock" id="clock"></div>
   </header>
@@ -30,7 +30,7 @@
     <section class="region-col">
       <section class="region devices">
         <div class="eyebrow">In this room</div>
-        <span class="corner" id="dev-count"></span>
+        <span class="corner"><span id="dev-count"></span><span class="segs" id="segs" aria-hidden="true"></span></span>
         <div class="region-body">
           <table class="grid">
             <colgroup><col class="c-dev"><col class="c-can"><col class="c-state"><col class="c-last"></colgroup>
@@ -74,10 +74,11 @@
     const stateOf = (d) => !d.online ? ["off", "offline"] : d.busy ? ["live", "working"] : ["", "ready"];
     $("devices").innerHTML = s.devices.map(d => {
       const [cls, word] = stateOf(d);
-      const can = d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i).join(", ");
+      const words = d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i);
+      const can = words.slice(0, 3).join(", ") + (words.length > 3 ? ` <span class="more">+${words.length - 3} more</span>` : "");
       return `<tr class="${d.online ? "" : "offline"} ${d.busy ? "busy" : ""}">
         <td class="c-dev">${esc(d.label)}</td>
-        <td class="c-can" title="${esc(can)}">${esc(can)}</td>
+        <td class="c-can" title="${esc(words.join(", "))}">${can}</td>
         <td class="c-state"><span class="state"><span class="dot ${cls}"></span>${word}</span></td>
         <td class="c-last" title="${esc(lastFor(d))}">${esc(lastFor(d))}</td>
       </tr>`;
@@ -85,6 +86,7 @@
     $("dev-empty").hidden = s.devices.length > 0;
     const online = s.devices.filter(d => d.online).length;
     $("dev-count").textContent = s.devices.length ? `${online} of ${s.devices.length} ready` : "";
+    $("segs").innerHTML = s.devices.map(d => `<i class="${!d.online ? "" : d.busy ? "live" : "ready"}"></i>`).join("");
 
     // guest — the one pink block, or the quiet motif when nobody is here.
     // The block wipes in only the first time a guest appears; re-renders must not restart it.
@@ -99,13 +101,15 @@
     $("guests").hidden = !g.length;
     $("empty").hidden = !!g.length;
 
-    // the one state sentence
-    let st;
-    if (!online) st = "Nothing is connected to this room yet.";
-    else if (!g.length) st = `${online} device${online === 1 ? "" : "s"} ready. Nobody is here right now.`;
-    else if (g.length === 1) st = `${g[0].display_name} can use ${online} device${online === 1 ? "" : "s"} for the next ${Math.ceil(g[0].expires_in / 60)} min.`;
-    else st = `${g.length} guests are sharing this room.`;
-    $("statement").textContent = st;
+    // the one state sentence: subject in 600, the rest in 400.
+    // The Brain may supply room.sentence_subject / sentence_rest; otherwise we build both halves here.
+    let subject, rest;
+    if (s.room.sentence_subject) { subject = s.room.sentence_subject; rest = s.room.sentence_rest || ""; }
+    else if (!online) { subject = "Nothing"; rest = " is connected to this room yet."; }
+    else if (!g.length) { subject = `${online} device${online === 1 ? "" : "s"}`; rest = " ready. Nobody is here right now."; }
+    else if (g.length === 1) { subject = g[0].display_name; rest = ` can use ${online} device${online === 1 ? "" : "s"} for the next ${Math.ceil(g[0].expires_in / 60)} min.`; }
+    else { subject = `${g.length} guests`; rest = " are sharing this room."; }
+    $("statement").innerHTML = `<b>${esc(subject)}</b>${esc(rest)}`;
 
     // ledger — newest first; the newest row wipes in once; empty shows one quiet line
     const key = log.length ? `${log[0].t}|${log[0].text}` : null;
