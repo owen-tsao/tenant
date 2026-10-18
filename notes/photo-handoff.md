@@ -1,5 +1,15 @@
 # Photo backend → Root / Owen handoff
 
+## Current narrow readiness candidate — October 18
+
+Isolated software candidate: **116 photo component tests +3 dedicated native readiness checks PASS**. Independent final source review found no material defects and confirmed exact final source/patch hashes. Exact owned source/test and composed hashes are in `tests/evidence/2026-10-18-photo-readiness.json`. No staging or commits. This candidate is not deployed or physically accepted.
+
+Changes are limited to host-authenticated `GET /host/photos/config` and safe inventory reasons. The existing capture/upload/ACK/viewer/receipt protocol remains unchanged. `notes/proposed-photo-readiness-wiring.patch` is a one-line Root-owned native inventory proposal, applied only in the disposable software copy. No served phone UI, Mac agent, shared native source, live settings, effects, restart or deployment was touched by this owner. Root retains the live-source gate.
+
+Accepted phone constraint: **QR connection + existing agent backend + explicitly connected phone services; no iPhone Mirroring.** This camera work does not authorize general native-phone app inventory, automation or new adapters. Camera permission never advertises app-control authority. The camera bridge remains the sole implementation scope here.
+
+Remaining: Device Runtime phone handler/consent/upload patch; Audio existing Mac-agent viewer; Root coherent merge/configuration/deploy; Tester actual capture/render/projector acceptance. Older freeze/deployment entries below are historical or Root-attributed.
+
 ## Current deployed status — Root report, supersedes older summaries
 
 Current deployed/source revision: `e294e66`. Root reports generic native app/browser discovery with96 focused software checks and independent Audio review. Do not sum this with overlapping earlier suites. The earlier e4b8426/761-check deployment entry below is historical, not the latest revision or a current aggregate count. This owner did not rerun checks or inspect the live deployment.
@@ -143,3 +153,36 @@ Final source-only independent review during the testing pause found no material 
 ## Software composition progress after resume
 
 Final callback/installer and direct fixture compatibility are software-tested. In a disposable copy with mandatory device-awareness + proposed photo wiring applied:93 photo component tests PASS,7 dedicated stubbed native/device/HTTP wiring checks PASS,52 existing access/persistence tests PASS. Every model/device/viewer transport is fake/in-process; no live/public UI or physical effects. Existing native regression batch:51/52 PASS, one failure retained at test_native_terminal_events.NativeTerminalEventsTests.test_confirmed_interruption_allows_only_next_explicit_request_without_old_tool_replay, which expected Fresh request completed. but received the generic unconfirmed-result reply. That test constructs ConversationAgent without a registry/device helper, so photo wiring is not on its execution path. Root owns native-error source; this owner did not edit it or hide the failure. Exact frozen composed-source hashes are in tests/evidence/2026-10-17-photo-freeze-candidate.json. No full integrated-suite or physical PASS is claimed.
+
+## October 18 — narrowly authorized backend/device completion candidate
+
+Jay authorized completing the existing photo path without a new service or layout. This supersedes the source hold only for assigned backend/readiness/config glue. Device Runtime owns the unapplied nonvisual phone runtime patch; Audio owns the existing Mac agent/viewer; Root owns central/native glue and active integration. This owner performs isolated software checks only, with no live API/UI/camera/output, staging, commits or restart.
+
+Backend pipeline remains the original one: source photo.consent → camera.capture over the existing Bus → one-use ticket upload → JPEG validation + matching phone ACK → selected authenticated viewer → exact versioned render receipt. The previously observed live PERMISSION and light-only phone are a pre-dispatch capability/readiness failure, not proof that iOS rejected capture. We have not inspected or changed current in-process host settings. New host-only GET /host/photos/config reports those exact settings and separate blockers, without enrolling/activating a viewer, enabling capture or refreshing viewer liveness.
+
+### Client contract kept stable
+
+Phone: advertise the existing camera.capture schema exactly (`capture_id`, `upload_url`, `upload_token`: strings). Send photo.consent only from the actual enrolled socket, after separate explicit photo permission and a live chosen camera stream. Opt-out/stream loss emits false readiness; OS torch permission does not imply photo opt-in. Capture one frame from that stream on a permitted do, upload same-origin JPEG with ticket Bearer, then ACK `{capture_id,state:"captured"}` on the matching Bus req. Do not advertise capture before the handler exists or claim ready after permission is denied. No guest/host token, image bytes or ticket appears in public output.
+
+### Root setup and smallest existing Mac-agent viewer protocol
+
+1. Root reads GET /host/photos/config with ordinary Host Bearer plus the exact approved Origin. This reports factual enabled/source/viewer values and blockers rather than inferring them from PERMISSION. Host settings remain transient; a Brain restart starts disabled/unselected. No identities are created by this API.
+2. Root selects the actual enrolled source phone and intended existing Mac viewer using unchanged POST /host/photos/config `{source_device_id,viewer_id,enabled:true}`. Use the real Mac/session identity as the viewer label; a room label/tool name does not establish a peripheral. No guest-facing control grants host setup authority.
+3. Audio's existing Mac agent, explicitly supplied its private host credential, calls unchanged POST /host/photos/viewer `{viewer_id}` with Host Bearer + approved Origin. Keep returned tenant_photo_viewer cookie only in its private HTTP client jar. No new authentication transport or service is required.
+4. Subsequent GET /photos/viewer/state, GET its same-origin relative /photos/images/{photo_id}, and POST /photos/viewer/receipt use that cookie and **omit Authorization**: viewer routes intentionally reject Bearer. Receipt also sends the exact approved Origin. Do not leave Host Bearer in default headers on those requests. Poll about1s (must remain inside15s liveness). A failed poll is not a new grant or an instruction to capture again.
+5. Decode the normalized JPEG and use the existing Mac viewer/application to show this exact image. If a temporary local file is needed for the native app, keep it private/bounded, never return its bytes/path/credentials to model/guest history, and let Audio own cleanup of only that exact artifact. Backend retains no disk album. Only send `{photo_id:photo.photo_id,version:photo.version}` after verified actual decode/render; a successful open command alone is not that verification. Until then status is received/display-unconfirmed.
+6. Respect monotonically newer state/clear versions; reject late old-image loads. Leave/expiry/new guests retain the latest displayed image. Explicit host reset clears it; the Mac client clears the exact owned viewer/image on the newer null state. Re-enrollment replaces the viewer credential, so discard old in-flight requests and reset client-side version bookkeeping for that new authenticated session. No automatic recapture or migration to another viewer.
+
+The agent gets authoritative safe status/reference through existing photo-capture/photo-status; it does not receive image bytes or upload/viewer credentials. Existing Mac tools can access the visible viewer as permitted. This does not implement perception/history embedding.
+
+### Readiness addition and narrow Root merge
+
+GET /host/photos/config is additive and host-only. It returns enabled/source_device_id/viewer_id; source enrollment, current connection, host allowance, capture schema, separate photo consent and camera readiness; viewer registration/liveness; pending; ready; and explicit blockers. Host technical readiness is not guest authorization. Native inventory adds a reason and truthful message, preserving source ID/label only when guest-authorized and ready.
+
+Root's proposed one-line native inventory merge will expose the existing safe photos inventory even while disabled, so a natural request can discover a concrete missing prerequisite rather than invent a camera or misreport an OS denial. It does not enable capture or grant new scope. No central file is edited by this owner. Final isolated checks, independent review and hashes will be appended before freeze.
+
+### October 18 final diagnostics validation
+
+The first 116-test run found one installer regression: the new inventory explanation rechecked controller authority after an initial denial. Final inventory checks controller authority once, retains active/current lease and both photo scopes, source/viewer blockers and the existing lease-device allowance. No test expectation was weakened. Final rerun:116/116 PASS; dedicated readiness helper checks:3/3 PASS; source whitespace check clean. Independent read-only final review found no material defects. No broader aggregate or physical PASS is implied.
+
+Host diagnostic request: `GET /host/photos/config`, existing Host Bearer plus exact approved Origin, no query/body. Response contains selected IDs, enabled, source connection/schema/explicit consent/camera readiness, viewer registration/liveness, pending, ready and blocker codes. It does not enable photos, create an identity, enroll/heartbeat a viewer or activate guest access. Safe native inventory exposes no source ID/label unless currently guest-authorized and ready. Full manifest: `tests/evidence/2026-10-18-photo-readiness.json`.

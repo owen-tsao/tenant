@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Tenant device</title><link rel="stylesheet" href="/tenant.css"></head>
-<body data-state="idle"><main><h1>Connect a light</h1>
-<p>Keep this page open and the phone awake. Camera permission is required for the flashlight; no photos are taken.</p>
+<body data-state="idle"><main><h1>Connect this phone</h1>
+<p>By joining, you allow this phone to take one photo when an authorized room guest asks and show it on the room’s selected display. Camera access also enables the flashlight where supported. Keep this page open and the phone awake; Disconnect stops access.</p>
 <form id="join"><label>Device label <input id="label" required maxlength="100" value="Phone light"></label>
 <label>Room code <input id="room" required maxlength="64" autocomplete="off"></label>
-<label>Device token <input id="token" type="password" required autocomplete="off"></label><button id="connect" type="submit">Join room</button></form>
+<label>Device token <input id="token" type="password" required autocomplete="off"></label><button id="connect" type="submit">Join and allow photos</button></form>
 <p id="status" role="status" aria-live="polite">Not connected.</p><button id="leave" type="button" disabled>Disconnect and release camera</button></main>
 <script>
 'use strict';
@@ -20,41 +20,177 @@
     try { id = localStorage.getItem('tenant.deviceId') || crypto.randomUUID(); localStorage.setItem('tenant.deviceId', id); }
     catch (_) { id = crypto.randomUUID(); }
   }
-  let socket, stream, track, reconnectTimer, wakeLock;
-  let running = false, active = false, welcomed = false, highestEpoch = -1, attempt = 0;
+  let socket, stream, track, video, reconnectTimer, wakeLock, preparing, photoAction;
+  let running = false, active = false, welcomed = false, highestEpoch = -1, attempt = 0, session = 0;
+  let photoCapable = false, photoConsent = false, consentAccepted = false, torchCapable = false;
   let token = '', room = '', label = '';
-  const seen = new Map(); // Session lifetime: duplicates never execute again, including after reconnect.
+  let consentPending = null, consentDesired = null, consentSerial = 0, consentRevision = 0;
+  const seen = new Map(); // Tombstones survive reconnect and explicit rejoin: never repeat a request.
+  const captures = new Set(); // Capture IDs also deduplicate independently of Bus request IDs.
   const send = (ws, frame) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(frame)); };
   const error = (req, code, message) => ({type:'err', req, code, message});
+  const liveCamera = () => !!track && track.readyState === 'live' && track.enabled !== false && track.muted !== true;
+  const frameReady = source => !!source && source.paused !== true && source.readyState >= 2 && source.videoWidth > 0 && source.videoHeight > 0;
+  const photoReady = () => photoCapable && photoConsent && liveCamera() && frameReady(video) && document.visibilityState === 'visible';
+  function sendConsent() {
+    if (welcomed && photoCapable && !consentPending && consentDesired) {
+      consentPending = {...consentDesired, serial:consentSerial};
+      send(socket, {type:'photo.consent', enabled:consentDesired.enabled, ready:consentDesired.ready});
+    }
+  }
+  function advertiseConsent() {
+    consentAccepted = false; consentSerial++;
+    consentDesired = {enabled:photoConsent, ready:photoReady()};
+    // One bounded handshake in flight. A superseded ACK never grants readiness.
+    sendConsent();
+  }
+  function cancelPhoto(code = 'STALE') {
+    if (photoAction) { photoAction.code = code; photoAction.controller.abort(); }
+  }
+  function wait(promise, signal) {
+    return new Promise((resolve, reject) => {
+      const abort = () => reject(Error('Camera work ended.'));
+      if (signal.aborted) return abort();
+      signal.addEventListener('abort', abort, {once:true});
+      Promise.resolve(promise).then(resolve, reject).finally(() => signal.removeEventListener('abort', abort));
+    });
+  }
+  function waitForFrame(source, signal) {
+    return new Promise((resolve, reject) => {
+      const cleanup = () => { for (const event of ['loadeddata','canplay','resize']) source.removeEventListener(event, check); signal.removeEventListener('abort', abort); };
+      const check = () => { if (frameReady(source)) { cleanup(); resolve(); } };
+      const abort = () => { cleanup(); reject(Error('Camera frame unavailable.')); };
+      for (const event of ['loadeddata','canplay','resize']) source.addEventListener(event, check);
+      signal.addEventListener('abort', abort, {once:true});
+      if (signal.aborted) abort(); else check();
+    });
+  }
+  function waitForFreshFrame(source, signal) {
+    return new Promise((resolve, reject) => {
+      const baseline = source.currentTime;
+      let handle;
+      const events = ['timeupdate','loadeddata','canplay'];
+      const cleanup = () => {
+        for (const event of events) source.removeEventListener(event, progress);
+        signal.removeEventListener('abort', abort);
+        if (handle !== undefined && typeof source.cancelVideoFrameCallback === 'function') source.cancelVideoFrameCallback(handle);
+      };
+      const done = () => { cleanup(); resolve(); };
+      const abort = () => { cleanup(); reject(Error('No fresh camera frame.')); };
+      const progress = () => { if (frameReady(source) && Number.isFinite(baseline) && source.currentTime > baseline) done(); };
+      signal.addEventListener('abort', abort, {once:true});
+      if (signal.aborted) return abort();
+      if (typeof source.requestVideoFrameCallback === 'function') {
+        // This callback is registered after the authorized command, for the next frame.
+        handle = source.requestVideoFrameCallback(() => { if (frameReady(source)) done(); });
+      } else {
+        // Older engines must show actual playback progress; cached dimensions are insufficient.
+        for (const event of events) source.addEventListener(event, progress);
+      }
+    });
+  }
+  function releaseVideo(source) {
+    if (!source) return;
+    source.pause(); source.srcObject = null; source.remove();
+  }
+  async function prepareVideo(cameraStream, signal) {
+    if (typeof document.createElement !== 'function' || typeof fetch !== 'function' || typeof AbortController !== 'function') return null;
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    const source = document.createElement('video');
+    if (!context || typeof context.drawImage !== 'function' || typeof canvas.toBlob !== 'function' || typeof source.play !== 'function') return null;
+    source.muted = true; source.playsInline = true; source.setAttribute('playsinline', ''); source.setAttribute('aria-hidden', 'true');
+    source.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
+    source.srcObject = cameraStream; document.body.appendChild(source);
+    try { await wait(source.play(), signal); await waitForFrame(source, signal); return source; }
+    catch (_) { releaseVideo(source); return null; }
+  }
   async function wake() {
     if (!running || document.visibilityState !== 'visible' || !navigator.wakeLock) return;
     try { wakeLock = await navigator.wakeLock.request('screen'); } catch (_) { /* Keep-open instruction remains visible. */ }
   }
   function shutdown(message, state = 'offline') {
-    running = false; welcomed = false; clearTimeout(reconnectTimer);
+    photoConsent = false; advertiseConsent(); cancelPhoto();
+    running = false; welcomed = false; session++; clearTimeout(reconnectTimer);
+    if (preparing) preparing.abort();
+    preparing = null;
     if (socket) socket.close();
     if (stream) stream.getTracks().forEach(t => t.stop());
-    track = null; stream = null;
+    releaseVideo(video); video = null; track = null; stream = null;
+    photoCapable = false; torchCapable = false;
     if (wakeLock) wakeLock.release().catch(() => {});
     el('connect').disabled = false; el('leave').disabled = true;
     setState(state, message);
   }
+  function captureArgs(args) {
+    if (!args || Object.keys(args).sort().join(',') !== 'capture_id,upload_token,upload_url') return false;
+    if (typeof args.capture_id !== 'string' || !/^[A-Za-z0-9_.-]{1,128}$/.test(args.capture_id)) return false;
+    if (typeof args.upload_token !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(args.upload_token)) return false;
+    // Accept only the backend's relative ticket path: no query, fragment, redirect or other origin.
+    return args.upload_url === '/photos/uploads/' + args.capture_id;
+  }
+  async function capture(ws, frame, reply) {
+    if (!captureArgs(frame.args)) return reply(error(frame.req, 'FAILED', 'Invalid photo upload ticket.'));
+    if (!photoReady() || !consentAccepted) return reply(error(frame.req, 'PERMISSION', 'Current photo consent and live camera readiness are required.'));
+    if (captures.has(frame.args.capture_id)) return reply(error(frame.req, 'STALE', 'This photo request was already received; no recapture.'));
+    if (captures.size >= 4096) return reply(error(frame.req, 'FAILED', 'Photo request limit reached; reload to start a new session.'));
+    if (active) return reply(error(frame.req, 'BUSY', 'A camera or torch action is still running.'));
+    captures.add(frame.args.capture_id); active = true;
+    const action = photoAction = {controller:new AbortController(), code:'STALE'};
+    const actionTrack = track, source = video, generation = session;
+    const deadline = performance.now() + frame.deadline_ms;
+    const current = () => !action.controller.signal.aborted && running && welcomed && ws === socket && ws.readyState === 1 && generation === session && actionTrack === track && liveCamera() && source === video && photoReady() && consentAccepted && highestEpoch === frame.epoch && performance.now() < deadline;
+    const check = () => { if (!current()) throw Error('Photo authority or deadline ended.'); };
+    let drawn = false;
+    const timer = setTimeout(() => { action.code = drawn ? 'UNKNOWN' : 'FAILED'; action.controller.abort(); }, frame.deadline_ms);
+    let canvas, blob;
+    setState('busy', 'Taking one room photo…');
+    try {
+      check(); await waitForFreshFrame(source, action.controller.signal); check();
+      const width = source.videoWidth, height = source.videoHeight;
+      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) throw Error('No camera frame.');
+      const scale = Math.min(1, 1280 / Math.max(width, height));
+      canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.round(width * scale)); canvas.height = Math.max(1, Math.round(height * scale));
+      const context = canvas.getContext('2d');
+      check(); context.drawImage(source, 0, 0, canvas.width, canvas.height); drawn = true;
+      blob = await wait(new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .85)), action.controller.signal);
+      check();
+      if (!blob || blob.type !== 'image/jpeg' || !Number.isFinite(blob.size) || blob.size <= 0 || blob.size > 5 * 1024 * 1024) throw Error('JPEG unavailable or too large.');
+      const response = await wait(fetch(frame.args.upload_url, {method:'POST', headers:{'Content-Type':'image/jpeg', Authorization:'Bearer ' + frame.args.upload_token}, body:blob, credentials:'omit', redirect:'error', mode:'same-origin', cache:'no-store', referrerPolicy:'no-referrer', signal:action.controller.signal}), action.controller.signal);
+      check();
+      if (!response.ok) throw Error('Upload was not accepted.');
+      const result = await wait(response.json(), action.controller.signal);
+      check();
+      if (!result || result.ok !== true || result.capture_id !== frame.args.capture_id || result.stored !== true || !['stored','ready'].includes(result.state)) throw Error('Upload was not confirmed.');
+      reply({type:'ok', req:frame.req, result:{capture_id:frame.args.capture_id, state:'captured'}});
+    } catch (_) {
+      reply(error(frame.req, action.controller.signal.aborted ? action.code : (drawn ? 'UNKNOWN' : 'FAILED'), drawn ? 'Photo capture or upload was not confirmed; it will not be repeated.' : 'No photo was taken: a fresh camera frame or current permission was unavailable.'));
+    } finally {
+      clearTimeout(timer); action.controller.abort(); blob = null;
+      if (canvas) { canvas.width = 0; canvas.height = 0; }
+      if (photoAction === action) photoAction = null;
+      active = false;
+      if (running && welcomed && liveCamera()) setState('ready', 'Connected. Keep this page open.');
+    }
+  }
   async function command(ws, frame) {
     const req = frame.req;
     if (typeof req !== 'string' || !req || req.length > 200) return;
+    if (!welcomed || ws !== socket || !running) return;
     if (seen.has(req)) { const prior = seen.get(req); if (prior) send(ws, prior); return; }
     if (seen.size >= 4096) { send(ws, error(req, 'FAILED', 'Session request limit reached; rejoin the device.')); return; }
-    const reply = result => { seen.set(req, result); send(ws, result); };
+    const reply = result => { seen.set(req, result); if (ws === socket && running && welcomed) send(ws, result); };
     seen.set(req, null);
-    if (!welcomed || ws !== socket) return reply(error(req, 'FAILED', 'Device is not enrolled.'));
     if (!Number.isSafeInteger(frame.epoch) || frame.epoch < 0) return reply(error(req, 'FAILED', 'Invalid command epoch.'));
     if (frame.epoch < highestEpoch) return reply(error(req, 'STALE', 'Older command epoch.'));
-    highestEpoch = frame.epoch; // A freshness hint; this cannot revoke already received work.
-    if (frame.cap !== 'light') return reply(error(req, 'UNSUPPORTED', 'Only torch lighting is supported.'));
-    if (!frame.args || typeof frame.args.on !== 'boolean' || Object.keys(frame.args).some(k => k !== 'on')) return reply(error(req, 'FAILED', 'light requires only a boolean on argument.'));
+    if (frame.epoch > highestEpoch) cancelPhoto();
+    highestEpoch = frame.epoch; // Observed freshness only: remote revocation is also fenced by the backend.
     if (!Number.isFinite(frame.deadline_ms) || frame.deadline_ms <= 0 || frame.deadline_ms > 30000) return reply(error(req, 'FAILED', 'Invalid command deadline.'));
+    if (frame.cap === 'camera.capture') return capture(ws, frame, reply);
+    if (frame.cap !== 'light' || !torchCapable) return reply(error(req, 'UNSUPPORTED', 'This device does not support that capability.'));
+    if (!frame.args || typeof frame.args.on !== 'boolean' || Object.keys(frame.args).some(k => k !== 'on')) return reply(error(req, 'FAILED', 'light requires only a boolean on argument.'));
     if (!track || track.readyState !== 'live') return reply(error(req, 'PERMISSION', 'Camera permission or live camera track is unavailable.'));
-    if (active) return reply(error(req, 'BUSY', 'A previous torch action is still running.'));
+    if (active) return reply(error(req, 'BUSY', 'A previous camera or torch action is still running.'));
     active = true; setState('busy', 'Changing the flashlight…');
     let timedOut = false;
     const timer = setTimeout(() => {
@@ -73,55 +209,92 @@
       if (!timedOut) reply(error(req, e.name === 'NotAllowedError' || e.name === 'SecurityError' ? 'PERMISSION' : 'FAILED', 'Torch change failed; physical outcome unknown.'));
     } finally {
       clearTimeout(timer); active = false;
-      if (running && welcomed && track && track.readyState === 'live') setState('ready', timedOut ? 'Connected. Previous torch outcome unknown; no retry was sent.' : 'Connected. Ready for flashlight commands.');
+      if (running && welcomed && track && track.readyState === 'live') setState('ready', timedOut ? 'Connected. Previous torch outcome unknown; no retry was sent.' : 'Connected. Ready for commands.');
     }
   }
   function connect() {
     if (!running) return;
     const url = new URL('/ws/device', location.href); url.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'; url.searchParams.set('t', token);
-    const ws = socket = new WebSocket(url);
-    ws.onopen = () => send(ws, {type:'hello', id, label, room, caps:{light:{description:'Turn the flashlight on or off', args:{on:{type:'boolean'}}}}});
+    const ws = socket = new WebSocket(url); welcomed = false; consentAccepted = false; consentPending = null; consentDesired = null; consentRevision = 0;
+    ws.onopen = () => {
+      if (ws !== socket || !running) return;
+      const caps = {};
+      if (torchCapable) caps.light = {description:'Turn the flashlight on or off', args:{on:{type:'boolean'}}};
+      if (photoCapable) caps['camera.capture'] = {description:'Take one explicitly opted-in room photo', args:{capture_id:{type:'string'}, upload_url:{type:'string'}, upload_token:{type:'string'}}};
+      send(ws, {type:'hello', id, label, room, caps});
+    };
     ws.onmessage = event => {
-      if (ws !== socket) return;
+      if (ws !== socket || !running) return;
       let frame; try { frame = JSON.parse(event.data); } catch (_) { return; }
       if (!frame || typeof frame !== 'object') return;
       if (frame.type === 'welcome') {
         if (typeof frame.room !== 'string' || !/^[A-Za-z0-9]{1,32}$/.test(frame.room)) { shutdown('Server returned an invalid room.', 'error'); return; }
-        room = frame.room; el('room').value = room; // Authenticated server owns the current invitation alias.
-        welcomed = true; attempt = 0; setState(active ? 'busy' : 'ready', 'Connected. Keep this page open.');
+        room = frame.room; el('room').value = room;
+        welcomed = true; attempt = 0; advertiseConsent(); setState(active ? 'busy' : 'ready', 'Connected. Keep this page open.');
+      } else if (frame.type === 'photo.consent') {
+        const pending = consentPending;
+        if (!pending) return; // Ignore unsolicited or duplicate ACKs.
+        consentPending = null;
+        const valid = frame.ok === true && Number.isSafeInteger(frame.revision) && frame.revision > 0 && frame.revision >= consentRevision && frame.enabled === pending.enabled && frame.ready === pending.ready;
+        if (valid) consentRevision = frame.revision;
+        consentAccepted = valid && pending.serial === consentSerial && pending.enabled && pending.ready && photoReady();
+        if (!consentAccepted) cancelPhoto('PERMISSION');
+        if (pending.serial !== consentSerial) sendConsent();
       } else if (frame.type === 'ping') send(ws, {type:'pong'});
       else if (frame.type === 'do') void command(ws, frame);
     };
     ws.onclose = event => {
       if (ws !== socket) return;
-      welcomed = false;
+      welcomed = false; consentAccepted = false; consentPending = null; consentDesired = null; cancelPhoto();
       if (!running) return;
       if ([1008, 4401, 4403].includes(event.code)) { shutdown('Device enrollment was rejected. Check room and token.', 'error'); return; }
-      setState('offline', 'Disconnected. Reconnecting without replaying flashlight commands…');
+      setState('offline', 'Disconnected. Reconnecting without replaying commands…');
       reconnectTimer = setTimeout(connect, Math.min(500 * 2 ** attempt++, 5000));
     };
     ws.onerror = () => { /* close schedules the sole reconnect. */ };
   }
   el('join').addEventListener('submit', async event => {
     event.preventDefault();
-    if (running || active) return;
-    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) { setState('error', 'Flashlight requires HTTPS and a browser with camera access.'); return; }
+    if (running || active || preparing) return;
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) { setState('error', 'Connecting this camera requires HTTPS and browser camera access.'); return; }
     token = el('token').value; room = el('room').value.trim(); label = el('label').value.trim();
     if (!token || !room || !label) return;
-    el('connect').disabled = true; setState('joining', 'Allow camera access to check flashlight support…');
+    const generation = ++session;
+    el('connect').disabled = true; el('leave').disabled = false; setState('joining', 'Allow camera access for room photos and supported flashlight commands…');
+    // Join is explicit session photo consent; the OS prompt grants camera access only.
+    photoConsent = true;
+    const preparation = preparing = typeof AbortController === 'function' ? new AbortController() : {abort(){},signal:null};
+    let acquired, source, timer, permissionTimer;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
-      track = stream.getVideoTracks()[0];
-      const torch = track && typeof track.getCapabilities === 'function' ? track.getCapabilities().torch : undefined;
-      // W3C uses [false,true]; deployed browsers also expose a boolean.
-      const controllable = torch === true || (Array.isArray(torch) && torch.includes(true) && torch.includes(false));
-      if (!controllable) { shutdown('This camera does not advertise flashlight support. No light capability was enrolled.', 'error'); return; }
-      track.addEventListener('ended', () => shutdown('Camera access ended. Rejoin to enable the flashlight.', 'error'));
-      running = true; el('leave').disabled = false; void wake(); connect();
-    } catch (_) { shutdown('Camera access unavailable or denied. Allow camera permission and tap Join again.', 'error'); }
+      const acquisition = navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
+      // getUserMedia itself is not abortable: stop any stream that arrives after cancellation.
+      acquisition.then(late => { if (generation !== session || preparation.signal?.aborted) late.getTracks().forEach(t => t.stop()); }, () => {});
+      if (preparation.signal) permissionTimer = setTimeout(() => preparation.abort(), 30000);
+      acquired = preparation.signal ? await wait(acquisition, preparation.signal) : await acquisition;
+      clearTimeout(permissionTimer);
+      if (generation !== session) { acquired.getTracks().forEach(t => t.stop()); return; }
+      stream = acquired; track = stream.getVideoTracks()[0];
+      if (!track || track.readyState !== 'live') throw Error('No live camera.');
+      const actionTrack = track;
+      track.addEventListener('ended', () => { if (actionTrack === track) shutdown('Camera access ended. Rejoin to allow photos or flashlight.', 'error'); });
+      track.addEventListener('mute', () => { if (actionTrack === track) { cancelPhoto('PERMISSION'); advertiseConsent(); } });
+      track.addEventListener('unmute', () => { if (actionTrack === track) advertiseConsent(); });
+      const torch = typeof track.getCapabilities === 'function' ? track.getCapabilities().torch : undefined;
+      torchCapable = torch === true || (Array.isArray(torch) && torch.includes(true) && torch.includes(false));
+      if (preparation.signal) {
+        timer = setTimeout(() => preparation.abort(), 10000);
+        source = await prepareVideo(stream, preparation.signal);
+        clearTimeout(timer);
+      }
+      if (generation !== session) { releaseVideo(source); return; }
+      video = source; photoCapable = !!source && liveCamera() && frameReady(source);
+      if (!torchCapable && !photoCapable) { shutdown('This browser has no ready photo or flashlight capability. Nothing was enrolled.', 'error'); return; }
+      running = true; void wake(); connect();
+    } catch (_) { if (generation === session) shutdown('Camera access unavailable or denied. Allow camera permission and tap Join again.', 'error'); }
+    finally { clearTimeout(permissionTimer); clearTimeout(timer); if (preparing === preparation) preparing = null; }
   });
   el('leave').addEventListener('click', () => shutdown('Disconnected. Camera released.'));
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void wake(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void wake(); else cancelPhoto('PERMISSION'); advertiseConsent(); });
   window.addEventListener('pagehide', () => shutdown('Page closed; camera released.'));
 })();
 </script></body></html>

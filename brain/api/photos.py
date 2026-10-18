@@ -1,5 +1,6 @@
 """Private still-photo transport. Installing this router is an explicit core step."""
 import json
+from pathlib import Path
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
@@ -12,6 +13,13 @@ from brain.core.photos import PhotoError
 JSON_LIMIT = 4096
 IMAGE_LIMIT = 5 * 1024 * 1024
 VIEWER_COOKIE = 'tenant_photo_viewer'
+VIEWER_HTML = Path(__file__).resolve().parents[2] / 'agent' / 'photo_viewer.html'
+VIEWER_SCRIPT = Path(__file__).resolve().parents[2] / 'agent' / 'photo_viewer.js'
+VIEWER_CSP = (
+    "default-src 'none'; script-src 'self'; connect-src 'self'; "
+    "img-src 'self' blob:; style-src 'unsafe-inline'; "
+    "base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'"
+)
 
 
 class PhotoRoute(APIRoute):
@@ -113,6 +121,18 @@ def _viewer(request):
     return _cookie(request, VIEWER_COOKIE)
 
 
+def _viewer_asset(path, media_type):
+    # These are fixed empty bootstrap assets, never private photo data or a
+    # caller-selected filename. State/images retain their existing cookie gate.
+    try:
+        body = path.read_bytes()
+    except OSError:
+        _fail('PHOTO_VIEWER_UNAVAILABLE', 'Photo viewer is unavailable', 503)
+    return Response(body, media_type=media_type,
+                    headers={'X-Content-Type-Options': 'nosniff',
+                             'Content-Security-Policy': VIEWER_CSP})
+
+
 async def _body(request, limit):
     lengths = request.headers.getlist('content-length')
     if lengths:
@@ -153,6 +173,13 @@ async def _json(request, fields):
     if not isinstance(value, dict) or set(value) != set(fields):
         _fail()
     return value
+
+
+@router.get('/host/photos/config')
+async def configuration(request: Request):
+    core = _host(request)
+    _query(request)
+    return core.photos.configuration()
 
 
 @router.post('/host/photos/config')
@@ -202,6 +229,18 @@ async def capture_status(request_id: str, request: Request):
 async def viewer_state(request: Request):
     _query(request)
     return request.app.state.core.photos.viewer_state(_viewer(request))
+
+
+@router.get('/photos/viewer')
+async def viewer_page(request: Request):
+    _query(request)
+    return _viewer_asset(VIEWER_HTML, 'text/html')
+
+
+@router.get('/photos/viewer.js')
+async def viewer_script(request: Request):
+    _query(request)
+    return _viewer_asset(VIEWER_SCRIPT, 'text/javascript')
 
 
 @router.get('/photos/images/{photo_id}')

@@ -1,0 +1,48 @@
+{
+  "scope": "Exact composed phone-camera, private viewer, photo readiness and existing room/native integrations",
+  "source_sha256": {
+    "brain/api/photos.py": "f948b12d10533b55d3d14131a2ae905d7e44753132febd899c46a65903b2d55d",
+    "brain/core/photos.py": "63867f0da92764c0d661f8d6825ef8e9899c5b55912145cee112c170ed43d9d5",
+    "brain/core/native_devices.py": "eb7c108380a0a44546c77cd0cd9d87df4425960e41f529cee84d4b551edab83e",
+    "web/device.html": "063834f272fb963558a362095209d2e6597bf0e09da6c2ee5557b7ec75bd5fcd",
+    "agent/photo_viewer.html": "f41a76a932c5abe748c23bb22f721e9e33993ed94e1b5aed7a796bd1d883f1d1",
+    "agent/photo_viewer.js": "194332fcd94d1eddbc3ab01fb8a5883895daedade9db30aad4b2b3be7d7499fc",
+    "tests/test_photo_installer.py": "ad739ff2399c91b0dc2f0390950fbc672d7ecafc5f61cb70904d8dbe00791e83"
+  },
+  "python": {
+    "passed": 223,
+    "failed": 0,
+    "duration_seconds": 7.702,
+    "modules": [
+      "tests.test_photo_api",
+      "tests.test_photo_backend",
+      "tests.test_photo_installer",
+      "tests.test_photo_image",
+      "tests.test_photo_service",
+      "tests.test_photo_config_api",
+      "tests.test_photo_readiness",
+      "tests.test_phone_photo_contract",
+      "tests.test_photo_viewer_routes",
+      "tests.photo_readiness_wiring_checks",
+      "tests.test_native_devices",
+      "tests.test_native_continuation_context",
+      "tests.test_room_conversation",
+      "tests.test_room_session",
+      "tests.test_room_program_integration"
+    ]
+  },
+  "javascript": {
+    "passed": 98,
+    "failed": 0,
+    "skipped": 0,
+    "suites": [
+      "device-runtime.test.cjs",
+      "device-photo-runtime.test.cjs",
+      "photo-viewer.test.cjs",
+      "photo-viewer-bootstrap.test.cjs"
+    ]
+  },
+  "qualification": "Offline composition with fake transports and fixtures. No real iPhone capture, Mac image display, or physical success inferred. Exact verified source hashes applied after tests.",
+  "initial_harness_issue": "Three test modules import sibling fixtures by unqualified name; corrected harness PYTHONPATH only, no source/test change.",
+  "prior_expected_failures": "Direct-tree run before readiness patch reported two missing photo inventory checks; installer route expectation updated to include the new fixed viewer routes."
+}

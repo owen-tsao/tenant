@@ -1,0 +1,118 @@
+{
+  "status": "FROZEN_UNAPPLIED_PHONE_PHOTO_BRIDGE_SOFTWARE_PASS_NOT_LIVE_ACCEPTANCE",
+  "recorded_at_utc": "2026-10-18T07:31:49.254855+00:00",
+  "checkout_head": "d79b3551bd52e945fb56bd9f012727f266e4796d",
+  "authorization": "Root relayed Jay\u2019s explicit request to connect camera permission/consent and actual capture into existing phone connection/backend; narrow device JS and necessary existing Join copy only. No phone-app automation or new infrastructure.",
+  "scope": "Unapplied patch for existing web/device.html; new isolated tests and owned notes/evidence only. No visual layout/page change.",
+  "base_device_sha256": "0d51881aeaa511eb5cb63c0ddb22db9ae810d8d4eb6432a0fba37519ca035862",
+  "candidate_device_sha256": "063834f272fb963558a362095209d2e6597bf0e09da6c2ee5557b7ec75bd5fcd",
+  "candidate_path": "work/phone-photo-candidate/web/device.html",
+  "patch_applies_cleanly": true,
+  "owned_file_sha256": {
+    "notes/proposed-phone-photo-bridge.patch": "1f1efcc5282abae7ec20cbd9731997614c729325941f92332f13a494d2374766",
+    "tests/device-photo-runtime.test.cjs": "5bfe8092b696f7c00a4132067efc97a044fe58b67e922cc40b60281e4c1bb92e",
+    "tests/helpers/device-photo-fixture.cjs": "0e12c235c6116e8370f7c1e3a5b34c9dde14243220ef7b09500887521e948639",
+    "tests/test_phone_photo_contract.py": "95753bec2dd64f337b23677ba612381d7e4abb0af8b672f979cbc38056a9f964",
+    "tests/helpers/phone-photo-contract-worker.cjs": "6a96db376307dd621f913e2062ff7d66d04d6a1ee7af50ec4028a9a4d243fb8a"
+  },
+  "reviewed_backend_and_existing_test_sha256": {
+    "brain/core/photos.py": "63867f0da92764c0d661f8d6825ef8e9899c5b55912145cee112c170ed43d9d5",
+    "brain/api/photos.py": "6cfa275d9825ccda21c13613bb95f97ad0dde26c6cac6f6ca3403296e42d7312",
+    "brain/ws/devices.py": "8aa6b7d4f7acf0a9d7fad8b94be22e79dc9ce87a46cf23dfeeade904e8e67069",
+    "brain/core/photo_install.py": "aa08ed9e09b061619f8c697fe02fc414593ae472ecfa8a84e541f5d335ce5c0d",
+    "brain/core/photo_image.py": "e6477dc469c85ad70f9d517ea10d83289bd82f327498bc5bf9bb6ea883d58afe",
+    "tests/device-runtime.test.cjs": "0d0edec4f531f6da0b9722a4790b3c76ed96dd7e7f86478ec547c73de91684e3"
+  },
+  "behavior": [
+    "Existing Join purpose/button copy explicitly grants session consent for individual guest-requested room photos; getUserMedia grants browser access, not backend consent. No Permissions API query is treated as a grant.",
+    "Prepare one muted inline invisible video source from existing camera stream without capturing or uploading on join. Advertise camera.capture only with supported canvas/video/fetch/abort APIs and a live, playable positive-dimension frame; torch is independently advertised only when proven. Camera-only phones may enroll.",
+    "Exact CAPTURE_ARGS plus photo.consent current-socket handshake. One bounded pending ACK with local readiness serial prevents superseded/unsolicited ACK restoring readiness. Reconnect requires a fresh handshake.",
+    "Validate exact capture arguments, bounded capture ID/token, same-origin exact relative ticket path, epoch and remaining deadline. Serialize with torch and deduplicate request IDs and capture IDs.",
+    "After the authorized command, wait for the next requestVideoFrameCallback (or actual currentTime progress in older engines); cached positive dimensions alone are insufficient. Draw one fresh frame at maximum1280px side, JPEG quality0.85, nonzero JPEG \u22645MiB. POST raw JPEG with bearer upload token, credentials omit, redirect error, same-origin mode, no-store and no-referrer. Require matching structured stored receipt before captured Bus ACK. No displayed claim.",
+    "Abort logical work and fetch on deadline, local disconnect/leave/pagehide, track end/mute, hidden page, consent rejection and observed newer command epoch; recheck before frame, upload and ACK. GetUserMedia logical abort/30s timeout stops late streams and allows rejoin. Preserve noncancelable torch in-flight behavior.",
+    "A deadline without any canvas draw reports FAILED / no photo was taken; once drawn, capture/upload ambiguity reports UNKNOWN. Callback/listeners are removed or cancelled; late callbacks cannot draw after cancellation."
+  ],
+  "validation": [
+    {
+      "name": "existing torch regressions",
+      "command": "node --test /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/tests/device-runtime.test.cjs",
+      "cwd": "work/phone-photo-candidate",
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0,
+      "source": "DeviceRuntime direct execution against final candidate; existing test unchanged"
+    },
+    {
+      "name": "phone photo fake browser suite",
+      "command": "TENANT_DEVICE_HTML=work/phone-photo-candidate/web/device.html node --test tests/device-photo-runtime.test.cjs",
+      "pass": 34,
+      "fail": 0,
+      "skipped": 0,
+      "source": "phone_photo_tests final exact-candidate and fixture hash attestation after fresh-frame change"
+    },
+    {
+      "name": "actual JS to real PhotoService contract",
+      "command": "TENANT_DEVICE_HTML=work/phone-photo-candidate/web/device.html .venv/bin/python -m unittest discover -s tests -p test_phone_photo_contract.py -v",
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0,
+      "source": "phone_photo_protocol_review final exact-candidate/fixture revalidation after fresh-frame change (3 pass, 0.107s)",
+      "cases": [
+        "actual candidate JavaScript using fake video frame \u2192 real generated JPEG/Pillow normalization \u2192 matching Bus ACK \u2192 authenticated selected viewer image and render receipt",
+        "guest lease revoke while upload pending rejects STALE, cancelled/no image/publication",
+        "PhotoService.reset while upload pending rejects STALE, cancelled/no image/publication; real Core reset hook not exercised"
+      ]
+    }
+  ],
+  "independent_review": {
+    "agent": "phone_photo_final_review",
+    "candidate_sha256": "063834f272fb963558a362095209d2e6597bf0e09da6c2ee5557b7ec75bd5fcd",
+    "remaining_blocking_defects": 0,
+    "focused_regressions_passed": [
+      "stale mute/unmute consent ACK",
+      "Disconnect/rejoin during pending camera permission",
+      "30s permission timeout/rejoin"
+    ],
+    "counts_not_added_to_suites": true,
+    "focused_fresh_frame_review": [
+      "cached dimensions alone do not resolve freshness",
+      "abort cancels callback",
+      "late callbacks cannot revive cancelled work",
+      "playback-progress fallback removes listeners; lifecycle rechecked before draw"
+    ]
+  },
+  "failure_history": [
+    "Initial visibility test reproduced stale ACK restoring hidden capture; candidate fixed and final29 suite covers it.",
+    "Review found pending camera-permission Disconnect leaving Join logically blocked; logical abort/generation/late-stream cleanup fixed and tested.",
+    "Intermediate malformed-ACK test reused an already-consumed handshake and failed after the serialized protocol change; test corrected to require a fresh readiness request, with explicit negative unsolicited-ACK cases. Final29 suite passes.",
+    "First attempted existing torch command used the wrong relative test path and did not execute tests; corrected absolute test invocation in candidate cwd passed all12.",
+    "Root\u2019s final freshness review superseded candidate44a5071... and patch ef049820...: require a frame callback or playback progress after the command, not cached ready dimensions. Final candidate063834f2... passes34 phone-photo,12 torch and3 contract cases separately; independent fresh-frame review finds no remaining issue."
+  ],
+  "limitations": [
+    "All browser/camera/transport/viewer I/O in these tests is fake; canvas-produced test blob is a real generated fixture JPEG, not a real camera frame.",
+    "Current WS protocol has no immediate remote revoke/reset/cancel push. Client cannot know remote revocation before shutter; backend exact lease/generation/room epoch/socket/consent/roles/metadata/viewer fences reject stale upload/publication.",
+    "Host source/viewer configuration, authenticated Mac viewer and its render receipt remain Photo owner/Root integration responsibilities; phone readiness alone cannot enable capture.",
+    "No real Core reset-hook or actual phone permission/capture/upload/Mac render acceptance was run.",
+    "New tests default served web/device.html after integration; before apply, use TENANT_DEVICE_HTML candidate override. Shared-checkout full-suite PASS is not claimed.",
+    "Attached source video is muted/playsInline/play and1px opacity0, not display:none. Real iOS frame advancement, visible subject correctness and torch regression still require coordinated physical phone acceptance; software does not infer whether a dark scene is an invalid black frame."
+  ],
+  "not_performed": [
+    "applied web patch",
+    "central/source production edit",
+    "visual redesign/new page",
+    "browser/native UI action",
+    "real camera/network/device effect",
+    "phone app automation",
+    "staging/commit",
+    "deployment/restart",
+    "gate/lock mutation",
+    "new app/service/Universal MCP"
+  ],
+  "references": {
+    "media_capture_standard": "https://w3c.github.io/mediacapture-main/getusermedia.html",
+    "html_canvas_standard": "https://html.spec.whatwg.org/multipage/canvas.html",
+    "fetch_standard": "https://fetch.spec.whatwg.org/",
+    "html_media_standard": "https://html.spec.whatwg.org/multipage/media.html",
+    "video_frame_callback_proposal": "https://wicg.github.io/video-rvfc/"
+  }
+}

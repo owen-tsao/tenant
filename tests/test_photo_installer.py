@@ -138,7 +138,8 @@ class PhotoInstallerTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.registry.metadata.available(self.dev, 'camera.capture'))
         self.assertEqual({route.path for route in self.app.routes if 'photos' in route.path}, {
             '/host/photos/config', '/host/photos/viewer', '/photos/captures',
-            '/photos/captures/{request_id}', '/photos/viewer/state', '/photos/images/{photo_id}',
+            '/photos/captures/{request_id}', '/photos/viewer', '/photos/viewer.js',
+            '/photos/viewer/state', '/photos/images/{photo_id}',
             '/photos/viewer/receipt', '/photos/uploads/{capture_id}'})
         self.assertFalse(self.phone.frames)
 

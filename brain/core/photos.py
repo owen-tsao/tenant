@@ -17,6 +17,25 @@ MAX_BYTES = 5 * 1024 * 1024
 TERMINAL = frozenset({'failed', 'unknown', 'cancelled', 'displayed'})
 RESULT_CODES = frozenset({'PERMISSION', 'UNSUPPORTED', 'BUSY', 'FAILED', 'STALE', 'UNKNOWN',
                           'OFFLINE', 'INVALID', 'TIMEOUT', 'CONFLICT'})
+READINESS_MESSAGES = {
+    'CLOSED': 'Room photo capture is unavailable.',
+    'DISABLED': 'Room photos have not been enabled by the host.',
+    'SOURCE_UNSELECTED': 'The host has not selected a room photo source.',
+    'SOURCE_MISSING': 'The selected room photo source is not enrolled.',
+    'SOURCE_OFFLINE': 'The selected room photo source is disconnected or needs a fresh heartbeat.',
+    'HOST_DENIED': 'The host has disabled use of the selected photo source.',
+    'CAPTURE_UNAVAILABLE': 'The selected phone does not advertise the supported still-photo operation.',
+    'PHOTO_CONSENT_REQUIRED': 'The phone owner has not allowed room photos on this connection.',
+    'CAMERA_UNREADY': 'The opted-in phone camera is not ready.',
+    'SOURCE_UNREADY': 'The selected photo source is not currently available.',
+    'VIEWER_UNSELECTED': 'The host has not selected a Mac photo viewer.',
+    'VIEWER_UNREGISTERED': 'The selected Mac photo viewer has not authenticated.',
+    'VIEWER_OFFLINE': 'The selected Mac photo viewer is not responding.',
+    'BUSY': 'Another room photo request is still pending.',
+    'GUEST_INACTIVE': 'Current guest photo access is required.',
+    'SCOPE_REQUIRED': 'This guest cannot capture and display room photos.',
+    'CONTROLLER_CHANGED': 'This guest is not the current room controller.',
+}
 
 
 class PhotoError(ValueError):
@@ -281,16 +300,86 @@ class PhotoService:
         self.viewer = None
         self.consents.clear()
 
-    def inventory(self, lease, *, generation=0):
+    def configuration(self):
+        """Host-only facts, not a grant or a request to initialize a camera/viewer.
+
+        In-memory selection is intentionally separate from actual device consent,
+        supported capture schema and authenticated viewer liveness. Polling this
+        diagnostic never activates a lease or refreshes a viewer heartbeat.
+        """
         self.sweep()
         source = self.registry.devices.get(self.source_id)
-        ready = bool(lease and self._authorized(lease, generation, source)
-                     and self.viewer and self.viewer.id == self.viewer_id
-                     and 0 <= self.clock() - self.viewer.seen < self.viewer_ttl
-                     and self.pending is None)
+        enrolled = bool(source and source.room_id == self.registry.room.id)
+        metadata = getattr(self.registry, 'metadata', None)
+        online = bool(enrolled and source.online and
+                      (metadata is None or metadata.binding(source.id) is source))
+        host_allowed = bool(enrolled and (metadata is None or metadata.value(source.id, 'allowed', True)))
+        spec = source.caps.get('camera.capture') if enrolled else None
+        advertised = bool(spec and spec.args == CAPTURE_ARGS)
+        consent = self.consents.get(source.id) if enrolled else None
+        consent_current = bool(consent and consent.device is source and consent.socket is source.ws)
+        opted_in = bool(consent_current and consent.enabled)
+        camera = bool(opted_in and consent.ready)
+        viewer_enrolled = bool(self.viewer and self.viewer.id == self.viewer_id)
+        viewer_online = bool(viewer_enrolled and
+                             0 <= self.clock() - self.viewer.seen < self.viewer_ttl)
+        blockers = []
+        if self.closed:
+            blockers.append('CLOSED')
+        if not self.enabled:
+            blockers.append('DISABLED')
+        if self.source_id is None:
+            blockers.append('SOURCE_UNSELECTED')
+        elif not enrolled:
+            blockers.append('SOURCE_MISSING')
+        else:
+            if not online:
+                blockers.append('SOURCE_OFFLINE')
+            if not host_allowed:
+                blockers.append('HOST_DENIED')
+            if not advertised:
+                blockers.append('CAPTURE_UNAVAILABLE')
+            if not opted_in:
+                blockers.append('PHOTO_CONSENT_REQUIRED')
+            elif not camera:
+                blockers.append('CAMERA_UNREADY')
+            if online and host_allowed and advertised and camera and not self._source_ready(source):
+                blockers.append('SOURCE_UNREADY')
+        if self.viewer_id is None:
+            blockers.append('VIEWER_UNSELECTED')
+        elif not viewer_enrolled:
+            blockers.append('VIEWER_UNREGISTERED')
+        elif not viewer_online:
+            blockers.append('VIEWER_OFFLINE')
+        if self.pending is not None:
+            blockers.append('BUSY')
+        return {'ok': True, 'enabled': self.enabled, 'source_device_id': self.source_id,
+                'viewer_id': self.viewer_id,
+                'source': {'enrolled': enrolled, 'online': online, 'host_allowed': host_allowed,
+                           'capture_advertised': advertised, 'consent_enabled': opted_in,
+                           'camera_ready': camera},
+                'viewer': {'enrolled': viewer_enrolled, 'online': viewer_online},
+                'ready': not blockers, 'pending': self.pending is not None, 'blockers': blockers}
+
+    def inventory(self, lease, *, generation=0):
+        configuration = self.configuration()
+        source = self.registry.devices.get(self.source_id)
+        reason = None
+        if lease is None or self.leases.current(lease.guest_id) is not lease or lease.state != 'active':
+            reason = 'GUEST_INACTIVE'
+        elif not ('*' in lease.scopes or {'camera.capture', 'photo.show'} <= lease.scopes):
+            reason = 'SCOPE_REQUIRED'
+        elif not self.authority(lease, generation):
+            reason = 'CONTROLLER_CHANGED'
+        elif configuration['blockers']:
+            reason = configuration['blockers'][0]
+        elif not self.leases.allows(lease, source, 'camera.capture'):
+            reason = 'SOURCE_UNREADY'
+        ready = reason is None
         return {'ready': ready, 'source_device_id': self.source_id if ready else None,
                 'source_label': source.label if ready else None,
-                'message': 'Room photo capture is ready.' if ready else 'Room photo capture is unavailable.'}
+                'reason': reason,
+                'message': 'Room photo capture is ready.' if ready else READINESS_MESSAGES[reason]}
 
     def status(self, lease, request_id):
         self.sweep()
