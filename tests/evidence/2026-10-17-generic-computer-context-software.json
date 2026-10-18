@@ -1,0 +1,53 @@
+{
+  "recorded_at_utc": "2026-10-18T05:54:06.936114+00:00",
+  "scope": "Clarify generic native Mac app/browser discovery beyond the helper song catalog; no media acquisition/player/device adapter added.",
+  "baseline": "2026-10-17-native-computer-discovery-baseline.json",
+  "change": {
+    "catalog": "Required only for managed beat-sync programs; other authorized Mac app/browser media may be discovered.",
+    "duplicate_playback": "Inspect current playback; no duplicate active music.",
+    "verification": "Helper JSON for enrolled bridge effects; fresh native app/browser state for other actions.",
+    "lifecycle": "Native app effects may persist after access ends; no blanket rollback or cleanup guarantee.",
+    "authority": "Existing native computer authority and helper lease checks unchanged; no host bypass or permission expansion.",
+    "transport": "Existing6000-character cap retained; full program/voice/photo private context fits final tests."
+  },
+  "first_candidate_offline": {
+    "context_tests": 7,
+    "context_errors": 5,
+    "other_focused_tests": 89,
+    "other_focused_failures": 26,
+    "cause": "First wording exceeded existing context budget; candidate was not deployed."
+  },
+  "final_offline": {
+    "distinct_tests": 96,
+    "passed": 96,
+    "failures": 0,
+    "errors": 0,
+    "duration_seconds": 7.268,
+    "modules": [
+      "test_native_continuation_context",
+      "test_native_devices",
+      "test_room_program_integration",
+      "test_room_conversation",
+      "test_room_session"
+    ],
+    "claim_limit": "Fakes verify context transport/authority/lifecycle regressions, not model discovery or actual playback."
+  },
+  "source_sha256": {
+    "brain/core/native_devices.py": "d77d0ea9e50c3903f6d935a6d3672decbcf6cdac9b364e3005263c25258b5185",
+    "brain/core/room_conversation.py": "8e3fe30f6c0beca5943583f87a2209f52142f27dd32a5d2ea43494fccb02591e"
+  },
+  "live_after_fix": "Not yet performed; requires quiet Brain restart and actual guest browser playback with no URL/path/download hints.",
+  "independent_review": {
+    "owner": "Audio Local",
+    "result": "PASS, no findings",
+    "source_sha256": {
+      "brain/core/native_devices.py": "d77d0ea9e50c3903f6d935a6d3672decbcf6cdac9b364e3005263c25258b5185",
+      "brain/core/room_conversation.py": "8e3fe30f6c0beca5943583f87a2209f52142f27dd32a5d2ea43494fccb02591e"
+    },
+    "full_private_context_chars": {
+      "minimum_observed": 5758,
+      "maximum_observed": 5883
+    },
+    "limit": 6000
+  }
+}

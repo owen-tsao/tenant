@@ -1,0 +1,51 @@
+{
+  "recorded_at_utc": "2026-10-18T05:51:28.712270+00:00",
+  "runtime_revision": "063dd01deae21f33a8ac2bd3c0dd4cf4e44fc017",
+  "status": "FAIL / product capability gap observed",
+  "scope": "Actual fresh guest natural Japanese Denim request, with no engineer path/menu/catalog hint; later visuals contingent on playback",
+  "guest_id": "b9c1e341-7ef5-419c-a63f-e38a74a3eb82",
+  "native_thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+  "native_turn_id": "01a14d8e-e80a-7332-87df-d60faafbf476",
+  "generation": 5,
+  "request": "Play Japanese Denim by Daniel Caesar on this Mac.",
+  "request_t": 1792302573.636388,
+  "reply": "\u201cJapanese Denim\u201d isn\u2019t available in this Mac\u2019s room music controls. \u201cCYANIDE\u201d by Daniel Caesar is available\u2014would you like that instead?",
+  "reply_utc": "2026-10-18T05:49:43.147Z",
+  "native_tools": [
+    {
+      "at_utc": "2026-10-18T05:49:38.407Z",
+      "tool": "exec",
+      "operation": "inventory"
+    }
+  ],
+  "observed": "Agent used enrolled-device inventory only, refused Japanese Denim, and offered CYANIDE. No ordinary Music library/computer discovery observed.",
+  "visualizer_request": "NOT SENT: playback prerequisite not established; no hint/prompt rewrite/substitution",
+  "audio_or_device_effect_dispatch_rows": 0,
+  "music_process_present_at_closeout": false,
+  "cleanup": {
+    "guest": "actual Leave button",
+    "leave_audit_t": 1792302638.53988,
+    "music": "no process; no native playback initiated",
+    "visualizer": "never enabled",
+    "watchdog": {
+      "limit_seconds": 300,
+      "armed_t": 1792302565.436369,
+      "disarmed_t": 1792302634.608049,
+      "fired": false
+    },
+    "gate": "Root/held",
+    "exclusive_lock": "released; session7983 returned LOCK_RELEASED"
+  },
+  "context_limits": [
+    "One Japanese Denim entry was preimported during prior manual spike; this is not zero-prep acquisition proof",
+    "No file path/menu instruction/runbook or alternative prompt seeded into agent context",
+    "No general local-app discovery or reactive visualizer acceptance",
+    "Source/helper/production/web unchanged during this baseline",
+    "Internal/external displays isolated by DeviceRuntime; Tester made no display settings changes",
+    "Prior manual Music trial may have played Japanese Denim before timed quit; no visualizer ever started and no human confirmation asked. It is not native-room acceptance."
+  ],
+  "artifacts": [
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/guest-chat-japanese-denim-baseline.txt",
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/native-agent-japanese-denim-refusal-063dd01.jpg"
+  ]
+}
