@@ -50,7 +50,7 @@ class Socket:
 class PhaseTests(unittest.TestCase):
     def test_late_join_clock_jump_and_nonbinary_boundaries_choose_future_grid(self):
         self.assertEqual(10 + next_beat_index(10, 10.37, .5) * .5, 10.5)
-        self.assertEqual(10.5 + .5 / 4, 10.625)
+        self.assertEqual(10.5 + .5 / 2, 10.75)
         self.assertEqual(10 + next_beat_index(10, 12.3, .5) * .5, 12.5)
         self.assertEqual(10 + next_beat_index(10, 10.0001, .6) * .6, 10.6)
         self.assertEqual(10 + next_beat_index(10, 10.6, .6) * .6, 11.2)
@@ -160,7 +160,7 @@ class ProgramTests(unittest.IsolatedAsyncioTestCase):
     async def test_revoked_queued_phone_never_gets_on_and_is_not_reassigned_to_new_guest(self):
         program = await self.start()
         await self.bus.locks['phone'].acquire()
-        await self.update(program, light_device_id='phone')
+        attaching = asyncio.create_task(self.update(program, light_device_id='phone'))
         await asyncio.sleep(.12)
         self.leases.revoke(self.lease.guest_id)
         self.engine.access_ended(self.lease.guest_id)
@@ -171,6 +171,7 @@ class ProgramTests(unittest.IsolatedAsyncioTestCase):
             {'request_id': 'steal', 'program_id': program.id, 'light_device_id': 'phone'})
         self.assertEqual(result['code'], 'PERMISSION')
         self.bus.locks['phone'].release()
+        self.assertFalse((await asyncio.wait_for(attaching, 1))['ok'])
         await asyncio.wait_for(program.cleanup_task, 1)
         self.assertTrue(all(frame['args']['on'] is False for frame in self.phone.frames))
         self.assertFalse(program.active)
@@ -179,8 +180,8 @@ class ProgramTests(unittest.IsolatedAsyncioTestCase):
         program = await self.start()
         lock = self.bus.locks['phone']
         await lock.acquire()
+        attaching = asyncio.create_task(self.update(program, light_device_id='phone'))
         try:
-            await self.update(program, light_device_id='phone')
             await asyncio.sleep(.16)
             self.assertEqual(self.phone.frames, [])
             self.assertGreaterEqual(program.missed_ticks, 1)
@@ -191,6 +192,7 @@ class ProgramTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(program.active)
         self.assertEqual(program.timings[0]['ack_code'], 'TIMEOUT')
         self.assertIsNone(program.timings[0]['dispatch_monotonic_ms'])
+        self.assertTrue((await asyncio.wait_for(attaching, 1))['ok'])
 
     async def test_lease_expiry_stops_future_steps_without_waiting_for_a_native_turn(self):
         program = await self.start()

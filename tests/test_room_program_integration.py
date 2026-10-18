@@ -65,9 +65,9 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def call(self, operation, request_id, **payload):
         return await asyncio.to_thread(invoke, self.grant.path, operation, {'request_id': request_id, **payload})
 
-    async def start(self):
+    async def start(self, *, bpm=600):
         await self.begin()
-        result = await self.call('program-start', 'start', device_id='laptop', bpm=600)
+        result = await self.call('program-start', 'start', device_id='laptop', bpm=bpm)
         self.assertTrue(result['ok'], result)
         return self.agent.programs.programs[result['result']['program_id']]
 
@@ -100,6 +100,93 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(stopped['ok'], stopped)
         self.assertFalse(program.active)
         await self.finish('The program stopped.')
+
+    async def test_attach_pending_until_first_on_and_off_ack_never_claims_physical_verification(self):
+        self.agent.settings = replace(self.agent.settings, turn_timeout=4)
+        self.agent.device_tools.turn_timeout = 4
+        self.agent.programs.action_timeout = .5
+        program = await self.start(bpm=60)
+        self.phone.ack = False
+        attached = asyncio.create_task(self.call('program-update', 'attach-first-cycle',
+            program_id=program.id, light_device_id='phone'))
+        try:
+            on = await asyncio.wait_for(self.phone.events.get(), 1.5)
+            self.assertIs(on['args']['on'], True)
+            self.assertFalse(attached.done())
+            pending = await self.call('program-status', 'pending-on', program_id=program.id)
+            participant = pending['result']['participants']['phone']
+            self.assertEqual(participant['participant_state'], 'pending')
+            self.assertFalse(participant['first_cycle']['on_ack'])
+            self.assertNotIn('phone', pending['result']['light_device_ids'])
+            self.core.bus.receive(self.phone.device, {'type': 'ok', 'req': on['req'], 'result': {'on': True}})
+            off = await asyncio.wait_for(self.phone.events.get(), .75)
+            self.assertIs(off['args']['on'], False)
+            self.assertFalse(attached.done())
+            pending = await self.call('program-status', 'pending-off', program_id=program.id)
+            cycle = pending['result']['participants']['phone']['first_cycle']
+            self.assertTrue(cycle['on_ack'])
+            self.assertFalse(cycle['off_ack'])
+            self.assertNotIn('phone', pending['result']['light_device_ids'])
+            self.core.bus.receive(self.phone.device, {'type': 'ok', 'req': off['req'], 'result': {'on': False}})
+            receipt = await asyncio.wait_for(attached, .3)
+            self.assertTrue(receipt['ok'], receipt)
+            participant = receipt['result']['participants']['phone']
+            self.assertEqual(participant['participant_state'], 'following')
+            self.assertTrue(participant['first_cycle']['on_ack'])
+            self.assertTrue(participant['first_cycle']['off_ack'])
+            self.assertFalse(participant['first_cycle']['physical_verified'])
+            self.assertIn('phone', receipt['result']['light_device_ids'])
+            self.assertFalse(receipt['result']['physical_sync_measured'])
+        finally:
+            self.phone.ack = True
+            if not attached.done():
+                attached.cancel()
+            await asyncio.gather(attached, return_exceptions=True)
+        await self.finish('The first phone cycle was acknowledged; physical sync is unverified.')
+
+    async def test_first_phone_on_unknown_returns_failed_attach_and_same_id_cannot_replay(self):
+        program = await self.start()
+        self.phone.ack = False
+        receipt = await self.call('program-update', 'attach-unknown', program_id=program.id, light_device_id='phone')
+        self.assertFalse(receipt['ok'], receipt)
+        self.assertEqual(receipt['code'], 'UNKNOWN')
+        self.assertIn('phone', receipt['unknown_device_ids'])
+        self.assertFalse(program.active)
+        self.assertNotIn('phone', receipt['result']['light_device_ids'])
+        self.assertNotEqual(receipt['result']['participants']['phone']['participant_state'], 'following')
+        frames = list(self.phone.frames)
+        duplicate = await self.call('program-update', 'attach-unknown', program_id=program.id, light_device_id='phone')
+        self.assertEqual(duplicate, receipt)
+        blocked = await self.call('program-update', 'attach-new-id', program_id=program.id, light_device_id='phone')
+        self.assertEqual(blocked['code'], 'UNKNOWN')
+        self.assertEqual(self.phone.frames, frames)
+        self.phone.ack = True
+        await self.finish('Phone attachment is unknown and was not repeated.')
+
+    async def test_leave_while_first_cycle_pending_cannot_return_success_or_send_later_on(self):
+        self.agent.settings = replace(self.agent.settings, turn_timeout=4)
+        self.agent.device_tools.turn_timeout = 4
+        self.agent.programs.action_timeout = .5
+        program = await self.start(bpm=60)
+        self.phone.ack = False
+        attached = asyncio.create_task(self.call('program-update', 'attach-then-leave',
+            program_id=program.id, light_device_id='phone'))
+        try:
+            on = await asyncio.wait_for(self.phone.events.get(), 1.5)
+            self.assertIs(on['args']['on'], True)
+            self.assertFalse(attached.done())
+            self.core.revoke(self.lease.guest_id, actor='guest')
+            receipt = await asyncio.wait_for(attached, .5)
+            self.assertFalse(receipt['ok'], receipt)
+            self.assertFalse(program.active)
+            self.assertFalse(self.agent.allows_program(self.lease, program.owner.generation))
+            await asyncio.wait_for(program.cleanup_task, .3)
+            self.assertEqual([frame['args']['on'] for frame in self.phone.frames], [True])
+        finally:
+            self.phone.ack = True
+            if not attached.done():
+                attached.cancel()
+            await asyncio.gather(attached, return_exceptions=True)
 
     async def test_conflict_detach_then_original_steady_light_in_same_native_turn(self):
         program = await self.start()
@@ -241,12 +328,13 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_existing_host_reset_off_receipt_recovers_unknown_phone_for_next_guest(self):
         program = await self.start()
         await self.attach(program)
-        await asyncio.wait_for(self.phone.events.get(), 1)  # A confirmed ON.
+        first_cycle = [await asyncio.wait_for(self.phone.events.get(), 1) for _ in range(2)]
+        self.assertEqual([frame['args']['on'] for frame in first_cycle], [True, False])
         self.phone.ack = False
         ended = asyncio.Event()
         invalidate = self.agent.programs._invalidate
-        def observed_invalidation(current, reason):
-            invalidate(current, reason)
+        def observed_invalidation(current, reason, device_id=None):
+            invalidate(current, reason, device_id)
             if current is program: ended.set()
         self.agent.programs._invalidate = observed_invalidation
         unknown_frame = await asyncio.wait_for(self.phone.events.get(), 1)

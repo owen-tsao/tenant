@@ -171,5 +171,93 @@ class DriverPreparationRaceTests(unittest.TestCase):
         self.assertEqual(errors, [])
 
 
+class FirstCycleMutationRaceTests(unittest.IsolatedAsyncioTestCase):
+    """Pending attach has no mutation lock and cannot affect a replacement run."""
+    from tests import test_room_program_sync as _sync
+    asyncSetUp = _sync.FirstCycleSyncTests.asyncSetUp
+    asyncTearDown = _sync.FirstCycleSyncTests.asyncTearDown
+    grant_for = _sync.FirstCycleSyncTests.grant_for
+    register = _sync.FirstCycleSyncTests.register
+    start = _sync.FirstCycleSyncTests.start
+    until = _sync.FirstCycleSyncTests.until
+    begin_attach = _sync.FirstCycleSyncTests.begin_attach
+    next_edge = _sync.FirstCycleSyncTests.next_edge
+    acknowledge = _sync.FirstCycleSyncTests.acknowledge
+
+    async def test_stop_settles_pending_attach_without_waiting_for_its_first_on(self):
+        program, attach = await self.begin_attach()
+        self.phone.ack = True  # Synthetic cleanup only, no first ON has been sent.
+        stopped = await asyncio.wait_for(self.engine.dispatch(self.grant, 'program-stop',
+            {'request_id': 'stop', 'program_id': program.id}), .3)
+        original = await asyncio.wait_for(attach, .3)
+        self.assertTrue(stopped['ok'], stopped)
+        self.assertFalse(original['ok'], original)
+        self.assertIn(original['code'], ('STOPPED', 'requested_stop'))
+        self.assertFalse(program.active)
+        self.timeline.advance_to(110)
+        await asyncio.sleep(0)
+        self.assertEqual(sum(frame['args'].get('on') is True for frame in self.phone.frames), 0)
+        self.assertEqual(original['result']['light_device_ids'], [])
+
+    async def test_detach_settles_original_attach_as_stopped_instead_of_vacuous_success(self):
+        program, attach = await self.begin_attach()
+        self.phone.ack = True
+        detached = await asyncio.wait_for(self.engine.dispatch(self.grant, 'program-update',
+            {'request_id': 'detach', 'program_id': program.id, 'remove_light_device_id': 'phone'}), .3)
+        original = await asyncio.wait_for(attach, .3)
+        self.assertTrue(detached['ok'], detached)
+        self.assertFalse(original['ok'], original)
+        self.assertEqual(original['code'], 'STOPPED')
+        self.assertTrue(program.active, 'Detaching a pending phone must preserve its independent beat.')
+        self.assertNotIn('phone', program.lights)
+        self.assertEqual(original['result']['light_device_ids'], [])
+        self.assertEqual(sum(frame['args'].get('on') is True for frame in self.phone.frames), 0)
+
+    async def test_cancelled_old_attach_wait_cannot_invalidate_replacement_tempo_run(self):
+        from unittest.mock import patch
+        wait_original = asyncio.wait
+        old_ready, release_old = asyncio.Event(), asyncio.Event()
+        attach = None
+
+        async def hold_old_wait(*args, **kwargs):
+            result = await wait_original(*args, **kwargs)
+            if asyncio.current_task() is attach:
+                old_ready.set()
+                await release_old.wait()
+            return result
+
+        with patch('brain.core.room_programs.asyncio.wait', hold_old_wait):
+            program, attach = await self.begin_attach()
+            old_run = program.run_id
+            self.phone.ack = True  # Confirm the old run's separate OFF cleanup.
+            tempo = asyncio.create_task(self.engine.dispatch(self.grant, 'program-update',
+                {'request_id': 'tempo', 'program_id': program.id, 'bpm': 120}))
+            self.requests.append(tempo)
+            try:
+                await asyncio.wait_for(old_ready.wait(), .3)
+                await self.until(lambda: program.run_id != old_run and program.active)
+                attach.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await attach
+                self.assertTrue(program.active, 'Cancellation from the old cycle stopped its replacement run.')
+                self.assertEqual(program.participants['phone']['participant_state'], 'pending')
+                self.phone.ack = False
+                while not self.phone.events.empty():
+                    self.phone.events.get_nowait()  # Ignore only acknowledged old-run OFF cleanup.
+                due = program.phase + .5
+                await self.until(lambda: any(abs(at - due) < 1e-6 for at, _ in self.timeline.waiters))
+                on = await self.next_edge(True, due)
+                self.acknowledge(on)
+                await self.until(lambda: program.participants['phone']['first_cycle']['on_ack'])
+                off = await self.next_edge(False, due + .25)
+                self.acknowledge(off)
+                result = await asyncio.wait_for(tempo, .3)
+                self.assertTrue(result['ok'], result)
+                self.assertEqual(result['result']['light_device_ids'], ['phone'])
+                self.assertTrue(program.active)
+            finally:
+                release_old.set()
+
+
 if __name__ == '__main__':
     unittest.main()

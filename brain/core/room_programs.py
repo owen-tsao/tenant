@@ -67,6 +67,9 @@ class Program:
     restart_pending: bool = False
     restart_allowed: object = None
     recovery: dict = field(default_factory=dict)
+    participants: dict = field(default_factory=dict)
+    first_cycles: dict = field(default_factory=dict)
+    failure_devices: set = field(default_factory=set)
 
 
 class RoomPrograms:
@@ -102,7 +105,11 @@ class RoomPrograms:
         return {'program_id': program.id, 'state': program.state, 'bpm': program.bpm,
                 'clock': 'backend monotonic; generated audio process launch is the phase reference',
                 'phase_wall_ms': program.phase_wall_ms, 'audio_device_id': program.audio.id,
-                'light_device_ids': sorted(set(program.lights) - program.detached) if program.active else [],
+                'light_device_ids': sorted(device_id for device_id, participant in program.participants.items()
+                                          if program.active and participant['participant_state'] == 'following'
+                                          and device_id not in program.detached),
+                'participants': {device_id: {**participant, 'first_cycle': dict(participant['first_cycle'])}
+                                 for device_id, participant in program.participants.items()},
                 'reserved_light_ids': sorted(device_id for device_id in program.lights
                                              if self._light_owners.get(device_id) is program
                                              and program.cleanup.get(device_id) == 'unknown'),
@@ -134,8 +141,9 @@ class RoomPrograms:
                 candidates = [p for p in self.programs.values() if p.owner.lease is grant.lease
                               and p.audio.id == payload.get('device_id')]
                 program = candidates[-1] if candidates else None
-            unknown = set()
+            unknown = set(response.get('unknown_device_ids', []))
             if program is not None:
+                unknown.update(program.failure_devices)
                 unknown.update(program.audio.id if name == 'audio' else name
                                for name, status in program.cleanup.items() if status == 'unknown')
                 if not unknown:
@@ -158,6 +166,16 @@ class RoomPrograms:
         if 'bpm' in payload and (type(payload['bpm']) not in (int, float)
                                  or not math.isfinite(payload['bpm']) or payload['bpm'] <= 0):
             return failure('INVALID', 'Tempo must be a positive finite BPM.')
+        # A pending first-cycle receipt must remain observable while a mutation
+        # waits. This branch reads only and performs the same owner checks.
+        if operation == 'program-status':
+            program_id = payload.get('program_id')
+            if not isinstance(program_id, str):
+                return failure('INVALID', 'A program ID is required.')
+            program = self.programs.get(program_id)
+            if program is None or not self._same_owner(program.owner, owner):
+                return failure('PERMISSION', 'This guest does not own that room program.')
+            return {'ok': True, 'result': self._status(program)}
         async with self._control:
             if not self._allowed(owner) or not authorized():
                 return failure('PERMISSION', 'This turn can no longer change a room program.')
@@ -175,8 +193,6 @@ class RoomPrograms:
             program = self.programs.get(payload['program_id'])
             if program is None or not self._same_owner(program.owner, owner):
                 return failure('PERMISSION', 'This guest does not own that room program.')
-            if operation == 'program-status':
-                return {'ok': True, 'result': self._status(program)}
             if operation == 'program-stop':
                 self._invalidate(program, 'requested_stop')
                 await asyncio.shield(program.cleanup_task)
@@ -231,9 +247,56 @@ class RoomPrograms:
                     program.output_cleanup.pop(('light', dev.id, program.run_id), None)
                     program.cleanup.pop(dev.id, None)
                     program.lights[dev.id] = (dev, dev.ws)
+                    self._begin_first_cycle(program, dev.id)
                     program.light_tasks[dev.id] = self._task(program, self._light_loop(program, dev, dev.ws))
-            return {'ok': True, 'result': self._status(program),
-                    'message': 'The selected devices follow this program clock. Physical synchronization has not been measured.'}
+        # Waiting is read-only: release mutation serialization so a later stop
+        # or detach can settle a pending first cycle immediately.
+        return await self._await_first_cycles(program, grant, authorized)
+
+    def _begin_first_cycle(self, program, device_id):
+        program.participants[device_id] = {'participant_state': 'pending',
+            'first_cycle': {'on_ack': False, 'off_ack': False, 'physical_verified': False}}
+        program.first_cycles[device_id] = asyncio.get_running_loop().create_future()
+
+    async def _await_first_cycles(self, program, grant, authorized):
+        run_id = program.run_id
+        cycles = {device_id: future for device_id, future in program.first_cycles.items()
+                  if device_id in program.lights and device_id not in program.detached}
+        pending = [future for future in cycles.values() if not future.done()]
+        try:
+            if pending:
+                remaining = max(0, program.owner.lease.expires_at - self.leases.clock())
+                deadline = getattr(grant, 'deadline', None)
+                if deadline is not None:
+                    remaining = min(remaining, max(0, deadline - self.clock()))
+                await asyncio.wait(pending, timeout=remaining)
+            if program.run_id != run_id:
+                return dict(failure('STOPPED', 'That phone cycle was replaced by a later explicit tempo update.'),
+                            result=self._status(program))
+            if not self._allowed(program.owner) or not authorized():
+                self._invalidate(program, 'PERMISSION')
+                return dict(failure('PERMISSION', 'Access ended while waiting for the first phone cycle.'),
+                            result=self._status(program))
+            failed = [future.result() for future in cycles.values()
+                      if future.done() and not future.result()['ok']]
+            if failed or not program.active:
+                code = failed[0]['code'] if failed else (program.reason or 'STOPPED')
+                return dict(failure(code, 'The first phone cycle was not confirmed. No automatic replay was attempted.'),
+                            result=self._status(program), unknown_device_ids=sorted(program.failure_devices))
+            following = all(participant['participant_state'] == 'following'
+                            for device_id, participant in program.participants.items()
+                            if device_id in program.lights and device_id not in program.detached)
+            return {'ok': True, 'complete': following, **({} if following else {'code': 'PENDING'}),
+                    'result': self._status(program),
+                    'message': ('Each selected phone acknowledged its first ON and OFF. Visible pulses and physical synchronization remain unverified.'
+                                if following else 'Phone participation is pending; its first ON and OFF are not both acknowledged. Do not report visible pulses or synchronization.')}
+        except asyncio.CancelledError:
+            # A canceled caller must not leave an unreported, pending first ON
+            # scheduled after its request ended. Background running jobs otherwise
+            # survive completed native turns under their captured lease.
+            if program.run_id == run_id and any(not future.done() for future in cycles.values()):
+                self._invalidate(program, 'CANCELLED')
+            raise
 
     def _task(self, program, coroutine):
         task = asyncio.create_task(coroutine)
@@ -247,6 +310,7 @@ class RoomPrograms:
                or not self.device_locks[device_id].locked() for device_id in program.lights):
             return failure('CONFLICT', 'Phone ownership changed before restart. No new beat was launched.')
         program.state, program.reason, program.cleanup = 'starting', None, {}
+        program.failure_devices.clear()
         program.cleanup_task = None
         program.run_id = 'b_' + uuid.uuid4().hex
         remaining = max(0, program.owner.lease.expires_at - self.leases.clock())
@@ -279,6 +343,7 @@ class RoomPrograms:
             program.active, program.state = True, 'running'
             self._task(program, self._monitor(program))
             for dev, connection in program.lights.values():
+                self._begin_first_cycle(program, dev.id)
                 program.light_tasks[dev.id] = self._task(program, self._light_loop(program, dev, connection))
             return {'ok': True, 'result': self._status(program),
                     'message': 'Generated beat process launched on the default audio output; audibility and physical sync remain unverified.'}
@@ -322,7 +387,10 @@ class RoomPrograms:
 
     async def _light_loop(self, program, dev, connection):
         period = 60 / program.bpm
-        pulse = period / 4
+        # The existing boolean bridge has measured ACKs up to 197 ms. A 90 BPM
+        # quarter pulse allowed only 166.7 ms. The controlled 60 BPM baseline now
+        # provides 500 ms ON and OFF windows; this is not an optical sync claim.
+        pulse = period / 2
         beat = next_beat_index(program.phase, self.clock(), period)
         try:
             while program.active and dev.id not in program.detached:
@@ -340,7 +408,7 @@ class RoomPrograms:
                             program.missed_ticks += next_beat - beat
                             beat = next_beat
                             break  # Skip an unsent stale ON; never catch up a backlog.
-                        self._invalidate(program, 'MISSED_OFF_TICK')
+                        self._invalidate(program, 'MISSED_OFF_TICK', dev.id)
                         return
                     sent = self.clock()
                     dispatch_time = {}
@@ -373,20 +441,38 @@ class RoomPrograms:
                             program.missed_ticks += next_beat - beat
                             beat = next_beat
                             break
-                        self._invalidate(program, result.code or 'UNKNOWN')
+                        self._invalidate(program, result.code or 'UNKNOWN', dev.id)
                         return
                     program.last_on[dev.id] = on
+                    participant = program.participants[dev.id]
+                    cycle = participant['first_cycle']
+                    if on:
+                        cycle['on_ack'] = True
+                    elif cycle['on_ack']:
+                        cycle['off_ack'] = True
+                        participant['participant_state'] = 'following'
+                        ready = program.first_cycles[dev.id]
+                        if not ready.done():
+                            ready.set_result({'ok': True})
                 else:
                     beat += 1  # Never catch up missed beats or replay a previous edge.
         except asyncio.CancelledError:
             raise
         except Exception:
-            self._invalidate(program, 'UNKNOWN')
+            self._invalidate(program, 'UNKNOWN', dev.id)
 
-    def _invalidate(self, program, reason):
+    def _invalidate(self, program, reason, device_id=None):
         if program.cleanup_task is not None:
             return
+        if device_id is not None and reason == 'UNKNOWN':
+            program.failure_devices.add(device_id)
         program.active, program.state, program.reason = False, 'stopping', reason
+        intentional = reason in ('requested_stop', 'ACCESS_ENDED', 'PERMISSION', 'SHUTDOWN', 'CANCELLED', 'tempo_change')
+        for participant_id, participant in program.participants.items():
+            participant['participant_state'] = 'detached' if intentional else 'unknown'
+            ready = program.first_cycles[participant_id]
+            if not ready.done():
+                ready.set_result({'ok': False, 'code': reason})
         for task in tuple(program.tasks):
             if task is not asyncio.current_task():
                 task.cancel()
@@ -446,6 +532,11 @@ class RoomPrograms:
         if device_id in program.detached:
             return failure('UNKNOWN', 'Phone detach cleanup is already unconfirmed; it was not retried.')
         program.detached.add(device_id)  # Synchronous: queued/future ON authorization ends now.
+        participant = program.participants[device_id]
+        participant['participant_state'] = 'detached'
+        ready = program.first_cycles[device_id]
+        if not ready.done():
+            ready.set_result({'ok': False, 'code': 'STOPPED'})
         task = asyncio.create_task(self._detach_once(program, device_id))
         program.detach_tasks[device_id] = task
         return await asyncio.shield(task)
@@ -459,6 +550,7 @@ class RoomPrograms:
         await self._stop_output(program, dev, connection, 'light', {'on': False}, device_id,
                                 lambda data: data.get('on') is False)
         if program.cleanup.get(device_id) != 'confirmed':
+            program.participants[device_id]['participant_state'] = 'unknown'
             return dict(failure('UNKNOWN', 'Phone cleanup is unconfirmed; music continues, but this phone stays reserved. Do not retry automatically.'),
                         result=self._status(program))
         self._release_clean_lights(program)
