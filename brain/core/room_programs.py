@@ -17,6 +17,13 @@ def failure(code, message):
     return {'ok': False, 'code': code, 'message': message}
 
 
+def positive_finite(value):
+    try:
+        return type(value) in (int, float) and math.isfinite(value) and value > 0
+    except OverflowError:
+        return False
+
+
 def next_beat_index(phase, now, period):
     """Strictly future grid point, including nonbinary-exact BPM boundaries."""
     index = max(0, math.floor((now - phase) / period) + 1)
@@ -70,6 +77,7 @@ class Program:
     participants: dict = field(default_factory=dict)
     first_cycles: dict = field(default_factory=dict)
     failure_devices: set = field(default_factory=set)
+    light_cadences: dict = field(default_factory=dict)
 
 
 class RoomPrograms:
@@ -174,13 +182,15 @@ class RoomPrograms:
         keys = set(payload)
         start = operation == 'program-start' and keys == {'request_id', 'device_id', 'bpm'}
         update = (operation == 'program-update' and {'request_id', 'program_id'} < keys
-                  and keys <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id'})
+                  and keys <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
+                  and ('light_beats_per_state' not in keys or 'light_device_id' in keys))
         simple = operation in ('program-stop', 'program-status') and keys == {'request_id', 'program_id'}
         if not (start or update or simple):
             return failure('INVALID', 'Invalid room program operation.')
-        if 'bpm' in payload and (type(payload['bpm']) not in (int, float)
-                                 or not math.isfinite(payload['bpm']) or payload['bpm'] <= 0):
+        if 'bpm' in payload and not positive_finite(payload['bpm']):
             return failure('INVALID', 'Tempo must be a positive finite BPM.')
+        if 'light_beats_per_state' in payload and not positive_finite(payload['light_beats_per_state']):
+            return failure('INVALID', 'Phone cadence must be a positive finite number of beats per state.')
         # A pending first-cycle receipt must remain observable while a mutation
         # waits. This branch reads only and performs the same owner checks.
         if operation == 'program-status':
@@ -216,6 +226,17 @@ class RoomPrograms:
                         'result': self._status(program), 'message': 'Future program steps stopped; cleanup status is reported separately.'}
             if program.state != 'running':
                 return failure('STOPPED', 'That program is not running. It was not restarted or replayed.')
+            cadences = dict(program.light_cadences)
+            if isinstance(payload.get('light_device_id'), str):
+                device_id = payload['light_device_id']
+                cadences[device_id] = payload.get('light_beats_per_state', cadences.get(device_id, .5))
+            for cadence in cadences.values():
+                duration = 60 / payload.get('bpm', program.bpm) * cadence
+                now = self.clock()
+                if (not math.isfinite(2 * duration * 1000) or duration <= 0
+                        or now + duration <= now):
+                    return failure('INVALID', 'The requested phone cadence cannot be represented by the room clock.')
+            wait_ids = set()
             if 'remove_light_device_id' in payload:
                 result = await self._detach(program, payload['remove_light_device_id'])
                 if not result['ok']:
@@ -233,6 +254,7 @@ class RoomPrograms:
                     result = await self._launch(program, authorized)
                     if not result['ok']:
                         return result
+                    wait_ids.update(program.lights)
                 finally:
                     program.restart_pending = False
                     if not program.active:
@@ -251,6 +273,16 @@ class RoomPrograms:
                 if dev.id in program.detached:
                     return dict(failure('UNKNOWN', 'Previous phone cleanup is unconfirmed. Keep it reserved; use explicit host reset or reconnect verification.'),
                                 program_id=program.id, device_id=dev.id)
+                cadence = cadences[dev.id]
+                if dev.id in program.lights and cadence != program.light_cadences.get(dev.id, .5):
+                    # Changing cadence owns only this phone: confirm OFF before
+                    # installing a fresh loop on the original audio phase.
+                    result = await self._detach(program, dev.id)
+                    if not result['ok']:
+                        return result
+                    if not self._allowed(owner) or not authorized() or not program.active:
+                        return failure('PERMISSION', 'Access ended before the replacement phone cadence started.')
+                    claimed = None
                 if claimed is None:
                     lock = self.device_locks[dev.id]
                     if lock.locked():
@@ -262,21 +294,26 @@ class RoomPrograms:
                     program.output_cleanup.pop(('light', dev.id, program.run_id), None)
                     program.cleanup.pop(dev.id, None)
                     program.lights[dev.id] = (dev, dev.ws)
+                    program.light_cadences[dev.id] = cadence
                     self._begin_first_cycle(program, dev.id)
                     program.light_tasks[dev.id] = self._task(program, self._light_loop(program, dev, dev.ws))
+                wait_ids.add(dev.id)
         # Waiting is read-only: release mutation serialization so a later stop
         # or detach can settle a pending first cycle immediately.
-        return await self._await_first_cycles(program, grant, authorized)
+        return await self._await_first_cycles(program, grant, authorized, wait_ids)
 
     def _begin_first_cycle(self, program, device_id):
+        beats_per_state = program.light_cadences.get(device_id, .5)
+        duration_ms = 60 / program.bpm * beats_per_state * 1000
         program.participants[device_id] = {'participant_state': 'pending',
+            'light_beats_per_state': beats_per_state, 'on_duration_ms': duration_ms, 'off_duration_ms': duration_ms,
             'first_cycle': {'on_ack': False, 'off_ack': False, 'physical_verified': False}}
         program.first_cycles[device_id] = asyncio.get_running_loop().create_future()
 
-    async def _await_first_cycles(self, program, grant, authorized):
+    async def _await_first_cycles(self, program, grant, authorized, device_ids):
         run_id = program.run_id
         cycles = {device_id: future for device_id, future in program.first_cycles.items()
-                  if device_id in program.lights and device_id not in program.detached}
+                  if device_id in device_ids and device_id in program.lights and device_id not in program.detached}
         pending = [future for future in cycles.values() if not future.done()]
         try:
             if pending:
@@ -284,9 +321,16 @@ class RoomPrograms:
                 deadline = getattr(grant, 'deadline', None)
                 if deadline is not None:
                     remaining = min(remaining, max(0, deadline - self.clock()))
-                await asyncio.wait(pending, timeout=remaining)
-            if program.run_id != run_id:
-                return dict(failure('STOPPED', 'That phone cycle was replaced by a later explicit tempo update.'),
+                wait_until = asyncio.get_running_loop().time() + remaining
+                while pending:
+                    done, pending = await asyncio.wait(pending,
+                        timeout=max(0, wait_until - asyncio.get_running_loop().time()),
+                        return_when=asyncio.FIRST_COMPLETED)
+                    if not done or any(not future.result()['ok'] for future in done):
+                        break
+            unchanged = all(program.first_cycles.get(device_id) is future for device_id, future in cycles.items())
+            if program.run_id != run_id or not unchanged:
+                return dict(failure('STOPPED', 'That phone cycle was replaced by a later explicit update.'),
                             result=self._status(program))
             if not self._allowed(program.owner) or not authorized():
                 self._invalidate(program, 'PERMISSION')
@@ -298,18 +342,20 @@ class RoomPrograms:
                 code = failed[0]['code'] if failed else (program.reason or 'STOPPED')
                 return dict(failure(code, 'The first phone cycle was not confirmed. No automatic replay was attempted.'),
                             result=self._status(program), unknown_device_ids=sorted(program.failure_devices))
-            following = all(participant['participant_state'] == 'following'
-                            for device_id, participant in program.participants.items()
-                            if device_id in program.lights and device_id not in program.detached)
+            following = all(program.participants[device_id]['participant_state'] == 'following'
+                            for device_id in cycles)
             return {'ok': True, 'complete': following, **({} if following else {'code': 'PENDING'}),
                     'result': self._status(program),
                     'message': ('Each selected phone acknowledged its first ON and OFF. Visible pulses and physical synchronization remain unverified.'
+                                if following and cycles else 'Program updated; individual participant and cleanup status are reported separately.'
                                 if following else 'Phone participation is pending; its first ON and OFF are not both acknowledged. Do not report visible pulses or synchronization.')}
         except asyncio.CancelledError:
             # A canceled caller must not leave an unreported, pending first ON
             # scheduled after its request ended. Background running jobs otherwise
             # survive completed native turns under their captured lease.
-            if program.run_id == run_id and any(not future.done() for future in cycles.values()):
+            if (program.run_id == run_id
+                    and all(program.first_cycles.get(device_id) is future for device_id, future in cycles.items())
+                    and any(not future.done() for future in cycles.values())):
                 self._invalidate(program, 'CANCELLED')
             raise
 
@@ -401,11 +447,12 @@ class RoomPrograms:
             self._invalidate(program, 'UNKNOWN')
 
     async def _light_loop(self, program, dev, connection):
-        period = 60 / program.bpm
+        audio_period = 60 / program.bpm
         # The existing boolean bridge has measured ACKs up to 197 ms. A 90 BPM
         # quarter pulse allowed only 166.7 ms. The controlled 60 BPM baseline now
         # provides 500 ms ON and OFF windows; this is not an optical sync claim.
-        pulse = period / 2
+        pulse = audio_period * program.light_cadences.get(dev.id, .5)
+        period = 2 * pulse  # ON every other audio beat when beats_per_state=1.
         beat = next_beat_index(program.phase, self.clock(), period)
         try:
             while program.active and dev.id not in program.detached:
@@ -570,6 +617,7 @@ class RoomPrograms:
                         result=self._status(program))
         self._release_clean_lights(program)
         program.lights.pop(device_id)
+        program.light_cadences.pop(device_id, None)
         program.detached.discard(device_id)
         return {'ok': True, 'result': self._status(program),
                 'message': ('Phone left the beat and confirmed OFF. Music continues; a new ordinary phone action is now permitted.'

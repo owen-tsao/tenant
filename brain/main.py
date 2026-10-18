@@ -90,6 +90,11 @@ def create_app(config=None, *, planner=None, log_path=None, state_path=None, con
             raise HTTPException(503, 'Guest interface is being connected. Please try again shortly.')
         return FileResponse(path, headers={"Cache-Control":"no-store", "Referrer-Policy":"no-referrer"})
 
+    @app.get('/')
+    @app.get('/setup')
+    async def host_setup():
+        return page('setup.html')
+
     # Owen's pages also work as root-level static files. Their relative asset
     # URLs need these exact aliases when served at the agreed /j and /g routes.
     @app.get('/j/shared.js')

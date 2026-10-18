@@ -64,7 +64,8 @@ class Leases:
         old = self.room.code
         while self.room.code == old:
             self.room.code = secrets.token_hex(2).upper()
-        self.room.label = 'Room ' + self.room.code
+        if self.room.label == 'Room ' + old:
+            self.room.label = 'Room ' + self.room.code
         if self.on_change:
             self.on_change()
         return revoked

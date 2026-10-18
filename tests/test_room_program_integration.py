@@ -71,8 +71,9 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result['ok'], result)
         return self.agent.programs.programs[result['result']['program_id']]
 
-    async def attach(self, program):
-        result = await self.call('program-update', 'attach', program_id=program.id, light_device_id='phone')
+    async def attach(self, program, *, light_beats_per_state=None):
+        cadence = {} if light_beats_per_state is None else {'light_beats_per_state': light_beats_per_state}
+        result = await self.call('program-update', 'attach', program_id=program.id, light_device_id='phone', **cadence)
         self.assertTrue(result['ok'], result)
         return result
 
@@ -206,6 +207,35 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sum(frame['cap'] == 'beat.start' for frame in self.audio.frames), 1)
         await self.finish('The phone is steady; the beat continues.')
 
+    async def test_helper_routes_whole_beat_cadence_without_audio_restart_and_retains_unknown_barrier(self):
+        program = await self.start()
+        run_id, phase = program.run_id, program.phase
+        receipt = await self.call('program-update', 'whole-beat', program_id=program.id,
+            light_device_id='phone', light_beats_per_state=1)
+        self.assertTrue(receipt['ok'], receipt)
+        participant = receipt['result']['participants']['phone']
+        self.assertEqual(participant['light_beats_per_state'], 1)
+        self.assertEqual(participant['on_duration_ms'], 100)  # Synthetic600BPM makes one beat100ms.
+        self.assertEqual(participant['off_duration_ms'], 100)
+        self.assertEqual(participant['participant_state'], 'following')
+        self.assertFalse(participant['first_cycle']['physical_verified'])
+        self.assertEqual((program.run_id, program.phase), (run_id, phase))
+        self.assertEqual(sum(frame['cap'] == 'beat.start' for frame in self.audio.frames), 1)
+        changed = await self.call('program-update', 'whole-beat', program_id=program.id,
+            light_device_id='phone', light_beats_per_state=True)
+        self.assertEqual(changed['code'], 'INVALID')  # Bool must not equal cached numeric1.
+        self.grant.unknown_devices.add('phone')
+        blocked = await self.call('program-update', 'different-cadence', program_id=program.id,
+            light_device_id='phone', light_beats_per_state=.5)
+        self.assertEqual(blocked['code'], 'UNKNOWN')
+        self.assertEqual(program.participants['phone']['light_beats_per_state'], 1)
+        malformed = await self.call('program-update', 'missing-phone', program_id=program.id,
+                                    light_beats_per_state=1)
+        self.assertEqual(malformed['code'], 'INVALID')
+        stopped = await self.call('program-stop', 'stop-after-unknown', program_id=program.id)
+        self.assertTrue(stopped['ok'], stopped)
+        await self.finish('The requested cadence was recorded; physical sync remains unverified.')
+
     async def test_unknown_detach_preserves_reservation_and_refuses_raw_actions_without_wait(self):
         program = await self.start()
         await self.attach(program)
@@ -276,22 +306,30 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_guest_leave_and_exact_expiry_invalidate_program_authority_immediately(self):
         program = await self.start()
+        await self.attach(program, light_beats_per_state=1)
         generation = program.owner.generation
         await self.finish()
+        before_on = sum(frame['args']['on'] is True for frame in self.phone.frames)
         self.core.revoke(self.lease.guest_id, actor='guest')
         self.assertFalse(program.active)
         self.assertFalse(self.agent.allows_program(self.lease, generation))
         await asyncio.wait_for(program.cleanup_task, .3)
         self.assertEqual(program.cleanup['audio'], 'confirmed')
+        self.assertEqual(program.cleanup['phone'], 'confirmed')
+        self.assertEqual(sum(frame['args']['on'] is True for frame in self.phone.frames), before_on)
 
     async def test_exact_expiry_sweep_stops_a_program_after_native_turn_finished(self):
         program = await self.start()
+        await self.attach(program, light_beats_per_state=1)
         await self.finish()
+        before_on = sum(frame['args']['on'] is True for frame in self.phone.frames)
         self.clock.now = self.lease.expires_at
         self.core.sweep()
         self.assertFalse(program.active)
         self.assertFalse(self.agent.allows_program(self.lease, program.owner.generation))
         await asyncio.wait_for(program.cleanup_task, .3)
+        self.assertEqual(program.cleanup['phone'], 'confirmed')
+        self.assertEqual(sum(frame['args']['on'] is True for frame in self.phone.frames), before_on)
 
     async def test_new_guest_has_clean_context_and_cannot_adopt_previous_program(self):
         program = await self.start()
@@ -482,6 +520,19 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(main(['--context', '/private/fake-context', 'program-update']), 0)
             self.assertEqual(dispatch.call_args.args[2], payload)
         payload['shell'] = 'unsupported'
+        with patch('agent.tenant_device.invoke') as dispatch:
+            with patch('sys.stdin', io.StringIO(json.dumps(payload))), patch('sys.stdout', new_callable=io.StringIO):
+                self.assertEqual(main(['--context', '/private/fake-context', 'program-update']), 1)
+            dispatch.assert_not_called()
+
+    def test_cli_whole_beat_cadence_requires_an_explicit_phone(self):
+        payload = {'request_id': 'whole-beat', 'program_id': 'owned',
+                   'light_device_id': 'phone', 'light_beats_per_state': 1}
+        with patch('agent.tenant_device.invoke', return_value={'ok': True}) as dispatch:
+            with patch('sys.stdin', io.StringIO(json.dumps(payload))), patch('sys.stdout', new_callable=io.StringIO):
+                self.assertEqual(main(['--context', '/private/fake-context', 'program-update']), 0)
+            self.assertEqual(dispatch.call_args.args[2], payload)
+        payload.pop('light_device_id')
         with patch('agent.tenant_device.invoke') as dispatch:
             with patch('sys.stdin', io.StringIO(json.dumps(payload))), patch('sys.stdout', new_callable=io.StringIO):
                 self.assertEqual(main(['--context', '/private/fake-context', 'program-update']), 1)

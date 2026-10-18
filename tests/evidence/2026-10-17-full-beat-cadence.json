@@ -1,0 +1,29 @@
+{
+  "evidence_kind": "reported room observations and offline cadence tests",
+  "prior_live_source": "00594fa",
+  "prior_observation": {
+    "bpm": 30,
+    "on_duration_seconds": 1,
+    "off_duration_seconds": 1,
+    "alternating_edge_ack_count": 60,
+    "failed_edge_ack_count": 0,
+    "maximum_transport_ms": 431,
+    "human_confirmation": "Beat, pulses and stop all physically worked; slight misalignment reported.",
+    "physical_audio_visual_offset_measured": false
+  },
+  "requested_increment": {
+    "parameter": "program-update.light_beats_per_state with exact light_device_id",
+    "new_phone_default": 0.5,
+    "full_beat_value": 1,
+    "at_30_bpm": {"on_seconds": 2, "off_seconds": 2, "cycle_seconds": 4},
+    "phase": "ON on alternating audio beats on the original audio phase; strictly future ON after attachment.",
+    "change_existing_phone": "Confirm owned OFF, replace only that phone cadence, retain audio phase and run, await new first ON and OFF receipts.",
+    "status": "Each participant exposes beats per state and actual requested ON/OFF durations; physical_verified remains false."
+  },
+  "limits": {
+    "alignment_calibrated": false,
+    "post_change_physical_test_performed": false,
+    "acknowledgment_is_optical_onset": false,
+    "conclusion": "Offline tests can establish cadence, phase scheduling and authority behavior. They cannot establish that visible light and audible music are aligned."
+  }
+}

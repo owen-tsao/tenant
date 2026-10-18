@@ -1,8 +1,24 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from brain.api.join import json_object
 
 router = APIRouter()
+
+
+@router.post('/host/room')
+async def room(request: Request):
+    core = request.app.state.core
+    if 'authorization' in request.headers:
+        # An explicit invalid Bearer header cannot fall back to another token.
+        core.require_host(request)
+    else:
+        # Compatibility for Owen's setup page only; never widen other host APIs.
+        core.require_origin(request)
+        token = request.headers.get('x-host-token', '')
+        if not core.host_authorized('Bearer ' + token):
+            raise HTTPException(403, 'Host authorization required')
+    from brain.core.room_setup import set_room_label
+    return set_room_label(core, await json_object(request))
 
 
 @router.post('/host/revoke')

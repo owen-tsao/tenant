@@ -259,5 +259,79 @@ class FirstCycleMutationRaceTests(unittest.IsolatedAsyncioTestCase):
                 release_old.set()
 
 
+    async def test_cancelled_replaced_cadence_wait_cannot_stop_new_phone_cycle_when_other_phone_is_pending(self):
+        program, waiting_b = await self.begin_attach()
+        self.register('phone-a')  # A second synthetic phone can ACK cleanup.
+        phase, run_id = program.phase, program.run_id
+        waiting_a = asyncio.create_task(self.engine.dispatch(self.grant, 'program-update',
+            {'request_id': 'attach-a', 'program_id': program.id, 'light_device_id': 'phone-a'}))
+        self.requests.append(waiting_a)
+        await self.until(lambda: 'phone-a' in program.first_cycles)
+        old_cycle = program.first_cycles['phone-a']
+        replacement = asyncio.create_task(self.engine.dispatch(self.grant, 'program-update',
+            {'request_id': 'cadence-a', 'program_id': program.id, 'light_device_id': 'phone-a',
+             'light_beats_per_state': 1}))
+        self.requests.append(replacement)
+        await self.until(lambda: program.first_cycles['phone-a'] is not old_cycle)
+        self.phone.ack = True  # Complete only synthetic future bridge commands.
+        if not waiting_a.done():
+            waiting_a.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await waiting_a
+        else:
+            obsolete = await waiting_a
+            self.assertFalse(obsolete['ok'], obsolete)
+            self.assertEqual(obsolete['code'], 'STOPPED')
+        self.assertTrue(program.active, "An obsolete A waiter saw pending B and stopped A's replacement.")
+        self.assertEqual(program.run_id, run_id)
+        self.assertEqual(program.phase, phase)
+        self.assertFalse(program.first_cycles['phone-a'].done())
+        self.assertEqual(program.participants['phone-a']['participant_state'], 'pending')
+        for at, edges in ((101.0, 1), (101.5, 2), (102.0, 4), (102.5, 5), (103.0, 7)):
+            self.timeline.advance_to(at)
+            # Wait for both loops' actual receipts before moving their clock.
+            await self.until(lambda: len(program.timings) >= edges)
+        result = await asyncio.wait_for(replacement, .3)
+        self.assertTrue(result['ok'], result)
+        self.assertTrue((await asyncio.wait_for(waiting_b, .3))['ok'])
+        self.assertTrue(program.active)
+        self.assertEqual(program.participants['phone-a']['light_beats_per_state'], 1)
+        self.assertEqual(program.participants['phone']['light_beats_per_state'], .5)
+
+
+    async def test_tempo_replacement_retains_explicit_cadence_on_the_new_audio_phase(self):
+        program, attach = await self.begin_attach(bpm=30, light_beats_per_state=1)
+        for state, due in ((True, 104), (False, 106)):
+            frame = await self.next_edge(state, due)
+            self.acknowledge(frame)
+            await self.until(lambda: program.participants['phone']['first_cycle']['on_ack' if state else 'off_ack'])
+        self.assertTrue((await asyncio.wait_for(attach, .3))['ok'])
+        old_phase, old_run = program.phase, program.run_id
+        tempo = asyncio.create_task(self.engine.dispatch(self.grant, 'program-update',
+            {'request_id': 'tempo-retain-cadence', 'program_id': program.id, 'bpm': 60}))
+        self.requests.append(tempo)
+        cleanup_off = await asyncio.wait_for(self.phone.events.get(), .3)
+        self.assertEqual(cleanup_off['args'], {'on': False})
+        self.acknowledge(cleanup_off)
+        await self.until(lambda: program.run_id != old_run and program.active)
+        self.assertNotEqual(program.phase, old_phase)
+        self.assertEqual(program.participants['phone']['light_beats_per_state'], 1)
+        self.assertEqual(program.participants['phone']['on_duration_ms'], 1000)
+        self.assertEqual(program.participants['phone']['off_duration_ms'], 1000)
+        self.assertEqual(program.participants['phone']['participant_state'], 'pending')
+        due = program.phase + 2
+        await self.until(lambda: any(abs(at - due) < 1e-6 for at, _ in self.timeline.waiters))
+        for state, at in ((True, due), (False, due + 1)):
+            frame = await self.next_edge(state, at)
+            self.acknowledge(frame)
+            await self.until(lambda: program.participants['phone']['first_cycle']['on_ack' if state else 'off_ack'])
+        result = await asyncio.wait_for(tempo, .3)
+        self.assertTrue(result['ok'], result)
+        self.assertTrue(program.active)
+        self.assertEqual(result['result']['participants']['phone']['light_beats_per_state'], 1)
+        self.assertEqual([row['target_monotonic_ms'] for row in program.timings[-2:]],
+                         [round(due * 1000, 3), round((due + 1) * 1000, 3)])
+
+
 if __name__ == '__main__':
     unittest.main()

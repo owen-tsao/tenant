@@ -151,8 +151,10 @@ class NativeDevices:
                 '\nRoom programs use the same helper prefix with program-start, program-update, program-stop, '
                 'or program-status and JSON stdin. Start takes request_id, beat-capable Mac device_id, bpm; save program_id. '
                 'A generated beat continues while you reply and the same guest speaks again. Update takes request_id, '
-                'program_id, and bpm and/or light_device_id and/or remove_light_device_id. Stop/status take request_id, '
-                'program_id. Discover Macs/programs in inventory.programs. Phone pulses use half a beat ON/OFF '
+                'program_id, and bpm and/or light_device_id and/or remove_light_device_id. With light_device_id, '
+                'light_beats_per_state sets beats per ON and OFF (default 0.5; 1 means one full beat each, 2s at 30 BPM). '
+                'Omitting it preserves an existing phone cadence. Stop/status take request_id, '
+                'program_id. Discover Macs/programs in inventory.programs. By default, phone pulses use half a beat ON/OFF '
                 '(60 BPM: 500ms each); stale unsent ON is skipped. Attach stays pending until its first ON and OFF '
                 'ACKs. ok with complete:false/code PENDING means accepted only, not following. '
                 'Only following/first_cycle ACKs confirm that cycle, never visible pulses or physical sync. '
@@ -244,7 +246,8 @@ class NativeDevices:
         valid_program = self.programs is not None and (
             (operation == 'program-start' and fields == {'request_id', 'device_id', 'bpm'}) or
             (operation == 'program-update' and {'request_id', 'program_id'} < fields
-             and fields <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id'}) or
+             and fields <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
+             and ('light_beats_per_state' not in fields or 'light_device_id' in fields)) or
             (operation in ('program-stop', 'program-status') and fields == {'request_id', 'program_id'}))
         if not valid_call and not valid_blink and not valid_program:
             return denied('INVALID', 'Invalid helper request. Nothing was sent.')

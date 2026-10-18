@@ -53,7 +53,8 @@ def main(argv=None):
                  and set(payload) <= {'request_id', 'device_id', 'count'}) or
                 (args.operation == 'program-start' and set(payload) == {'request_id', 'device_id', 'bpm'}) or
                 (args.operation == 'program-update' and {'request_id', 'program_id'} < set(payload)
-                 and set(payload) <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id'}) or
+                 and set(payload) <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id', 'light_beats_per_state'}
+                 and ('light_beats_per_state' not in payload or 'light_device_id' in payload)) or
                 (args.operation in ('program-stop', 'program-status') and set(payload) == {'request_id', 'program_id'})))
             if not valid:
                 raise ValueError('Invalid call')
