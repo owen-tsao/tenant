@@ -112,8 +112,8 @@
     $("access").classList.toggle("terminal", !!terminal);
     $("access").setAttribute("aria-expanded", String(expanded && canExpand));
     $("controls-wrap").hidden = !(expanded && canExpand);
-    $("text").disabled = !canCompose(); $("send").disabled = !canCompose() || pending;
-    for (const b of $("chips").querySelectorAll("button")) b.disabled = !canCompose() || pending;
+    $("text").disabled = !canCompose(); $("send").disabled = !canCompose();
+    for (const b of $("chips").querySelectorAll("button")) b.disabled = !canCompose();
     $("chips").hidden = !!terminal || !$("chips").children.length;
     $("leave").hidden = !!terminal || !leaseState;
     $("leave").disabled = leaving || !connected;
@@ -175,7 +175,7 @@
 
   function send(text) {
     text = (text || "").trim();
-    if (!text || !canCompose() || pending) return;
+    if (!text || !canCompose()) return;
     if (conn.send(text) === false) { connected = false; update(); return; }
     pending = true; $("text").value = "";
     if (!T.MOCK) { add(`<div class="msg me">${esc(text)}</div>`); showTyping(); }

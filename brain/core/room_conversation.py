@@ -65,6 +65,7 @@ class ConversationAgent:
         self.pending = {}  # Existing Core compatibility; no interpreter fallback.
         self.locks = {}
         self._lock = asyncio.Lock()
+        self._steer_lock = asyncio.Lock()
         self._session = None
         self._controller = None
         self._generation = 0
@@ -74,6 +75,8 @@ class ConversationAgent:
         self._failed = False
         self._first_guest_turn = None
         self._native_turn_identity = None
+        self._native_turn_lease = None
+        self._steer_blocked_identity = None
         self._terminal_failures = {}
         self.device_tools = None
         self.programs = None
@@ -144,6 +147,7 @@ class ConversationAgent:
         if self._controller != guest_id:
             self._terminal_failures.clear()
             self._native_turn_identity = None
+            self._native_turn_lease = None
             if self.device_tools is not None:
                 self.device_tools.revoke_all()
             previous = self._controller
@@ -173,6 +177,7 @@ class ConversationAgent:
             return
         self._terminal_failures.clear()
         self._native_turn_identity = None
+        self._native_turn_lease = None
         if self.device_tools is not None:
             self.device_tools.revoke_all()
         self._stop.set()
@@ -365,11 +370,14 @@ class ConversationAgent:
 
     async def _run_native_turn(self, text, guest_id, generation, *, grant=None, application_context=None):
         session = self._session
-        options = {'authorize': lambda: self._allowed(guest_id, generation)}
+        native_lease = grant.lease if grant is not None else self.leases.current(guest_id)
+        options = {'authorize': lambda: self._allowed(guest_id, generation)
+                   and self.leases.current(guest_id) is native_lease}
         if application_context is not None:
             options['application_context'] = application_context
         turn_id = await session.start_turn(text, **options)
         self._native_turn_identity = (guest_id, generation, turn_id)
+        self._native_turn_lease = native_lease
         if grant is not None:
             self.device_tools.activate(grant, turn_id)
         self._first_guest_turn = self._first_guest_turn or turn_id
@@ -432,6 +440,46 @@ class ConversationAgent:
             # the browser disconnects while that cleanup is already running.
             raise
 
+    async def _steer_native_turn(self, text, guest_id, generation, lease, identity, session):
+        # This lock orders follow-ups only. The original controller retains its
+        # lock, event consumer and helper grant throughout the native turn.
+        async with self._steer_lock:
+            def access_allowed():
+                return self._allowed(guest_id, generation) and self.leases.current(guest_id) is lease
+
+            def unavailable():
+                return (self._denied(guest_id) if not access_allowed() else
+                        [{'type': 'action', 'text': 'That follow-up was not accepted. Nothing was retried.'}])
+
+            def authorized():
+                return (access_allowed()
+                        and self._native_turn_lease is lease
+                        and self._native_turn_identity == identity
+                        and self._session is session)
+            if not authorized():
+                return unavailable()
+            if self._steer_blocked_identity == identity:
+                return [{'type': 'action', 'text': 'A previous follow-up could not be confirmed. Wait for the current request to finish.'}]
+            try:
+                self.leases.record_public(lease, 'guest', self._redact(text))
+                accepted = await session.steer_turn(text, expected_turn_id=identity[2], authorize=authorized)
+                if accepted != identity[2]:
+                    raise RoomSessionError('Steering did not confirm the exact turn', outcome_unknown=True)
+            except asyncio.CancelledError:
+                self._steer_blocked_identity = identity
+                raise
+            except Exception as error:
+                self._steer_blocked_identity = identity
+                if not authorized():
+                    return unavailable()
+                unknown = not isinstance(error, RoomSessionError) or error.outcome_unknown
+                text = ('Tenant could not confirm that follow-up was added. It was not retried.' if unknown
+                        else 'That follow-up was not accepted. Nothing was retried.')
+                return [{'type': 'action', 'text': text}]
+            if not authorized():
+                return unavailable()
+            return [{'type': 'action', 'text': 'Added to current request'}]
+
     async def turn(self, guest_id, text):
         lease = self.leases.current(guest_id)
         if lease is None:
@@ -448,12 +496,18 @@ class ConversationAgent:
             return self.reply('Your room access has ended. Already-started effects may remain.')
         self.leases.current(guest_id, activate=True)
         generation = self._admit(guest_id)
+        identity, session = self._native_turn_identity, self._session
+        if (identity is not None and identity[:2] == (guest_id, generation)
+                and self._native_turn_lease is lease and session is not None
+                and session.active_turn_id == identity[2]):
+            return await self._steer_native_turn(text, guest_id, generation, lease, identity, session)
         async with self._lock:
             if self._failed:
                 return self.reply('Tenant could not verify a clean conversation. Ask the host to check the connection; nothing was retried.')
             if not self._allowed(guest_id, generation):
                 return self._denied(guest_id)
             self._native_turn_identity = None
+            self._native_turn_lease = None
             try:
                 await self._connect()
                 if self._clean_generation != generation:

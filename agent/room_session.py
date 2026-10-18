@@ -54,6 +54,7 @@ class RoomSession:
         self._completed_turns = set()
         self._activity_generation = 0
         self._start_lock = asyncio.Lock()
+        self._steer_blocked_turn = None
         self.resume_info = None
 
     @property
@@ -110,7 +111,7 @@ class RoomSession:
                     return await future
             except TimeoutError:
                 raise RoomSessionError('Room request timed out; it was not retried',
-                                       outcome_unknown=method == 'turn/start') from None
+                                       outcome_unknown=method in ('turn/start', 'turn/steer')) from None
         finally:
             self._pending.pop(request_id, None)
 
@@ -249,6 +250,46 @@ class RoomSession:
                 self.require_reset()
                 raise RoomSessionError('Invalid native turn status; it was not retried', outcome_unknown=True)
             return turn['id']
+
+    async def steer_turn(self, text, *, expected_turn_id, authorize=None):
+        """Append to exactly one active turn; never consume events or fall back.
+
+        The original turn's caller remains its only event consumer. An uncertain,
+        rejected or cancelled steer cannot be replayed into a later turn.
+        """
+        if not isinstance(text, str) or not text.strip() or len(text) > 8000:
+            raise ValueError('A room message of 1–8000 characters is required')
+        if not isinstance(expected_turn_id, str) or not expected_turn_id:
+            raise ValueError('An exact active native turn ID is required')
+        async with self._start_lock:
+            if self._reset_required or self._steer_blocked_turn == expected_turn_id:
+                raise RoomSessionError('Steering this room turn is blocked; nothing was retried', code='STEER_BLOCKED')
+            if self._active_turn != expected_turn_id or expected_turn_id in self._completed_turns:
+                raise RoomSessionError('The expected room turn is no longer active', code='STEER_INACTIVE')
+            if authorize is not None and not authorize():
+                raise RoomSessionError('Room access ended before steering', code='STEER_ACCESS_ENDED')
+            try:
+                result = await self._request('turn/steer', {'threadId': self.thread_id,
+                    'input': [{'type': 'text', 'text': text}], 'expectedTurnId': expected_turn_id})
+            except asyncio.CancelledError:
+                self._steer_blocked_turn = expected_turn_id
+                raise
+            except RoomSessionError:
+                self._steer_blocked_turn = expected_turn_id
+                raise
+            except Exception:
+                self._steer_blocked_turn = expected_turn_id
+                raise RoomSessionError('Room steering outcome is unknown; it was not retried',
+                                       outcome_unknown=True) from None
+            if result.get('turnId') != expected_turn_id:
+                self._steer_blocked_turn = expected_turn_id
+                raise RoomSessionError('Room steering returned an unexpected turn; it was not retried',
+                                       outcome_unknown=True)
+            if authorize is not None and not authorize():
+                self._steer_blocked_turn = expected_turn_id
+                raise RoomSessionError('Room access ended before steering confirmation',
+                                       code='STEER_ACCESS_ENDED', outcome_unknown=True)
+            return expected_turn_id
 
     async def read_thread(self, *, include_turns=False):
         return await self._request('thread/read', {'threadId': self.thread_id, 'includeTurns': include_turns})

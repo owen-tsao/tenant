@@ -183,3 +183,7 @@ Latest selection preference from Jay: the presentation-director, puzzle-room, vi
 Accepted for a small infrastructure experiment: two ordinary iPhones share live video through existing VDO.Ninja into this Mac's OBS. Establish distinct fresh feeds and visible WIDE/OBJECT cuts first, then try one silent semantic choice of the useful close-up when someone starts demonstrating an object. Camera setup is separate from Tenant's guest-entry QR; no Photo Booth, native phone app or new video stack. Keep both views warm before the demo, with a simple manual cut fallback.
 
 Current setup, evidence, limits and operator controls: [film crew](film-crew.md). Do not claim a proactive PASS, projector output, public guest lease integration or reliability from the working feed setup/software tests. This is creative coordination around useful attention, not the rejected band idea.
+
+## Queued: stronger beat flashes on the live orb
+
+Jay likes the supplied live orb and asks about flashing it on the song's beat. Current orb reacts to canonical audio energy at the verified player position. The selected CYANIDE path already provides analyzed beat timestamps; a separate beat envelope can drive orb brightness without a second clock or restarting music/lights. This is a small proposed visual change, queued behind the in-flight messaging fix. No new integration or beat-perfect physical synchronization is claimed.

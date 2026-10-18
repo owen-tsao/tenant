@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-18",
+  "scope": "Actual hidden browser DOM; local fake WebSocket and heldfirstreply, no publicguest/physicaleffect.",
+  "baseline": {
+    "send_disabled_with_first_reply_pending": true,
+    "second_request_count": 1
+  },
+  "candidate_states": [
+    {
+      "label": "not-connected-blocked",
+      "send_disabled": true,
+      "input_disabled": true,
+      "sent": 0,
+      "assistant_frames": 0
+    },
+    {
+      "label": "whitespace-blocked",
+      "send_disabled": false,
+      "input_disabled": false,
+      "sent": 0,
+      "assistant_frames": 0
+    },
+    {
+      "label": "first-send-held",
+      "send_disabled": false,
+      "input_disabled": false,
+      "sent": 1,
+      "assistant_frames": 0
+    },
+    {
+      "label": "second-send-before-any-assistant",
+      "send_disabled": false,
+      "input_disabled": false,
+      "sent": 2,
+      "assistant_frames": 0
+    },
+    {
+      "label": "chip-send-before-any-assistant",
+      "send_disabled": false,
+      "input_disabled": false,
+      "sent": 3,
+      "assistant_frames": 0
+    },
+    {
+      "label": "leave-pending-blocked",
+      "send_disabled": true,
+      "input_disabled": true,
+      "sent": 3,
+      "assistant_frames": 0
+    },
+    {
+      "label": "ended-even-after-late-frames",
+      "send_disabled": true,
+      "input_disabled": true,
+      "sent": 3,
+      "assistant_frames": 1
+    },
+    {
+      "label": "disconnected-pending-blocked",
+      "send_disabled": true,
+      "input_disabled": true,
+      "sent": 1,
+      "assistant_frames": 0
+    },
+    {
+      "label": "expired-blocked-after-late-active",
+      "send_disabled": true,
+      "input_disabled": true,
+      "sent": 1,
+      "assistant_frames": 0
+    },
+    {
+      "label": "transport-send-failure-blocked",
+      "send_disabled": true,
+      "input_disabled": true,
+      "sent": 0,
+      "assistant_frames": 0
+    },
+    {
+      "label": "literal-empty-blocked",
+      "send_disabled": false,
+      "input_disabled": false,
+      "sent": 0,
+      "assistant_frames": 0
+    }
+  ],
+  "candidate_exactly_three_guard_removals": true,
+  "user_authorization": "Jay explicitly approved applying only this Send fix to web/guest.html.",
+  "applied_source_sha256": "8fa8b21d32b59219476ad9533175112c154dda5346c3318e39ec2f4a647b9c34",
+  "limits": "DOM behavior only. Native steering and concurrent-channel end-to-end acceptance are separate."
+}
