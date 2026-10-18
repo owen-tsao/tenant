@@ -37,7 +37,7 @@
     ],
     "limits": [
       "Preview used mock data and caused zero physical effects.",
-      "Backend metadata has not yet been rolled out to the live room."
+      "Live frontend remains unchanged pending Owen application; new guest journey not accepted yet."
     ]
   },
   "required_before_scene_unlock": [
@@ -46,5 +46,79 @@
     "Real guest suggestion/free-chat/Leave plus offline-device and expiry/revocation visibility checks",
     "Unbriefed participant: observed first-use behavior and comprehension, with raw feedback retained"
   ],
-  "scene_gate": "CLOSED"
+  "scene_gate": "CLOSED",
+  "live_backend_permission_stream": {
+    "source_revision": "80358f2",
+    "status": "PASS_NO_PHYSICAL_EFFECTS",
+    "initial": {
+      "type": "lease",
+      "state": "joining",
+      "expires_in": 120,
+      "access_expires_in": 600,
+      "controls": [
+        {
+          "label": "Phone light",
+          "caps": [
+            "light"
+          ]
+        },
+        {
+          "label": "Phone lightJay phone",
+          "caps": [
+            "light"
+          ]
+        },
+        {
+          "label": "Room speaker",
+          "caps": [
+            "music.pause",
+            "music.play",
+            "say",
+            "volume"
+          ]
+        }
+      ]
+    },
+    "reconnected_after_seconds": 2.2,
+    "reconnected": {
+      "type": "lease",
+      "state": "joining",
+      "expires_in": 118,
+      "access_expires_in": 598,
+      "controls": [
+        {
+          "label": "Phone light",
+          "caps": [
+            "light"
+          ]
+        },
+        {
+          "label": "Phone lightJay phone",
+          "caps": [
+            "light"
+          ]
+        },
+        {
+          "label": "Room speaker",
+          "caps": [
+            "music.pause",
+            "music.play",
+            "say",
+            "volume"
+          ]
+        }
+      ]
+    },
+    "after_leave": {
+      "type": "lease",
+      "state": "released",
+      "reason": "ended",
+      "expires_in": 0,
+      "access_expires_in": 0,
+      "controls": []
+    },
+    "leave_to_terminal_including_socket_close_ms": 1005,
+    "physical_commands_sent": 0,
+    "model_calls": 0
+  }
 }

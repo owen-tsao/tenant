@@ -2,7 +2,7 @@ import asyncio
 import unittest
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
-from brain.core.registry import Registry
+from brain.core.registry import Registry, DeviceAlreadyConnected
 from brain.core.bus import Bus
 from brain.state import Room
 from brain.main import create_app
@@ -23,8 +23,9 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     def call(self, **kw):
         return asyncio.create_task(self.bus.call('phone','light',{'on':True},timeout=.1,authorize=lambda *a:True,**kw))
     async def test_registration_room_duplicate_and_empty_manifest(self):
-        with self.assertRaises(ValueError): self.registry.register(hello(room='WRONG'),Socket())
-        with self.assertRaises(ValueError): self.registry.register(hello(),Socket())
+        with self.assertRaises(ValueError) as bad: self.registry.register(hello(room='WRONG'),Socket())
+        self.assertNotIsInstance(bad.exception, DeviceAlreadyConnected)
+        with self.assertRaises(DeviceAlreadyConnected): self.registry.register(hello(),Socket())
         self.bus.disconnect(self.dev)
         frame=hello(); frame['caps']={}
         self.assertEqual(self.registry.register(frame,Socket()).caps,{})
@@ -92,22 +93,59 @@ class EndpointTests(unittest.TestCase):
         self.client = self.enterContext(TestClient(create_app(Config('device-secret','host-secret','TEST'))))
     def test_device_token_required(self):
         for suffix in ('','?t=wrong'):
-            with self.assertRaises(WebSocketDisconnect):
+            with self.assertRaises(WebSocketDisconnect) as caught:
                 with self.client.websocket_connect('/ws/device'+suffix): pass
+            self.assertEqual(caught.exception.code, 1008)
     def test_hello_welcome_ping_protocol(self):
         with self.client.websocket_connect('/ws/device?t=device-secret') as ws:
             ws.send_json(hello()); frame=ws.receive_json()
             self.assertEqual(frame['type'],'welcome'); self.assertEqual(frame['room'],'TEST')
             ws.send_json({'type':'pong'})
-    def test_bad_room_and_duplicate(self):
-        with self.client.websocket_connect('/ws/device?t=device-secret') as ws:
-            ws.send_json(hello(room='BAD'))
-            with self.assertRaises(WebSocketDisconnect): ws.receive_json()
-        with self.client.websocket_connect('/ws/device?t=device-secret') as first:
-            first.send_json(hello()); first.receive_json()
-            with self.client.websocket_connect('/ws/device?t=device-secret') as second:
-                second.send_json(hello())
-                with self.assertRaises(WebSocketDisconnect): second.receive_json()
+    def test_invalid_room_and_manifest_are_terminal_even_with_connected_id(self):
+        with self.client.websocket_connect('/ws/device?t=device-secret') as original:
+            original.send_json(hello()); original.receive_json()
+            invalid = hello(); invalid['caps']['light']['args'] = {'on': {'type': 'string'}}
+            for frame in (hello(room='BAD'), invalid):
+                with self.client.websocket_connect('/ws/device?t=device-secret') as rejected:
+                    rejected.send_json(frame)
+                    with self.assertRaises(WebSocketDisconnect) as caught: rejected.receive_json()
+                    self.assertEqual(caught.exception.code, 1008)
+            self.assertTrue(self.client.app.state.registry.devices['phone'].online)
+
+    def test_duplicate_is_retryable_preserves_original_queue_and_can_join_after_close(self):
+        from concurrent.futures import ThreadPoolExecutor
+        headers = {'Authorization': 'Bearer host-secret'}
+        app = self.client.app
+        with self.client.websocket_connect('/ws/device?t=device-secret') as original, ThreadPoolExecutor(max_workers=2) as pool:
+            original.send_json(hello()); self.assertEqual(original.receive_json()['type'], 'welcome')
+            device = app.state.registry.devices['phone']
+            first = pool.submit(self.client.post, '/host/do', headers=headers,
+                                json={'device_id': 'phone', 'cap': 'light', 'args': {'on': True}})
+            pending = original.receive_json()
+            second = pool.submit(self.client.post, '/host/do', headers=headers,
+                                 json={'device_id': 'phone', 'cap': 'light', 'args': {'on': False}})
+            with self.client.websocket_connect('/ws/device?t=device-secret') as duplicate:
+                duplicate.send_json(hello())
+                with self.assertRaises(WebSocketDisconnect) as caught: duplicate.receive_json()
+                self.assertEqual(caught.exception.code, 1013)
+                self.assertIn('already connected', caught.exception.reason)
+            self.assertIs(app.state.registry.devices['phone'], device)
+            self.assertTrue(device.online)
+            self.assertIs(app.state.bus.pending[pending['req']][0], device)
+            original.send_json({'type': 'ok', 'req': pending['req'], 'result': {'on': True}})
+            queued = original.receive_json()
+            self.assertEqual(queued['args'], {'on': False})
+            self.assertNotEqual(queued['req'], pending['req'])
+            original.send_json({'type': 'ok', 'req': queued['req'], 'result': {'on': False}})
+            self.assertEqual(first.result(2).json(), {'ok': True, 'result': {'on': True}})
+            self.assertEqual(second.result(2).json(), {'ok': True, 'result': {'on': False}})
+            self.assertIs(app.state.registry.devices['phone'], device)
+        self.assertFalse(device.online)
+        with self.client.websocket_connect('/ws/device?t=device-secret') as rejoined:
+            rejoined.send_json(hello())
+            self.assertEqual(rejoined.receive_json()['type'], 'welcome')
+            self.assertIsNot(app.state.registry.devices['phone'], device)
+            self.assertTrue(app.state.registry.devices['phone'].online)
     def test_host_do_reaches_device_and_correlates(self):
         from concurrent.futures import ThreadPoolExecutor
         with self.client.websocket_connect('/ws/device?t=device-secret') as ws:

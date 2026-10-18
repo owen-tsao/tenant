@@ -3,6 +3,7 @@ import contextlib
 import secrets
 import time
 from fastapi import WebSocketDisconnect
+from brain.core.registry import DeviceAlreadyConnected
 
 async def device_socket(ws, config, registry, bus, heartbeat=5.0):
     supplied = ws.query_params.get("t", "")
@@ -38,6 +39,9 @@ async def device_socket(ws, config, registry, bus, heartbeat=5.0):
             if frame.get("type") == "pong": dev.last_seen = time.monotonic()
             elif frame.get("type") in ("ok", "err"): bus.receive(dev, frame)
             else: raise ValueError("Unexpected frame")
+    except DeviceAlreadyConnected:
+        with contextlib.suppress(Exception):
+            await ws.close(code=1013, reason="This device is already connected. Wait for its previous connection to close.")
     except (WebSocketDisconnect, ValueError, TimeoutError):
         with contextlib.suppress(Exception): await ws.close(code=1008)
     finally:

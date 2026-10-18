@@ -24,6 +24,26 @@ test('in-flight duplicate and second command do not overlap',async()=>{let resol
 test('timeout is unknown and cannot be replayed while hardware operation remains pending',async()=>{let resolve;const f=fixture({apply:()=>new Promise(r=>resolve=r)});await f.join();f.frame({type:'welcome',room:'ROOM'});f.frame(command('r1',{deadline_ms:5}));await new Promise(r=>setTimeout(r,15));f.frame(command());f.frame(command('r2'));assert.equal(f.calls.length,1);assert.match(f.sockets[0].sent.find(x=>x.req==='r1').message,/unknown/);resolve();await tick();assert.equal(f.sockets[0].sent.filter(x=>x.req==='r1'&&x.type==='ok').length,0);f.element('leave').click();});
 test('disconnect reconnect sends hello without replaying action',async()=>{const f=fixture();await f.join();f.frame({type:'welcome',room:'ROOM'});f.frame(command());await tick();f.sockets[0].onclose({code:1006});await new Promise(r=>setTimeout(r,550));const ws=f.sockets[1];ws.onopen();f.frame({type:'welcome',room:'ROOM'},ws);f.frame(command(),ws);await tick();assert.equal(f.calls.length,1);assert.equal(ws.sent[0].type,'hello');assert.equal(ws.sent[1].type,'ok');f.element('leave').click();});
 
+test('duplicate-registration 1013 retries with live camera and never replays old action',async()=>{
+  const f=fixture();await f.join();f.frame({type:'welcome',room:'ROOM'});f.frame(command());await tick();
+  const first=f.sockets[0];first.readyState=3;first.onclose({code:1013});
+  assert.equal(f.document.body.dataset.state,'offline');assert.equal(f.track.readyState,'live');assert.equal(f.calls.length,1);
+  await new Promise(r=>setTimeout(r,550));
+  assert.equal(f.sockets.length,2);const next=f.sockets[1];next.onopen();
+  assert.equal(next.sent.length,1);assert.equal(next.sent[0].type,'hello');assert.equal(f.calls.length,1);
+  f.frame({type:'welcome',room:'ROOM'},next);f.frame(command(),next);await tick();
+  assert.equal(f.calls.length,1);assert.equal(next.sent.at(-1).type,'ok');assert.equal(next.sent.at(-1).req,'r1');
+  f.frame(command('r2',{args:{on:false}}),next);await tick();assert.equal(f.calls.length,2);
+  f.element('leave').click();
+});
+
+test('invalid-enrollment 1008 stays terminal and releases camera without retry',async()=>{
+  const f=fixture();await f.join();f.sockets[0].onclose({code:1008});
+  assert.equal(f.document.body.dataset.state,'error');assert.equal(f.track.readyState,'ended');
+  assert.equal(f.element('connect').disabled,false);assert.equal(f.element('leave').disabled,true);
+  await new Promise(r=>setTimeout(r,550));assert.equal(f.sockets.length,1);assert.equal(f.calls.length,0);
+});
+
 test('standard boolean capability sequence enrolls controllable torch',async()=>{const f=fixture({torch:[false,true]});await f.join();assert.equal(f.sockets.length,1);f.element('leave').click();});
 
 test('track ending disconnects and absent live permission cannot report success',async()=>{const f=fixture();await f.join();f.frame({type:'welcome',room:'ROOM'});f.track.readyState='ended';f.frame(command());await tick();assert.equal(f.calls.length,0);assert.equal(f.sockets[0].sent.at(-1).code,'PERMISSION');f.track.ended();assert.equal(f.document.body.dataset.state,'error');assert.equal(f.sockets[0].readyState,3);});

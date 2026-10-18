@@ -1,5 +1,10 @@
 from brain.state import Device, CapSpec
 
+
+class DeviceAlreadyConnected(ValueError):
+    """A valid device must wait for its existing connection to end."""
+
+
 class Registry:
     def __init__(self, room):
         self.room = room
@@ -53,7 +58,7 @@ class Registry:
                         raise ValueError("Invalid numeric bound")
             parsed[name] = CapSpec(name, spec["args"], spec["description"])
         if previous and previous.online:
-            raise ValueError("Device already connected")
+            raise DeviceAlreadyConnected("Device already connected")
         saved_aliases = self.enrollments.get(frame['id'])
         self.enrollments[frame['id']] = set(saved_aliases or ()) | {frame['room'], self.room.code}
         if not self.persist():
