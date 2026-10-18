@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-18",
+  "scope": "Actual native canonical player with null audio/video output; no audible or visible experiment.",
+  "audio_only_no_window": true,
+  "native_player_state_after_injected_space": {
+    "state": "playing",
+    "position_seconds": 0.611295,
+    "rate": 1.0
+  },
+  "owned_ipc_start_works": true,
+  "close_confirmed": true,
+  "late_pause_cause": "Unresolved in prior live trial; this removes an unnecessary player window and default key/media controls, not proof of causation."
+}

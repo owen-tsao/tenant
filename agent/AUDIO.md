@@ -252,3 +252,5 @@ physical audio/display synchronization measurement.
 Primary references: [mpv external files and tracks](https://mpv.io/manual/stable/#options-external-files),
 [mpv video synchronization](https://mpv.io/manual/stable/#options-video-sync),
 [FFmpeg gradients](https://ffmpeg.org/ffmpeg-filters.html#gradients).
+
+Audio-only managed songs open no player window and do not register default keyboard/media controls. The orb remains a separate transparent window. This prevents the audio player from competing for the demo screen/input; it does not establish the cause of the earlier unexplained pause.

@@ -217,13 +217,15 @@ class SongVisualTests(TestCase):
                                                '--af=', '--ao=')) for arg in argv))
         self.assertEqual(kwargs['pass_fds'], (77,))
 
-    def test_absent_visual_preserves_exact_existing_player_arguments(self):
+    def test_audio_only_has_no_window_or_unrelated_keyboard_media_controls(self):
         del self.record['visual']
         self.write_manifest()
         loaded = load_recording(self.manifest)
         argv, _ = self.capture_argv(loaded)
         self.assertEqual(argv, ['/fake/mpv', '--no-config', '--pause=yes', '--idle=no',
-            '--terminal=no', '--force-window=yes', '--audio-display=no', '--keep-open=yes',
+            '--terminal=no', '--force-window=no', '--audio-display=no',
+            '--input-default-bindings=no', '--input-media-keys=no', '--input-terminal=no',
+            '--media-controls=no', '--keep-open=yes',
             '--loop-file=no', '--input-ipc-client=fd://77',
             '--title=Daniel Caesar — Selected fixture', '--osd-level=3',
             '--osd-msg1=Daniel Caesar — Selected fixture', '--', str(self.audio_path)])

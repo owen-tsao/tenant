@@ -135,11 +135,13 @@ class MpvPlayer:
         self.visual_path = recording.get('visual', {}).get('path')
         try:
             # No mixer, device, output-volume, normalization or user config edits.
-            visual_args = (['--audio-display=embedded-first', '--external-file=' + self.visual_path,
+            visual_args = (['--force-window=yes', '--audio-display=embedded-first', '--external-file=' + self.visual_path,
                 '--aid=1', '--vid=1', '--video-sync=audio', '--fullscreen=no',
-                '--screen=1', '--geometry=1600x900+160+70'] if self.visual_path else ['--audio-display=no'])
+                '--screen=1', '--geometry=1600x900+160+70'] if self.visual_path else [
+                '--force-window=no', '--audio-display=no', '--input-default-bindings=no',
+                '--input-media-keys=no', '--input-terminal=no', '--media-controls=no'])
             self.process = popen([binary, '--no-config', '--pause=yes', '--idle=no',
-                '--terminal=no', '--force-window=yes', *visual_args,
+                '--terminal=no', *visual_args,
                 '--keep-open=yes', '--loop-file=no', '--input-ipc-client=fd://' + str(child.fileno()),
                 '--title=' + recording['artist'] + ' — ' + recording['title'],
                 '--osd-level=3', '--osd-msg1=' + recording['artist'] + ' — ' + recording['title'],

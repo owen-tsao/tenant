@@ -1,0 +1,2278 @@
+{
+  "date": "2026-10-18",
+  "revision": "4c16e3c",
+  "room": "F679",
+  "guest_id": "88268f85-93a0-4e11-a98d-5519a508461f",
+  "result": "FOUR_UI_TURNS_COMPLETED_WITH_CONTINUITY_LIMITATIONS",
+  "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+  "song_id": "daniel-caesar-cyanide-42b58460277a",
+  "physical_confirmation": {
+    "source": "Jay direct response to Root after actual trial",
+    "question": "In the test just run, did the orb appear on the TV and react to the music, with music and phone pulses continuing while it appeared and disappeared?",
+    "answer": "Yes \u2014 orb, music, and light worked together",
+    "scope": "Physical functional pass for show/hide while music/light run; no calibrated phase measurement or reliability claim. The separately observed later pause remains unresolved."
+  },
+  "request_times_ms": {
+    "start": 1792324358100,
+    "show": 1792324423489,
+    "hide": 1792324485440,
+    "stop": 1792324523108,
+    "leave": 1792324562325
+  },
+  "turns": [
+    {
+      "id": "01a14edb-5244-7481-8e77-693cda6a5bd4",
+      "startedAt": 1792324358,
+      "completedAt": null,
+      "native_snapshot_status": "interrupted",
+      "guest_ui_final_reply_observed": true,
+      "requests": [
+        "Play the prepared CYANIDE track by Daniel Caesar and have the connected phone light flash slowly with the music. Keep both running until I ask you to stop. Do not show any visuals yet."
+      ],
+      "commands": [
+        {
+          "id": "exec-6ee68027-6b4f-4ae1-92c6-abfbddbe903d",
+          "command": "/bin/zsh -lc '/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] inventory'",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "devices": [
+              {
+                "id": "laptop",
+                "online": true,
+                "busy": false
+              },
+              {
+                "id": "jay-visible-phone-oct17",
+                "online": true,
+                "busy": false
+              }
+            ],
+            "programs": {
+              "audio_devices": [
+                {
+                  "device_id": "laptop",
+                  "label": "Room speaker",
+                  "online": true,
+                  "generated_beat": true,
+                  "song_visual": true,
+                  "songs": [
+                    {
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "label": "Prepare selected real recording: Daniel Caesar \u2014 CYANIDE; never plays."
+                    }
+                  ]
+                }
+              ],
+              "programs": []
+            }
+          }
+        },
+        {
+          "id": "exec-84a643d8-c018-4262-bb70-f161a2e4518c",
+          "command": "/bin/zsh -lc '/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] --help'",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "truncated": true
+          }
+        },
+        {
+          "id": "exec-ee8392d8-d597-4a09-8eec-6b1fd44d5982",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] program-start <<'JSON'\n{}\nJSON\"",
+          "exitCode": 1,
+          "durationMs": 0,
+          "receipt": {
+            "ok": false,
+            "code": "INVALID",
+            "status": "unsent",
+            "message": "Invalid helper input. Nothing was sent."
+          }
+        },
+        {
+          "id": "exec-7abdc3cb-d515-49bd-ad42-bc559141cee4",
+          "command": "/bin/zsh -lc \"rg -n 'program-start|song_id|selected_recording|audio_device_id|light_device_id|tempo|prepare' /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py\"",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "truncated": true
+          }
+        },
+        {
+          "id": "exec-622b0e2c-07fc-4e3b-a261-1dd48e24e861",
+          "command": "/bin/zsh -lc \"sed -n '1,180p' /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py\"",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "truncated": true
+          }
+        },
+        {
+          "id": "exec-6df98759-219a-4ccc-9318-526fd0f6a14a",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] program-start <<'JSON'\n{\\\"request_id\\\":\\\"cyanide-prepare-20261018-001\\\",\\\"device_id\\\":\\\"laptop\\\",\\\"song_id\\\":\\\"daniel-caesar-cyanide-42b58460277a\\\"}\nJSON\"",
+          "exitCode": 0,
+          "durationMs": 543,
+          "receipt": {
+            "ok": true,
+            "complete": true,
+            "result": {
+              "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+              "state": "running",
+              "bpm": 79.5072115384615,
+              "source": "selected_recording",
+              "song_id": "daniel-caesar-cyanide-42b58460277a",
+              "title": "CYANIDE",
+              "artist": "Daniel Caesar",
+              "song_clock": {
+                "state": "ready",
+                "playhead_advancing": true,
+                "source": "recording-derived beat positions plus live mpv audio playhead",
+                "sample_age_ms": 0.045,
+                "sample_uncertainty_ms": 4.17,
+                "discontinuities": 0,
+                "physical_alignment_verified": false
+              },
+              "clock": "recording-derived beats mapped from bracketed live audio playhead",
+              "phase_wall_ms": 0,
+              "audio_device_id": "laptop",
+              "light_device_ids": [],
+              "participants": {},
+              "reserved_light_ids": [],
+              "missed_ticks": 0,
+              "reason": null,
+              "cleanup": {},
+              "recovery": {},
+              "recent_dispatch_timings": [],
+              "visual": {
+                "update_available": true,
+                "physical_rendering_verified": false
+              },
+              "physical_sync_measured": false,
+              "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+            },
+            "message": "Selected recording start accepted. Live playhead/beat estimate status is reported; hearing and physical light alignment remain unverified."
+          }
+        },
+        {
+          "id": "exec-382073af-9400-4ae0-b49d-ce938f181e6e",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] program-update <<'JSON'\n{\\\"request_id\\\":\\\"cyanide-novisual-20261018-002\\\",\\\"program_id\\\":\\\"p_d2e0a546ca78407ea1d39ca09982c655\\\",\\\"visual\\\":false}\nJSON\"",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "result": {
+              "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+              "state": "running",
+              "bpm": 79.5072115384615,
+              "source": "selected_recording",
+              "song_id": "daniel-caesar-cyanide-42b58460277a",
+              "title": "CYANIDE",
+              "artist": "Daniel Caesar",
+              "song_clock": {
+                "state": "ready",
+                "playhead_advancing": true,
+                "source": "recording-derived beat positions plus live mpv audio playhead",
+                "sample_age_ms": 16.298,
+                "sample_uncertainty_ms": 0.617,
+                "discontinuities": 0,
+                "physical_alignment_verified": false
+              },
+              "clock": "recording-derived beats mapped from bracketed live audio playhead",
+              "phase_wall_ms": 0,
+              "audio_device_id": "laptop",
+              "light_device_ids": [],
+              "participants": {},
+              "reserved_light_ids": [],
+              "missed_ticks": 0,
+              "reason": null,
+              "cleanup": {},
+              "recovery": {},
+              "recent_dispatch_timings": [],
+              "visual": {
+                "state": "hidden",
+                "requested_visible": false,
+                "acknowledged_visible": false,
+                "update_available": true,
+                "physical_rendering_verified": false
+              },
+              "physical_sync_measured": false,
+              "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+            },
+            "message": "Visual visibility acknowledged on the existing song player; physical rendering is unverified."
+          }
+        },
+        {
+          "id": "exec-db10170d-1013-4cea-b832-d77d8ab760ef",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] program-update <<'JSON'\n{\\\"request_id\\\":\\\"cyanide-light-20261018-003\\\",\\\"program_id\\\":\\\"p_d2e0a546ca78407ea1d39ca09982c655\\\",\\\"light_device_id\\\":\\\"jay-visible-phone-oct17\\\",\\\"light_beats_per_state\\\":2}\nJSON\"",
+          "exitCode": 0,
+          "durationMs": 1637,
+          "receipt": {
+            "ok": true,
+            "complete": true,
+            "result": {
+              "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+              "state": "running",
+              "bpm": 79.5072115384615,
+              "source": "selected_recording",
+              "song_id": "daniel-caesar-cyanide-42b58460277a",
+              "title": "CYANIDE",
+              "artist": "Daniel Caesar",
+              "song_clock": {
+                "state": "ready",
+                "playhead_advancing": true,
+                "source": "recording-derived beat positions plus live mpv audio playhead",
+                "sample_age_ms": 58.866,
+                "sample_uncertainty_ms": 1.103,
+                "discontinuities": 0,
+                "physical_alignment_verified": false
+              },
+              "clock": "recording-derived beats mapped from bracketed live audio playhead",
+              "phase_wall_ms": 0,
+              "audio_device_id": "laptop",
+              "light_device_ids": [
+                "jay-visible-phone-oct17"
+              ],
+              "participants": {
+                "jay-visible-phone-oct17": {
+                  "participant_state": "following",
+                  "light_beats_per_state": 2,
+                  "on_duration_ms": 1509.2970521541956,
+                  "off_duration_ms": 1509.2970521541956,
+                  "first_cycle": {
+                    "on_ack": true,
+                    "off_ack": true,
+                    "physical_verified": false
+                  },
+                  "durations_are_estimates": true,
+                  "timing_source": "actual per-beat timestamps, not median BPM"
+                }
+              },
+              "reserved_light_ids": [],
+              "missed_ticks": 0,
+              "reason": null,
+              "cleanup": {},
+              "recovery": {},
+              "recent_dispatch_timings": [
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 8,
+                  "song_time_seconds": 9.996190476190476,
+                  "target_monotonic_ms": 367880690.865,
+                  "dispatch_monotonic_ms": 367880691.994,
+                  "ack_monotonic_ms": 367880802.608,
+                  "playhead_uncertainty_ms": 0.908,
+                  "ack_code": "OK",
+                  "req": "r_e2402297b09d4d1d98ed8adba9afa25a"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 10,
+                  "song_time_seconds": 11.505487528344672,
+                  "target_monotonic_ms": 367882200.162,
+                  "dispatch_monotonic_ms": 367882200.294,
+                  "ack_monotonic_ms": 367882238.644,
+                  "playhead_uncertainty_ms": 1.103,
+                  "ack_code": "OK",
+                  "req": "r_111dedfc69c9473193ac1e282c815ac5"
+                }
+              ],
+              "visual": {
+                "state": "hidden",
+                "requested_visible": false,
+                "acknowledged_visible": false,
+                "update_available": true,
+                "physical_rendering_verified": false
+              },
+              "physical_sync_measured": false,
+              "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+            },
+            "message": "Each selected phone acknowledged its first ON and OFF. Visible pulses and physical synchronization remain unverified."
+          }
+        }
+      ]
+    },
+    {
+      "id": "01a14edc-4f73-7b91-8625-00f265f1b69c",
+      "startedAt": 1792324423,
+      "completedAt": null,
+      "native_snapshot_status": "interrupted",
+      "guest_ui_final_reply_observed": true,
+      "requests": [
+        "Show the live transparent orb on the TV, synced to the CYANIDE track that is already playing. Add it to the existing music program. Keep the music and phone light running without restarting either."
+      ],
+      "commands": [
+        {
+          "id": "exec-ab30adf3-937a-4348-b731-70db1e54a3a6",
+          "command": "/bin/zsh -lc '/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] inventory'",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "devices": [
+              {
+                "id": "laptop",
+                "online": true,
+                "busy": false
+              },
+              {
+                "id": "jay-visible-phone-oct17",
+                "online": true,
+                "busy": false
+              }
+            ],
+            "programs": {
+              "audio_devices": [
+                {
+                  "device_id": "laptop",
+                  "label": "Room speaker",
+                  "online": true,
+                  "generated_beat": true,
+                  "song_visual": true,
+                  "songs": [
+                    {
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "label": "Prepare selected real recording: Daniel Caesar \u2014 CYANIDE; never plays."
+                    }
+                  ]
+                }
+              ],
+              "programs": [
+                {
+                  "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+                  "state": "running",
+                  "bpm": 79.5072115384615,
+                  "source": "selected_recording",
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "title": "CYANIDE",
+                  "artist": "Daniel Caesar",
+                  "song_clock": {
+                    "state": "ready",
+                    "playhead_advancing": true,
+                    "source": "recording-derived beat positions plus live mpv audio playhead",
+                    "sample_age_ms": 69.91,
+                    "sample_uncertainty_ms": 0.885,
+                    "discontinuities": 0,
+                    "physical_alignment_verified": false
+                  },
+                  "clock": "recording-derived beats mapped from bracketed live audio playhead",
+                  "phase_wall_ms": 0,
+                  "audio_device_id": "laptop",
+                  "light_device_ids": [
+                    "jay-visible-phone-oct17"
+                  ],
+                  "participants": {
+                    "jay-visible-phone-oct17": {
+                      "participant_state": "following",
+                      "light_beats_per_state": 2,
+                      "on_duration_ms": 1509.2970521541956,
+                      "off_duration_ms": 1509.2970521541956,
+                      "first_cycle": {
+                        "on_ack": true,
+                        "off_ack": true,
+                        "physical_verified": false
+                      },
+                      "durations_are_estimates": true,
+                      "timing_source": "actual per-beat timestamps, not median BPM"
+                    }
+                  },
+                  "reserved_light_ids": [],
+                  "missed_ticks": 0,
+                  "reason": null,
+                  "cleanup": {},
+                  "recovery": {},
+                  "recent_dispatch_timings": [
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 22,
+                      "song_time_seconds": 20.654149659863947,
+                      "target_monotonic_ms": 367891348.614,
+                      "dispatch_monotonic_ms": 367891348.911,
+                      "ack_monotonic_ms": 367891453.612,
+                      "playhead_uncertainty_ms": 1.081,
+                      "ack_code": "OK",
+                      "req": "r_9a1ecae7458242a5b88580ccc05ec859"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 24,
+                      "song_time_seconds": 22.16344671201814,
+                      "target_monotonic_ms": 367892858.207,
+                      "dispatch_monotonic_ms": 367892859.549,
+                      "ack_monotonic_ms": 367893092.18,
+                      "playhead_uncertainty_ms": 0.854,
+                      "ack_code": "OK",
+                      "req": "r_3d240011ce0549f3aa5721fbb67e1545"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 26,
+                      "song_time_seconds": 23.672743764172335,
+                      "target_monotonic_ms": 367894367.504,
+                      "dispatch_monotonic_ms": 367894367.948,
+                      "ack_monotonic_ms": 367894422.118,
+                      "playhead_uncertainty_ms": 1.765,
+                      "ack_code": "OK",
+                      "req": "r_9cae6febbaa945dba9c556fb9c7da6f1"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 28,
+                      "song_time_seconds": 25.18204081632653,
+                      "target_monotonic_ms": 367895876.415,
+                      "dispatch_monotonic_ms": 367895877.886,
+                      "ack_monotonic_ms": 367895959.12,
+                      "playhead_uncertainty_ms": 1.351,
+                      "ack_code": "OK",
+                      "req": "r_a5d03fe495fe43e68dfd8cc046a6fc5d"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 30,
+                      "song_time_seconds": 26.691337868480726,
+                      "target_monotonic_ms": 367897385.712,
+                      "dispatch_monotonic_ms": 367897386.923,
+                      "ack_monotonic_ms": 367897493.708,
+                      "playhead_uncertainty_ms": 0.54,
+                      "ack_code": "OK",
+                      "req": "r_0a6be447798649458cfa42b89c6a3076"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 32,
+                      "song_time_seconds": 28.200634920634922,
+                      "target_monotonic_ms": 367898895.331,
+                      "dispatch_monotonic_ms": 367898896.983,
+                      "ack_monotonic_ms": 367898928.618,
+                      "playhead_uncertainty_ms": 0.765,
+                      "ack_code": "OK",
+                      "req": "r_160631833f104d1789fbb1ac9a93e4f1"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 34,
+                      "song_time_seconds": 29.709931972789114,
+                      "target_monotonic_ms": 367900404.628,
+                      "dispatch_monotonic_ms": 367900404.748,
+                      "ack_monotonic_ms": 367900464.464,
+                      "playhead_uncertainty_ms": 0.715,
+                      "ack_code": "OK",
+                      "req": "r_adc9393a07044955b8589c4fea81b2e4"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 36,
+                      "song_time_seconds": 31.21922902494331,
+                      "target_monotonic_ms": 367901914.004,
+                      "dispatch_monotonic_ms": 367901914.997,
+                      "ack_monotonic_ms": 367902000.302,
+                      "playhead_uncertainty_ms": 0.788,
+                      "ack_code": "OK",
+                      "req": "r_e2001c1548ab4ae0a72137283ef0c7ee"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 38,
+                      "song_time_seconds": 32.71691609977324,
+                      "target_monotonic_ms": 367903411.691,
+                      "dispatch_monotonic_ms": 367903412.288,
+                      "ack_monotonic_ms": 367903538.058,
+                      "playhead_uncertainty_ms": 0.862,
+                      "ack_code": "OK",
+                      "req": "r_1e350d10723d496db8f7caa8057cf68d"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 40,
+                      "song_time_seconds": 34.2378231292517,
+                      "target_monotonic_ms": 367904932.625,
+                      "dispatch_monotonic_ms": 367904932.808,
+                      "ack_monotonic_ms": 367904969.808,
+                      "playhead_uncertainty_ms": 0.64,
+                      "ack_code": "OK",
+                      "req": "r_32ade43e103944b6bf186971906a3102"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 42,
+                      "song_time_seconds": 35.7471201814059,
+                      "target_monotonic_ms": 367906441.922,
+                      "dispatch_monotonic_ms": 367906441.968,
+                      "ack_monotonic_ms": 367906509.419,
+                      "playhead_uncertainty_ms": 0.608,
+                      "ack_code": "OK",
+                      "req": "r_9a6e1ffaa372468bb710662a77816432"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 44,
+                      "song_time_seconds": 37.25641723356009,
+                      "target_monotonic_ms": 367907951.099,
+                      "dispatch_monotonic_ms": 367907952.57,
+                      "ack_monotonic_ms": 367907968.276,
+                      "playhead_uncertainty_ms": 0.836,
+                      "ack_code": "OK",
+                      "req": "r_1f7c488386534004b4ed11a2f57b2ed2"
+                    }
+                  ],
+                  "visual": {
+                    "state": "hidden",
+                    "requested_visible": false,
+                    "acknowledged_visible": false,
+                    "update_available": true,
+                    "physical_rendering_verified": false
+                  },
+                  "physical_sync_measured": false,
+                  "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "exec-226ae0a7-59b4-4ebc-bfc7-606a92d6f91a",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] program-update <<'JSON'\n{\\\"request_id\\\":\\\"cyanide-showorb-20261018-006\\\",\\\"program_id\\\":\\\"p_d2e0a546ca78407ea1d39ca09982c655\\\",\\\"visual\\\":true}\nJSON\"",
+          "exitCode": 0,
+          "durationMs": 832,
+          "receipt": {
+            "ok": true,
+            "result": {
+              "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+              "state": "running",
+              "bpm": 79.5072115384615,
+              "source": "selected_recording",
+              "song_id": "daniel-caesar-cyanide-42b58460277a",
+              "title": "CYANIDE",
+              "artist": "Daniel Caesar",
+              "song_clock": {
+                "state": "pending",
+                "playhead_advancing": true,
+                "source": "recording-derived beat positions plus live mpv audio playhead",
+                "sample_age_ms": 1107.896,
+                "sample_uncertainty_ms": 0.77,
+                "discontinuities": 0,
+                "physical_alignment_verified": false
+              },
+              "clock": "recording-derived beats mapped from bracketed live audio playhead",
+              "phase_wall_ms": 0,
+              "audio_device_id": "laptop",
+              "light_device_ids": [],
+              "participants": {
+                "jay-visible-phone-oct17": {
+                  "participant_state": "following",
+                  "light_beats_per_state": 2,
+                  "on_duration_ms": 1509.2970521541956,
+                  "off_duration_ms": 1509.2970521541956,
+                  "first_cycle": {
+                    "on_ack": true,
+                    "off_ack": true,
+                    "physical_verified": false
+                  },
+                  "durations_are_estimates": true,
+                  "timing_source": "actual per-beat timestamps, not median BPM"
+                }
+              },
+              "reserved_light_ids": [],
+              "missed_ticks": 0,
+              "reason": null,
+              "cleanup": {},
+              "recovery": {},
+              "recent_dispatch_timings": [
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 30,
+                  "song_time_seconds": 26.691337868480726,
+                  "target_monotonic_ms": 367897385.712,
+                  "dispatch_monotonic_ms": 367897386.923,
+                  "ack_monotonic_ms": 367897493.708,
+                  "playhead_uncertainty_ms": 0.54,
+                  "ack_code": "OK",
+                  "req": "r_0a6be447798649458cfa42b89c6a3076"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 32,
+                  "song_time_seconds": 28.200634920634922,
+                  "target_monotonic_ms": 367898895.331,
+                  "dispatch_monotonic_ms": 367898896.983,
+                  "ack_monotonic_ms": 367898928.618,
+                  "playhead_uncertainty_ms": 0.765,
+                  "ack_code": "OK",
+                  "req": "r_160631833f104d1789fbb1ac9a93e4f1"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 34,
+                  "song_time_seconds": 29.709931972789114,
+                  "target_monotonic_ms": 367900404.628,
+                  "dispatch_monotonic_ms": 367900404.748,
+                  "ack_monotonic_ms": 367900464.464,
+                  "playhead_uncertainty_ms": 0.715,
+                  "ack_code": "OK",
+                  "req": "r_adc9393a07044955b8589c4fea81b2e4"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 36,
+                  "song_time_seconds": 31.21922902494331,
+                  "target_monotonic_ms": 367901914.004,
+                  "dispatch_monotonic_ms": 367901914.997,
+                  "ack_monotonic_ms": 367902000.302,
+                  "playhead_uncertainty_ms": 0.788,
+                  "ack_code": "OK",
+                  "req": "r_e2001c1548ab4ae0a72137283ef0c7ee"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 38,
+                  "song_time_seconds": 32.71691609977324,
+                  "target_monotonic_ms": 367903411.691,
+                  "dispatch_monotonic_ms": 367903412.288,
+                  "ack_monotonic_ms": 367903538.058,
+                  "playhead_uncertainty_ms": 0.862,
+                  "ack_code": "OK",
+                  "req": "r_1e350d10723d496db8f7caa8057cf68d"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 40,
+                  "song_time_seconds": 34.2378231292517,
+                  "target_monotonic_ms": 367904932.625,
+                  "dispatch_monotonic_ms": 367904932.808,
+                  "ack_monotonic_ms": 367904969.808,
+                  "playhead_uncertainty_ms": 0.64,
+                  "ack_code": "OK",
+                  "req": "r_32ade43e103944b6bf186971906a3102"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 42,
+                  "song_time_seconds": 35.7471201814059,
+                  "target_monotonic_ms": 367906441.922,
+                  "dispatch_monotonic_ms": 367906441.968,
+                  "ack_monotonic_ms": 367906509.419,
+                  "playhead_uncertainty_ms": 0.608,
+                  "ack_code": "OK",
+                  "req": "r_9a6e1ffaa372468bb710662a77816432"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 44,
+                  "song_time_seconds": 37.25641723356009,
+                  "target_monotonic_ms": 367907951.099,
+                  "dispatch_monotonic_ms": 367907952.57,
+                  "ack_monotonic_ms": 367907968.276,
+                  "playhead_uncertainty_ms": 0.836,
+                  "ack_code": "OK",
+                  "req": "r_1f7c488386534004b4ed11a2f57b2ed2"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 46,
+                  "song_time_seconds": 38.76571428571429,
+                  "target_monotonic_ms": 367909460.396,
+                  "dispatch_monotonic_ms": 367909461.758,
+                  "ack_monotonic_ms": 367909578.273,
+                  "playhead_uncertainty_ms": 0.888,
+                  "ack_code": "OK",
+                  "req": "r_90baebaee66045c98fba79bbb76282f2"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 48,
+                  "song_time_seconds": 40.27501133786848,
+                  "target_monotonic_ms": 367910969.683,
+                  "dispatch_monotonic_ms": 367910971.005,
+                  "ack_monotonic_ms": 367911012.216,
+                  "playhead_uncertainty_ms": 0.85,
+                  "ack_code": "OK",
+                  "req": "r_33112834c9974f6184a3a98b578c3489"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 50,
+                  "song_time_seconds": 41.78430839002267,
+                  "target_monotonic_ms": 367912478.98,
+                  "dispatch_monotonic_ms": 367912480.846,
+                  "ack_monotonic_ms": 367913062.449,
+                  "playhead_uncertainty_ms": 0.781,
+                  "ack_code": "OK",
+                  "req": "r_788522394f4548a4a87e8c01ef857c4f"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 52,
+                  "song_time_seconds": 43.29360544217687,
+                  "target_monotonic_ms": 367913988.375,
+                  "dispatch_monotonic_ms": 367913989.658,
+                  "ack_monotonic_ms": 367914083.9,
+                  "playhead_uncertainty_ms": 0.77,
+                  "ack_code": "OK",
+                  "req": "r_dffefd870ffd4112b01212d0504bb1a9"
+                }
+              ],
+              "visual": {
+                "state": "shown",
+                "requested_visible": true,
+                "acknowledged_visible": true,
+                "update_available": true,
+                "physical_rendering_verified": false
+              },
+              "physical_sync_measured": false,
+              "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+            },
+            "message": "Visual visibility acknowledged on the existing song player; physical rendering is unverified."
+          }
+        },
+        {
+          "id": "exec-8d181058-e957-4c3c-bd71-2fe617f2a5d8",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] program-status <<'JSON'\n{\\\"request_id\\\":\\\"cyanide-orbstatus-20261018-007\\\",\\\"program_id\\\":\\\"p_d2e0a546ca78407ea1d39ca09982c655\\\"}\nJSON\"",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "result": {
+              "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+              "state": "running",
+              "bpm": 79.5072115384615,
+              "source": "selected_recording",
+              "song_id": "daniel-caesar-cyanide-42b58460277a",
+              "title": "CYANIDE",
+              "artist": "Daniel Caesar",
+              "song_clock": {
+                "state": "ready",
+                "playhead_advancing": true,
+                "source": "recording-derived beat positions plus live mpv audio playhead",
+                "sample_age_ms": 16.539,
+                "sample_uncertainty_ms": 0.598,
+                "discontinuities": 0,
+                "physical_alignment_verified": false
+              },
+              "clock": "recording-derived beats mapped from bracketed live audio playhead",
+              "phase_wall_ms": 0,
+              "audio_device_id": "laptop",
+              "light_device_ids": [
+                "jay-visible-phone-oct17"
+              ],
+              "participants": {
+                "jay-visible-phone-oct17": {
+                  "participant_state": "following",
+                  "light_beats_per_state": 2,
+                  "on_duration_ms": 1509.2970521541956,
+                  "off_duration_ms": 1509.2970521541956,
+                  "first_cycle": {
+                    "on_ack": true,
+                    "off_ack": true,
+                    "physical_verified": false
+                  },
+                  "durations_are_estimates": true,
+                  "timing_source": "actual per-beat timestamps, not median BPM"
+                }
+              },
+              "reserved_light_ids": [],
+              "missed_ticks": 0,
+              "reason": null,
+              "cleanup": {},
+              "recovery": {},
+              "recent_dispatch_timings": [
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 54,
+                  "song_time_seconds": 44.81451247165533,
+                  "target_monotonic_ms": 367915509.282,
+                  "dispatch_monotonic_ms": 367915509.569,
+                  "ack_monotonic_ms": 367915621.554,
+                  "playhead_uncertainty_ms": 0.803,
+                  "ack_code": "OK",
+                  "req": "r_520a4bbbcf6c48f4866333798b369791"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 56,
+                  "song_time_seconds": 46.31219954648526,
+                  "target_monotonic_ms": 367917006.854,
+                  "dispatch_monotonic_ms": 367917008.071,
+                  "ack_monotonic_ms": 367917139.26,
+                  "playhead_uncertainty_ms": 0.76,
+                  "ack_code": "OK",
+                  "req": "r_a95d65e1cace4ee1be1e2bee9d72fdcb"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 58,
+                  "song_time_seconds": 47.821496598639456,
+                  "target_monotonic_ms": 367918516.151,
+                  "dispatch_monotonic_ms": 367918516.744,
+                  "ack_monotonic_ms": 367918590.503,
+                  "playhead_uncertainty_ms": 1.194,
+                  "ack_code": "OK",
+                  "req": "r_f547c5e7ba77463f8fc5a9b7815b8a82"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 60,
+                  "song_time_seconds": 49.33079365079365,
+                  "target_monotonic_ms": 367920025.57,
+                  "dispatch_monotonic_ms": 367920027.099,
+                  "ack_monotonic_ms": 367920125.64,
+                  "playhead_uncertainty_ms": 0.644,
+                  "ack_code": "OK",
+                  "req": "r_425059c3d1664c748e317aa47aacea1d"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 62,
+                  "song_time_seconds": 50.84009070294785,
+                  "target_monotonic_ms": 367921534.867,
+                  "dispatch_monotonic_ms": 367921535.059,
+                  "ack_monotonic_ms": 367921659.67,
+                  "playhead_uncertainty_ms": 0.796,
+                  "ack_code": "OK",
+                  "req": "r_2de0a8fcfdb74cb8a1391190be3eb6ee"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 64,
+                  "song_time_seconds": 52.23328798185941,
+                  "target_monotonic_ms": 367922928.015,
+                  "dispatch_monotonic_ms": 367922929.105,
+                  "ack_monotonic_ms": 367922945.018,
+                  "playhead_uncertainty_ms": 0.863,
+                  "ack_code": "OK",
+                  "req": "r_1f53d9499a334c4d8ad8d173eb657ae0"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 66,
+                  "song_time_seconds": 53.84707482993197,
+                  "target_monotonic_ms": 367924541.802,
+                  "dispatch_monotonic_ms": 367924542.913,
+                  "ack_monotonic_ms": 367924631.277,
+                  "playhead_uncertainty_ms": 1.007,
+                  "ack_code": "OK",
+                  "req": "r_2947814aea8840859e97d6f749b3894d"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 68,
+                  "song_time_seconds": 55.36798185941043,
+                  "target_monotonic_ms": 367926062.799,
+                  "dispatch_monotonic_ms": 367926063.782,
+                  "ack_monotonic_ms": 367926167.321,
+                  "playhead_uncertainty_ms": 0.653,
+                  "ack_code": "OK",
+                  "req": "r_bfcef7e2621d40a88e563d852d6f56af"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 70,
+                  "song_time_seconds": 56.888888888888886,
+                  "target_monotonic_ms": 367927583.706,
+                  "dispatch_monotonic_ms": 367927583.863,
+                  "ack_monotonic_ms": 367927704.236,
+                  "playhead_uncertainty_ms": 1.384,
+                  "ack_code": "OK",
+                  "req": "r_c599d017f002477ea1f790bcb5ea4ce1"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 72,
+                  "song_time_seconds": 58.38657596371882,
+                  "target_monotonic_ms": 367929081.237,
+                  "dispatch_monotonic_ms": 367929081.966,
+                  "ack_monotonic_ms": 367929205.571,
+                  "playhead_uncertainty_ms": 0.956,
+                  "ack_code": "OK",
+                  "req": "r_1b3382c5f4f048e7996cb4a332a25cad"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 74,
+                  "song_time_seconds": 59.895873015873015,
+                  "target_monotonic_ms": 367930590.534,
+                  "dispatch_monotonic_ms": 367930591.638,
+                  "ack_monotonic_ms": 367930609.967,
+                  "playhead_uncertainty_ms": 0.987,
+                  "ack_code": "OK",
+                  "req": "r_573d438b3ccd498abe9e666985371d48"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 76,
+                  "song_time_seconds": 61.40517006802721,
+                  "target_monotonic_ms": 367932099.745,
+                  "dispatch_monotonic_ms": 367932100.962,
+                  "ack_monotonic_ms": 367932208.873,
+                  "playhead_uncertainty_ms": 0.827,
+                  "ack_code": "OK",
+                  "req": "r_a06fa8276ec94fcba9676fa9af99e392"
+                }
+              ],
+              "visual": {
+                "state": "shown",
+                "requested_visible": true,
+                "acknowledged_visible": true,
+                "update_available": true,
+                "physical_rendering_verified": false
+              },
+              "physical_sync_measured": false,
+              "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "01a14edd-4186-7293-9278-e0900abd5305",
+      "startedAt": 1792324485,
+      "completedAt": 1792324506,
+      "native_snapshot_status": "completed",
+      "guest_ui_final_reply_observed": true,
+      "requests": [
+        "Hide only the orb now. Keep the existing CYANIDE music and phone flashes running without restarting them."
+      ],
+      "commands": [
+        {
+          "id": "exec-2cbc4549-661e-48aa-b85c-7f99f1576513",
+          "command": "/bin/zsh -lc '/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] inventory'",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "devices": [
+              {
+                "id": "laptop",
+                "online": true,
+                "busy": false
+              },
+              {
+                "id": "jay-visible-phone-oct17",
+                "online": true,
+                "busy": false
+              }
+            ],
+            "programs": {
+              "audio_devices": [
+                {
+                  "device_id": "laptop",
+                  "label": "Room speaker",
+                  "online": true,
+                  "generated_beat": true,
+                  "song_visual": true,
+                  "songs": [
+                    {
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "label": "Prepare selected real recording: Daniel Caesar \u2014 CYANIDE; never plays."
+                    }
+                  ]
+                }
+              ],
+              "programs": [
+                {
+                  "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+                  "state": "running",
+                  "bpm": 79.5072115384615,
+                  "source": "selected_recording",
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "title": "CYANIDE",
+                  "artist": "Daniel Caesar",
+                  "song_clock": {
+                    "state": "ready",
+                    "playhead_advancing": true,
+                    "source": "recording-derived beat positions plus live mpv audio playhead",
+                    "sample_age_ms": 177.721,
+                    "sample_uncertainty_ms": 0.674,
+                    "discontinuities": 0,
+                    "physical_alignment_verified": false
+                  },
+                  "clock": "recording-derived beats mapped from bracketed live audio playhead",
+                  "phase_wall_ms": 0,
+                  "audio_device_id": "laptop",
+                  "light_device_ids": [
+                    "jay-visible-phone-oct17"
+                  ],
+                  "participants": {
+                    "jay-visible-phone-oct17": {
+                      "participant_state": "following",
+                      "light_beats_per_state": 2,
+                      "on_duration_ms": 1509.2970521541956,
+                      "off_duration_ms": 1509.2970521541956,
+                      "first_cycle": {
+                        "on_ack": true,
+                        "off_ack": true,
+                        "physical_verified": false
+                      },
+                      "durations_are_estimates": true,
+                      "timing_source": "actual per-beat timestamps, not median BPM"
+                    }
+                  },
+                  "reserved_light_ids": [],
+                  "missed_ticks": 0,
+                  "reason": null,
+                  "cleanup": {},
+                  "recovery": {},
+                  "recent_dispatch_timings": [
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 104,
+                      "song_time_seconds": 82.53532879818594,
+                      "target_monotonic_ms": 367953230.144,
+                      "dispatch_monotonic_ms": 367953230.86,
+                      "ack_monotonic_ms": 367953408.886,
+                      "playhead_uncertainty_ms": 0.797,
+                      "ack_code": "OK",
+                      "req": "r_fc509930fd874dd483d3d45fdf07c64b"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 106,
+                      "song_time_seconds": 84.04462585034014,
+                      "target_monotonic_ms": 367954739.441,
+                      "dispatch_monotonic_ms": 367954740.667,
+                      "ack_monotonic_ms": 367954887.148,
+                      "playhead_uncertainty_ms": 0.551,
+                      "ack_code": "OK",
+                      "req": "r_1da7341013b84ff2962f69f53fba9fd5"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 108,
+                      "song_time_seconds": 85.54231292517007,
+                      "target_monotonic_ms": 367956236.652,
+                      "dispatch_monotonic_ms": 367956237.316,
+                      "ack_monotonic_ms": 367956272.056,
+                      "playhead_uncertainty_ms": 1.681,
+                      "ack_code": "OK",
+                      "req": "r_bfc34efeab31473ba1c24d7aff358cc5"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 110,
+                      "song_time_seconds": 87.07482993197279,
+                      "target_monotonic_ms": 367957769.169,
+                      "dispatch_monotonic_ms": 367957769.953,
+                      "ack_monotonic_ms": 367957810.123,
+                      "playhead_uncertainty_ms": 1.613,
+                      "ack_code": "OK",
+                      "req": "r_d4d26cc63115413d86fbed346e294c00"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 112,
+                      "song_time_seconds": 88.57251700680273,
+                      "target_monotonic_ms": 367959267.215,
+                      "dispatch_monotonic_ms": 367959268.684,
+                      "ack_monotonic_ms": 367959283.547,
+                      "playhead_uncertainty_ms": 0.863,
+                      "ack_code": "OK",
+                      "req": "r_aa95503148fa40d49eb4559cbd429374"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 114,
+                      "song_time_seconds": 90.09342403628118,
+                      "target_monotonic_ms": 367960788.122,
+                      "dispatch_monotonic_ms": 367960788.218,
+                      "ack_monotonic_ms": 367960804.452,
+                      "playhead_uncertainty_ms": 0.765,
+                      "ack_code": "OK",
+                      "req": "r_b359e5cba5a84252bf191e89872fa3da"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 116,
+                      "song_time_seconds": 91.5911111111111,
+                      "target_monotonic_ms": 367962285.686,
+                      "dispatch_monotonic_ms": 367962286.781,
+                      "ack_monotonic_ms": 367962316.187,
+                      "playhead_uncertainty_ms": 1.678,
+                      "ack_code": "OK",
+                      "req": "r_f1eea2b7eef94b9daa13cd4d65e7e2d2"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 118,
+                      "song_time_seconds": 93.1004081632653,
+                      "target_monotonic_ms": 367963794.983,
+                      "dispatch_monotonic_ms": 367963796.093,
+                      "ack_monotonic_ms": 367963853.981,
+                      "playhead_uncertainty_ms": 0.906,
+                      "ack_code": "OK",
+                      "req": "r_c230b29d7e3645289e9279e245c4f20a"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 120,
+                      "song_time_seconds": 94.6097052154195,
+                      "target_monotonic_ms": 367965303.951,
+                      "dispatch_monotonic_ms": 367965304.114,
+                      "ack_monotonic_ms": 367965488.534,
+                      "playhead_uncertainty_ms": 1.14,
+                      "ack_code": "OK",
+                      "req": "r_44af1b30e67a43679d25ed892c7c993d"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 122,
+                      "song_time_seconds": 96.11900226757369,
+                      "target_monotonic_ms": 367966813.248,
+                      "dispatch_monotonic_ms": 367966813.33,
+                      "ack_monotonic_ms": 367966945.933,
+                      "playhead_uncertainty_ms": 0.572,
+                      "ack_code": "OK",
+                      "req": "r_18cbca57f76641149a978e9b484059bd"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 124,
+                      "song_time_seconds": 97.61668934240363,
+                      "target_monotonic_ms": 367968310.868,
+                      "dispatch_monotonic_ms": 367968312.326,
+                      "ack_monotonic_ms": 367968357.046,
+                      "playhead_uncertainty_ms": 1.8,
+                      "ack_code": "OK",
+                      "req": "r_27892d5c27584d28bd020b8e103b69e4"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 126,
+                      "song_time_seconds": 99.16081632653061,
+                      "target_monotonic_ms": 367969854.995,
+                      "dispatch_monotonic_ms": 367969856.541,
+                      "ack_monotonic_ms": 367969892.959,
+                      "playhead_uncertainty_ms": 0.79,
+                      "ack_code": "OK",
+                      "req": "r_118df82e55ff41598b79771b85b63b62"
+                    }
+                  ],
+                  "visual": {
+                    "state": "shown",
+                    "requested_visible": true,
+                    "acknowledged_visible": true,
+                    "update_available": true,
+                    "physical_rendering_verified": false
+                  },
+                  "physical_sync_measured": false,
+                  "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "exec-7ef78153-00ab-474e-b65e-7b71aaf524dc",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] program-update <<'JSON'\n{\\\"request_id\\\":\\\"cyanide-hideorb-20261018-009\\\",\\\"program_id\\\":\\\"p_d2e0a546ca78407ea1d39ca09982c655\\\",\\\"visual\\\":false}\nJSON\"",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "result": {
+              "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+              "state": "running",
+              "bpm": 79.5072115384615,
+              "source": "selected_recording",
+              "song_id": "daniel-caesar-cyanide-42b58460277a",
+              "title": "CYANIDE",
+              "artist": "Daniel Caesar",
+              "song_clock": {
+                "state": "ready",
+                "playhead_advancing": true,
+                "source": "recording-derived beat positions plus live mpv audio playhead",
+                "sample_age_ms": 163.359,
+                "sample_uncertainty_ms": 0.774,
+                "discontinuities": 0,
+                "physical_alignment_verified": false
+              },
+              "clock": "recording-derived beats mapped from bracketed live audio playhead",
+              "phase_wall_ms": 0,
+              "audio_device_id": "laptop",
+              "light_device_ids": [
+                "jay-visible-phone-oct17"
+              ],
+              "participants": {
+                "jay-visible-phone-oct17": {
+                  "participant_state": "following",
+                  "light_beats_per_state": 2,
+                  "on_duration_ms": 1509.2970521541956,
+                  "off_duration_ms": 1509.2970521541956,
+                  "first_cycle": {
+                    "on_ack": true,
+                    "off_ack": true,
+                    "physical_verified": false
+                  },
+                  "durations_are_estimates": true,
+                  "timing_source": "actual per-beat timestamps, not median BPM"
+                }
+              },
+              "reserved_light_ids": [],
+              "missed_ticks": 0,
+              "reason": null,
+              "cleanup": {},
+              "recovery": {},
+              "recent_dispatch_timings": [
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 110,
+                  "song_time_seconds": 87.07482993197279,
+                  "target_monotonic_ms": 367957769.169,
+                  "dispatch_monotonic_ms": 367957769.953,
+                  "ack_monotonic_ms": 367957810.123,
+                  "playhead_uncertainty_ms": 1.613,
+                  "ack_code": "OK",
+                  "req": "r_d4d26cc63115413d86fbed346e294c00"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 112,
+                  "song_time_seconds": 88.57251700680273,
+                  "target_monotonic_ms": 367959267.215,
+                  "dispatch_monotonic_ms": 367959268.684,
+                  "ack_monotonic_ms": 367959283.547,
+                  "playhead_uncertainty_ms": 0.863,
+                  "ack_code": "OK",
+                  "req": "r_aa95503148fa40d49eb4559cbd429374"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 114,
+                  "song_time_seconds": 90.09342403628118,
+                  "target_monotonic_ms": 367960788.122,
+                  "dispatch_monotonic_ms": 367960788.218,
+                  "ack_monotonic_ms": 367960804.452,
+                  "playhead_uncertainty_ms": 0.765,
+                  "ack_code": "OK",
+                  "req": "r_b359e5cba5a84252bf191e89872fa3da"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 116,
+                  "song_time_seconds": 91.5911111111111,
+                  "target_monotonic_ms": 367962285.686,
+                  "dispatch_monotonic_ms": 367962286.781,
+                  "ack_monotonic_ms": 367962316.187,
+                  "playhead_uncertainty_ms": 1.678,
+                  "ack_code": "OK",
+                  "req": "r_f1eea2b7eef94b9daa13cd4d65e7e2d2"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 118,
+                  "song_time_seconds": 93.1004081632653,
+                  "target_monotonic_ms": 367963794.983,
+                  "dispatch_monotonic_ms": 367963796.093,
+                  "ack_monotonic_ms": 367963853.981,
+                  "playhead_uncertainty_ms": 0.906,
+                  "ack_code": "OK",
+                  "req": "r_c230b29d7e3645289e9279e245c4f20a"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 120,
+                  "song_time_seconds": 94.6097052154195,
+                  "target_monotonic_ms": 367965303.951,
+                  "dispatch_monotonic_ms": 367965304.114,
+                  "ack_monotonic_ms": 367965488.534,
+                  "playhead_uncertainty_ms": 1.14,
+                  "ack_code": "OK",
+                  "req": "r_44af1b30e67a43679d25ed892c7c993d"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 122,
+                  "song_time_seconds": 96.11900226757369,
+                  "target_monotonic_ms": 367966813.248,
+                  "dispatch_monotonic_ms": 367966813.33,
+                  "ack_monotonic_ms": 367966945.933,
+                  "playhead_uncertainty_ms": 0.572,
+                  "ack_code": "OK",
+                  "req": "r_18cbca57f76641149a978e9b484059bd"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 124,
+                  "song_time_seconds": 97.61668934240363,
+                  "target_monotonic_ms": 367968310.868,
+                  "dispatch_monotonic_ms": 367968312.326,
+                  "ack_monotonic_ms": 367968357.046,
+                  "playhead_uncertainty_ms": 1.8,
+                  "ack_code": "OK",
+                  "req": "r_27892d5c27584d28bd020b8e103b69e4"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 126,
+                  "song_time_seconds": 99.16081632653061,
+                  "target_monotonic_ms": 367969854.995,
+                  "dispatch_monotonic_ms": 367969856.541,
+                  "ack_monotonic_ms": 367969892.959,
+                  "playhead_uncertainty_ms": 0.79,
+                  "ack_code": "OK",
+                  "req": "r_118df82e55ff41598b79771b85b63b62"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 128,
+                  "song_time_seconds": 100.86748299319729,
+                  "target_monotonic_ms": 367971561.828,
+                  "dispatch_monotonic_ms": 367971563.839,
+                  "ack_monotonic_ms": 367971669.376,
+                  "playhead_uncertainty_ms": 1.478,
+                  "ack_code": "OK",
+                  "req": "r_b3f4ce8911894cd78f72f485be12cd69"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 130,
+                  "song_time_seconds": 102.38839002267574,
+                  "target_monotonic_ms": 367973082.735,
+                  "dispatch_monotonic_ms": 367973084.452,
+                  "ack_monotonic_ms": 367973239.147,
+                  "playhead_uncertainty_ms": 0.705,
+                  "ack_code": "OK",
+                  "req": "r_320aebde119a43d5b0c3d1e202b491a9"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 132,
+                  "song_time_seconds": 103.65387755102041,
+                  "target_monotonic_ms": 367974348.571,
+                  "dispatch_monotonic_ms": 367974350.193,
+                  "ack_monotonic_ms": 367974396.798,
+                  "playhead_uncertainty_ms": 0.897,
+                  "ack_code": "OK",
+                  "req": "r_a20f308ea7704478bca328f6de69f6be"
+                }
+              ],
+              "visual": {
+                "state": "hidden",
+                "requested_visible": false,
+                "acknowledged_visible": false,
+                "update_available": true,
+                "physical_rendering_verified": false
+              },
+              "physical_sync_measured": false,
+              "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+            },
+            "message": "Visual visibility acknowledged on the existing song player; physical rendering is unverified."
+          }
+        },
+        {
+          "id": "exec-28dde54e-b6ca-495a-b21e-8569b62f94f7",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] program-status <<'JSON'\n{\\\"request_id\\\":\\\"cyanide-hiddenstatus-20261018-010\\\",\\\"program_id\\\":\\\"p_d2e0a546ca78407ea1d39ca09982c655\\\"}\nJSON\"",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "result": {
+              "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+              "state": "running",
+              "bpm": 79.5072115384615,
+              "source": "selected_recording",
+              "song_id": "daniel-caesar-cyanide-42b58460277a",
+              "title": "CYANIDE",
+              "artist": "Daniel Caesar",
+              "song_clock": {
+                "state": "ready",
+                "playhead_advancing": true,
+                "source": "recording-derived beat positions plus live mpv audio playhead",
+                "sample_age_ms": 60.247,
+                "sample_uncertainty_ms": 1.223,
+                "discontinuities": 0,
+                "physical_alignment_verified": false
+              },
+              "clock": "recording-derived beats mapped from bracketed live audio playhead",
+              "phase_wall_ms": 0,
+              "audio_device_id": "laptop",
+              "light_device_ids": [
+                "jay-visible-phone-oct17"
+              ],
+              "participants": {
+                "jay-visible-phone-oct17": {
+                  "participant_state": "following",
+                  "light_beats_per_state": 2,
+                  "on_duration_ms": 1509.2970521541956,
+                  "off_duration_ms": 1509.2970521541956,
+                  "first_cycle": {
+                    "on_ack": true,
+                    "off_ack": true,
+                    "physical_verified": false
+                  },
+                  "durations_are_estimates": true,
+                  "timing_source": "actual per-beat timestamps, not median BPM"
+                }
+              },
+              "reserved_light_ids": [],
+              "missed_ticks": 0,
+              "reason": null,
+              "cleanup": {},
+              "recovery": {},
+              "recent_dispatch_timings": [
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 116,
+                  "song_time_seconds": 91.5911111111111,
+                  "target_monotonic_ms": 367962285.686,
+                  "dispatch_monotonic_ms": 367962286.781,
+                  "ack_monotonic_ms": 367962316.187,
+                  "playhead_uncertainty_ms": 1.678,
+                  "ack_code": "OK",
+                  "req": "r_f1eea2b7eef94b9daa13cd4d65e7e2d2"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 118,
+                  "song_time_seconds": 93.1004081632653,
+                  "target_monotonic_ms": 367963794.983,
+                  "dispatch_monotonic_ms": 367963796.093,
+                  "ack_monotonic_ms": 367963853.981,
+                  "playhead_uncertainty_ms": 0.906,
+                  "ack_code": "OK",
+                  "req": "r_c230b29d7e3645289e9279e245c4f20a"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 120,
+                  "song_time_seconds": 94.6097052154195,
+                  "target_monotonic_ms": 367965303.951,
+                  "dispatch_monotonic_ms": 367965304.114,
+                  "ack_monotonic_ms": 367965488.534,
+                  "playhead_uncertainty_ms": 1.14,
+                  "ack_code": "OK",
+                  "req": "r_44af1b30e67a43679d25ed892c7c993d"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 122,
+                  "song_time_seconds": 96.11900226757369,
+                  "target_monotonic_ms": 367966813.248,
+                  "dispatch_monotonic_ms": 367966813.33,
+                  "ack_monotonic_ms": 367966945.933,
+                  "playhead_uncertainty_ms": 0.572,
+                  "ack_code": "OK",
+                  "req": "r_18cbca57f76641149a978e9b484059bd"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 124,
+                  "song_time_seconds": 97.61668934240363,
+                  "target_monotonic_ms": 367968310.868,
+                  "dispatch_monotonic_ms": 367968312.326,
+                  "ack_monotonic_ms": 367968357.046,
+                  "playhead_uncertainty_ms": 1.8,
+                  "ack_code": "OK",
+                  "req": "r_27892d5c27584d28bd020b8e103b69e4"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 126,
+                  "song_time_seconds": 99.16081632653061,
+                  "target_monotonic_ms": 367969854.995,
+                  "dispatch_monotonic_ms": 367969856.541,
+                  "ack_monotonic_ms": 367969892.959,
+                  "playhead_uncertainty_ms": 0.79,
+                  "ack_code": "OK",
+                  "req": "r_118df82e55ff41598b79771b85b63b62"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 128,
+                  "song_time_seconds": 100.86748299319729,
+                  "target_monotonic_ms": 367971561.828,
+                  "dispatch_monotonic_ms": 367971563.839,
+                  "ack_monotonic_ms": 367971669.376,
+                  "playhead_uncertainty_ms": 1.478,
+                  "ack_code": "OK",
+                  "req": "r_b3f4ce8911894cd78f72f485be12cd69"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 130,
+                  "song_time_seconds": 102.38839002267574,
+                  "target_monotonic_ms": 367973082.735,
+                  "dispatch_monotonic_ms": 367973084.452,
+                  "ack_monotonic_ms": 367973239.147,
+                  "playhead_uncertainty_ms": 0.705,
+                  "ack_code": "OK",
+                  "req": "r_320aebde119a43d5b0c3d1e202b491a9"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 132,
+                  "song_time_seconds": 103.65387755102041,
+                  "target_monotonic_ms": 367974348.571,
+                  "dispatch_monotonic_ms": 367974350.193,
+                  "ack_monotonic_ms": 367974396.798,
+                  "playhead_uncertainty_ms": 0.897,
+                  "ack_code": "OK",
+                  "req": "r_a20f308ea7704478bca328f6de69f6be"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 134,
+                  "song_time_seconds": 105.43020408163265,
+                  "target_monotonic_ms": 367976124.897,
+                  "dispatch_monotonic_ms": 367976124.95,
+                  "ack_monotonic_ms": 367976239.924,
+                  "playhead_uncertainty_ms": 0.714,
+                  "ack_code": "OK",
+                  "req": "r_6b3e474adf0043f9b9272978ac7f1346"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 136,
+                  "song_time_seconds": 106.74213151927438,
+                  "target_monotonic_ms": 367977436.863,
+                  "dispatch_monotonic_ms": 367977437.255,
+                  "ack_monotonic_ms": 367977469.708,
+                  "playhead_uncertainty_ms": 0.74,
+                  "ack_code": "OK",
+                  "req": "r_1d1a61a8b96f45ac8ad8316b359f3352"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 138,
+                  "song_time_seconds": 108.2398185941043,
+                  "target_monotonic_ms": 367978934.55,
+                  "dispatch_monotonic_ms": 367978935.444,
+                  "ack_monotonic_ms": 367979107.914,
+                  "playhead_uncertainty_ms": 1.004,
+                  "ack_code": "OK",
+                  "req": "r_14e4c7c50999496f82f853a0f583d653"
+                }
+              ],
+              "visual": {
+                "state": "hidden",
+                "requested_visible": false,
+                "acknowledged_visible": false,
+                "update_available": true,
+                "physical_rendering_verified": false
+              },
+              "physical_sync_measured": false,
+              "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+            }
+          }
+        },
+        {
+          "id": "exec-dd4ed364-f4a8-44c4-a663-1f17cccd259d",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] reply-voice <<'JSON'\n{\\\"request_id\\\":\\\"cyanide-hidetext-20261018-011\\\",\\\"enabled\\\":false}\nJSON\"",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "result": {
+              "enabled": false,
+              "mode": "text",
+              "selected_device_id": null,
+              "speakers": [
+                {
+                  "device_id": "laptop",
+                  "label": "Room speaker",
+                  "speaker_ref": "speaker_d34cd50e95aa48748283391baef013ac"
+                }
+              ],
+              "already_started_speech_may_finish": true
+            },
+            "message": "Future replies are text only. Speech already started may finish."
+          }
+        }
+      ]
+    },
+    {
+      "id": "01a14edd-d49d-7af3-8323-f2cb8b7e92ba",
+      "startedAt": 1792324523,
+      "completedAt": null,
+      "native_snapshot_status": "interrupted",
+      "guest_ui_final_reply_observed": true,
+      "requests": [
+        "Stop CYANIDE and the phone flashes now, and make sure the orb is closed too."
+      ],
+      "commands": [
+        {
+          "id": "exec-cb93ab44-c313-4549-8b92-bf0e701fedf9",
+          "command": "/bin/zsh -lc '/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] inventory'",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "devices": [
+              {
+                "id": "laptop",
+                "online": true,
+                "busy": false
+              },
+              {
+                "id": "jay-visible-phone-oct17",
+                "online": true,
+                "busy": false
+              }
+            ],
+            "programs": {
+              "audio_devices": [
+                {
+                  "device_id": "laptop",
+                  "label": "Room speaker",
+                  "online": true,
+                  "generated_beat": true,
+                  "song_visual": true,
+                  "songs": [
+                    {
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "label": "Prepare selected real recording: Daniel Caesar \u2014 CYANIDE; never plays."
+                    }
+                  ]
+                }
+              ],
+              "programs": [
+                {
+                  "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+                  "state": "stopped",
+                  "bpm": 79.5072115384615,
+                  "source": "selected_recording",
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "title": "CYANIDE",
+                  "artist": "Daniel Caesar",
+                  "song_clock": {
+                    "state": "pending",
+                    "playhead_advancing": false,
+                    "source": "recording-derived beat positions plus live mpv audio playhead",
+                    "sample_age_ms": 11602.496,
+                    "sample_uncertainty_ms": 0.688,
+                    "discontinuities": 1,
+                    "physical_alignment_verified": false
+                  },
+                  "clock": "recording-derived beats mapped from bracketed live audio playhead",
+                  "phase_wall_ms": 0,
+                  "audio_device_id": "laptop",
+                  "light_device_ids": [],
+                  "participants": {
+                    "jay-visible-phone-oct17": {
+                      "participant_state": "unknown",
+                      "light_beats_per_state": 2,
+                      "on_duration_ms": 1509.2970521541956,
+                      "off_duration_ms": 1509.2970521541956,
+                      "first_cycle": {
+                        "on_ack": true,
+                        "off_ack": true,
+                        "physical_verified": false
+                      },
+                      "durations_are_estimates": true,
+                      "timing_source": "actual per-beat timestamps, not median BPM"
+                    }
+                  },
+                  "reserved_light_ids": [],
+                  "missed_ticks": 0,
+                  "reason": "SONG_PAUSED",
+                  "cleanup": {
+                    "audio": "confirmed",
+                    "jay-visible-phone-oct17": "confirmed"
+                  },
+                  "recovery": {},
+                  "recent_dispatch_timings": [
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 138,
+                      "song_time_seconds": 108.2398185941043,
+                      "target_monotonic_ms": 367978934.55,
+                      "dispatch_monotonic_ms": 367978935.444,
+                      "ack_monotonic_ms": 367979107.914,
+                      "playhead_uncertainty_ms": 1.004,
+                      "ack_code": "OK",
+                      "req": "r_14e4c7c50999496f82f853a0f583d653"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 140,
+                      "song_time_seconds": 109.66784580498866,
+                      "target_monotonic_ms": 367980362.695,
+                      "dispatch_monotonic_ms": 367980363.619,
+                      "ack_monotonic_ms": 367980438.674,
+                      "playhead_uncertainty_ms": 0.592,
+                      "ack_code": "OK",
+                      "req": "r_80d648d1af6a4c80a69285d98606e352"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 142,
+                      "song_time_seconds": 111.07265306122449,
+                      "target_monotonic_ms": 367981767.503,
+                      "dispatch_monotonic_ms": 367981768.238,
+                      "ack_monotonic_ms": 367981874.323,
+                      "playhead_uncertainty_ms": 0.575,
+                      "ack_code": "OK",
+                      "req": "r_d1d8916aa6b74cebbe1dbff6cdce5b89"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 144,
+                      "song_time_seconds": 112.72126984126984,
+                      "target_monotonic_ms": 367983415.92,
+                      "dispatch_monotonic_ms": 367983417.14,
+                      "ack_monotonic_ms": 367983514.064,
+                      "playhead_uncertainty_ms": 0.992,
+                      "ack_code": "OK",
+                      "req": "r_e8a0970285884807ac48e04aeb3ac095"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 146,
+                      "song_time_seconds": 114.26539682539682,
+                      "target_monotonic_ms": 367984960.047,
+                      "dispatch_monotonic_ms": 367984960.545,
+                      "ack_monotonic_ms": 367985049.337,
+                      "playhead_uncertainty_ms": 1.025,
+                      "ack_code": "OK",
+                      "req": "r_03e27d9ea9094b7da3200b96768442d9"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 148,
+                      "song_time_seconds": 115.75147392290249,
+                      "target_monotonic_ms": 367986445.699,
+                      "dispatch_monotonic_ms": 367986446.279,
+                      "ack_monotonic_ms": 367986480.444,
+                      "playhead_uncertainty_ms": 1.687,
+                      "ack_code": "OK",
+                      "req": "r_7a9cdff934e24f07a9b25b233155337a"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 150,
+                      "song_time_seconds": 117.42331065759637,
+                      "target_monotonic_ms": 367988117.536,
+                      "dispatch_monotonic_ms": 367988117.884,
+                      "ack_monotonic_ms": 367988224.955,
+                      "playhead_uncertainty_ms": 1.546,
+                      "ack_code": "OK",
+                      "req": "r_c1af4e9a769543109950d9e2184d64a0"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 152,
+                      "song_time_seconds": 118.71201814058956,
+                      "target_monotonic_ms": 367989406.411,
+                      "dispatch_monotonic_ms": 367989407.78,
+                      "ack_monotonic_ms": 367989552.364,
+                      "playhead_uncertainty_ms": 0.913,
+                      "ack_code": "OK",
+                      "req": "r_2c787bfa725d4f29b52c7c24f2a1241b"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 154,
+                      "song_time_seconds": 120.11682539682539,
+                      "target_monotonic_ms": 367990811.219,
+                      "dispatch_monotonic_ms": 367990812.793,
+                      "ack_monotonic_ms": 367990831.719,
+                      "playhead_uncertainty_ms": 0.624,
+                      "ack_code": "OK",
+                      "req": "r_356fc6dbfa5244aeb9116f6121a183ea"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 156,
+                      "song_time_seconds": 121.777052154195,
+                      "target_monotonic_ms": 367992471.334,
+                      "dispatch_monotonic_ms": 367992472.291,
+                      "ack_monotonic_ms": 367992637.996,
+                      "playhead_uncertainty_ms": 1.633,
+                      "ack_code": "OK",
+                      "req": "r_8d7d97f6040248c88807dfa5bf251089"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": false,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 158,
+                      "song_time_seconds": 123.29795918367347,
+                      "target_monotonic_ms": 367993992.241,
+                      "dispatch_monotonic_ms": 367993993.531,
+                      "ack_monotonic_ms": 367994058.97,
+                      "playhead_uncertainty_ms": 0.83,
+                      "ack_code": "OK",
+                      "req": "r_ef55bc083e274ff9b0379246c82ddf1a"
+                    },
+                    {
+                      "device_id": "jay-visible-phone-oct17",
+                      "on": true,
+                      "song_id": "daniel-caesar-cyanide-42b58460277a",
+                      "song_beat_number": 160,
+                      "song_time_seconds": 124.7956462585034,
+                      "target_monotonic_ms": 367995490.398,
+                      "dispatch_monotonic_ms": 367995491.462,
+                      "ack_monotonic_ms": 367995594.996,
+                      "playhead_uncertainty_ms": 0.759,
+                      "ack_code": "OK",
+                      "req": "r_719964414391406c80d2e9acf28f588a"
+                    }
+                  ],
+                  "visual": {
+                    "state": "hidden",
+                    "requested_visible": false,
+                    "acknowledged_visible": false,
+                    "update_available": false,
+                    "physical_rendering_verified": false
+                  },
+                  "physical_sync_measured": false,
+                  "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "exec-98bf56d1-7237-4842-a23f-b01f223b7c63",
+          "command": "/bin/zsh -lc \"/Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/.venv/bin/python /Users/jay/.codex/.chatgpt-projects/g-p-6ad3f8165b088191abcf2e1da4ad5fa8/tenant/agent/tenant_device.py --context [private] program-stop <<'JSON'\n{\\\"request_id\\\":\\\"cyanide-stop-20261018-012\\\",\\\"program_id\\\":\\\"p_d2e0a546ca78407ea1d39ca09982c655\\\"}\nJSON\"",
+          "exitCode": 0,
+          "durationMs": 0,
+          "receipt": {
+            "ok": true,
+            "result": {
+              "program_id": "p_d2e0a546ca78407ea1d39ca09982c655",
+              "state": "stopped",
+              "bpm": 79.5072115384615,
+              "source": "selected_recording",
+              "song_id": "daniel-caesar-cyanide-42b58460277a",
+              "title": "CYANIDE",
+              "artist": "Daniel Caesar",
+              "song_clock": {
+                "state": "pending",
+                "playhead_advancing": false,
+                "source": "recording-derived beat positions plus live mpv audio playhead",
+                "sample_age_ms": 17057.856,
+                "sample_uncertainty_ms": 0.688,
+                "discontinuities": 1,
+                "physical_alignment_verified": false
+              },
+              "clock": "recording-derived beats mapped from bracketed live audio playhead",
+              "phase_wall_ms": 0,
+              "audio_device_id": "laptop",
+              "light_device_ids": [],
+              "participants": {
+                "jay-visible-phone-oct17": {
+                  "participant_state": "unknown",
+                  "light_beats_per_state": 2,
+                  "on_duration_ms": 1509.2970521541956,
+                  "off_duration_ms": 1509.2970521541956,
+                  "first_cycle": {
+                    "on_ack": true,
+                    "off_ack": true,
+                    "physical_verified": false
+                  },
+                  "durations_are_estimates": true,
+                  "timing_source": "actual per-beat timestamps, not median BPM"
+                }
+              },
+              "reserved_light_ids": [],
+              "missed_ticks": 0,
+              "reason": "SONG_PAUSED",
+              "cleanup": {
+                "audio": "confirmed",
+                "jay-visible-phone-oct17": "confirmed"
+              },
+              "recovery": {},
+              "recent_dispatch_timings": [
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 138,
+                  "song_time_seconds": 108.2398185941043,
+                  "target_monotonic_ms": 367978934.55,
+                  "dispatch_monotonic_ms": 367978935.444,
+                  "ack_monotonic_ms": 367979107.914,
+                  "playhead_uncertainty_ms": 1.004,
+                  "ack_code": "OK",
+                  "req": "r_14e4c7c50999496f82f853a0f583d653"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 140,
+                  "song_time_seconds": 109.66784580498866,
+                  "target_monotonic_ms": 367980362.695,
+                  "dispatch_monotonic_ms": 367980363.619,
+                  "ack_monotonic_ms": 367980438.674,
+                  "playhead_uncertainty_ms": 0.592,
+                  "ack_code": "OK",
+                  "req": "r_80d648d1af6a4c80a69285d98606e352"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 142,
+                  "song_time_seconds": 111.07265306122449,
+                  "target_monotonic_ms": 367981767.503,
+                  "dispatch_monotonic_ms": 367981768.238,
+                  "ack_monotonic_ms": 367981874.323,
+                  "playhead_uncertainty_ms": 0.575,
+                  "ack_code": "OK",
+                  "req": "r_d1d8916aa6b74cebbe1dbff6cdce5b89"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 144,
+                  "song_time_seconds": 112.72126984126984,
+                  "target_monotonic_ms": 367983415.92,
+                  "dispatch_monotonic_ms": 367983417.14,
+                  "ack_monotonic_ms": 367983514.064,
+                  "playhead_uncertainty_ms": 0.992,
+                  "ack_code": "OK",
+                  "req": "r_e8a0970285884807ac48e04aeb3ac095"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 146,
+                  "song_time_seconds": 114.26539682539682,
+                  "target_monotonic_ms": 367984960.047,
+                  "dispatch_monotonic_ms": 367984960.545,
+                  "ack_monotonic_ms": 367985049.337,
+                  "playhead_uncertainty_ms": 1.025,
+                  "ack_code": "OK",
+                  "req": "r_03e27d9ea9094b7da3200b96768442d9"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 148,
+                  "song_time_seconds": 115.75147392290249,
+                  "target_monotonic_ms": 367986445.699,
+                  "dispatch_monotonic_ms": 367986446.279,
+                  "ack_monotonic_ms": 367986480.444,
+                  "playhead_uncertainty_ms": 1.687,
+                  "ack_code": "OK",
+                  "req": "r_7a9cdff934e24f07a9b25b233155337a"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 150,
+                  "song_time_seconds": 117.42331065759637,
+                  "target_monotonic_ms": 367988117.536,
+                  "dispatch_monotonic_ms": 367988117.884,
+                  "ack_monotonic_ms": 367988224.955,
+                  "playhead_uncertainty_ms": 1.546,
+                  "ack_code": "OK",
+                  "req": "r_c1af4e9a769543109950d9e2184d64a0"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 152,
+                  "song_time_seconds": 118.71201814058956,
+                  "target_monotonic_ms": 367989406.411,
+                  "dispatch_monotonic_ms": 367989407.78,
+                  "ack_monotonic_ms": 367989552.364,
+                  "playhead_uncertainty_ms": 0.913,
+                  "ack_code": "OK",
+                  "req": "r_2c787bfa725d4f29b52c7c24f2a1241b"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 154,
+                  "song_time_seconds": 120.11682539682539,
+                  "target_monotonic_ms": 367990811.219,
+                  "dispatch_monotonic_ms": 367990812.793,
+                  "ack_monotonic_ms": 367990831.719,
+                  "playhead_uncertainty_ms": 0.624,
+                  "ack_code": "OK",
+                  "req": "r_356fc6dbfa5244aeb9116f6121a183ea"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 156,
+                  "song_time_seconds": 121.777052154195,
+                  "target_monotonic_ms": 367992471.334,
+                  "dispatch_monotonic_ms": 367992472.291,
+                  "ack_monotonic_ms": 367992637.996,
+                  "playhead_uncertainty_ms": 1.633,
+                  "ack_code": "OK",
+                  "req": "r_8d7d97f6040248c88807dfa5bf251089"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": false,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 158,
+                  "song_time_seconds": 123.29795918367347,
+                  "target_monotonic_ms": 367993992.241,
+                  "dispatch_monotonic_ms": 367993993.531,
+                  "ack_monotonic_ms": 367994058.97,
+                  "playhead_uncertainty_ms": 0.83,
+                  "ack_code": "OK",
+                  "req": "r_ef55bc083e274ff9b0379246c82ddf1a"
+                },
+                {
+                  "device_id": "jay-visible-phone-oct17",
+                  "on": true,
+                  "song_id": "daniel-caesar-cyanide-42b58460277a",
+                  "song_beat_number": 160,
+                  "song_time_seconds": 124.7956462585034,
+                  "target_monotonic_ms": 367995490.398,
+                  "dispatch_monotonic_ms": 367995491.462,
+                  "ack_monotonic_ms": 367995594.996,
+                  "playhead_uncertainty_ms": 0.759,
+                  "ack_code": "OK",
+                  "req": "r_719964414391406c80d2e9acf28f588a"
+                }
+              ],
+              "visual": {
+                "state": "hidden",
+                "requested_visible": false,
+                "acknowledged_visible": false,
+                "update_available": false,
+                "physical_rendering_verified": false
+              },
+              "physical_sync_measured": false,
+              "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+            },
+            "message": "Future program steps stopped; cleanup status is reported separately."
+          }
+        }
+      ]
+    }
+  ],
+  "observations": {
+    "same_program_across_start_show_hide_stop": true,
+    "only_one_program_start_observed": true,
+    "mpv_pid": 61673,
+    "orb_pid": 61975,
+    "no_external_movie_argument_seen": true,
+    "manifest_duration_seconds": 194.95968253968255,
+    "manifest_visual": null,
+    "raw_numeric_audio_pts_not_exposed_by_program_receipts": true,
+    "song_clock_advancing_and_discontinuities_zero_through_hide": true,
+    "attach_transient": {
+      "sample_age_ms": 1107.896,
+      "clock_state": "pending",
+      "playhead_advancing": true,
+      "discontinuities": 0,
+      "active_light_ids": [],
+      "participant_state": "following",
+      "later_status": "ready, active phone following and acknowledged later edges",
+      "physical_gap_unmeasured": true
+    },
+    "early_music_cessation": {
+      "first_empty_mpv_sample_seconds": 1792324516.2747352,
+      "final_stop_request_seconds": 1792324523.108,
+      "preceded_explicit_stop_request": true,
+      "stop_turn_inventory_already_stopped": true,
+      "reason": "SONG_PAUSED",
+      "cause": "UNRESOLVED; no inference that explicit stop caused initial cessation",
+      "recording_end_not_reached": true,
+      "last_acknowledged_light_song_time_seconds": 124.7956462585034
+    },
+    "native_orb_lifecycle": {
+      "first_sampled_present_seconds": 1792324434.155572,
+      "first_sampled_absent_after_hide_seconds": 1792324494.951581,
+      "show_helper_duration_ms": 832,
+      "ready_inferred_from_acknowledged_show": true,
+      "physical_rendering_not_verified_by_tester": true
+    },
+    "software_light_ack_progression_seconds": [
+      9.996190476190476,
+      43.29360544217687,
+      61.40517006802721,
+      108.2398185941043,
+      124.7956462585034
+    ]
+  },
+  "cleanup": {
+    "audio": "confirmed",
+    "phone": "confirmed",
+    "orb": "hidden and process absent",
+    "remaining_mpv_pids": [],
+    "remaining_orb_pids": [],
+    "ordinary_leave": true,
+    "guest_tab_30_closed": true,
+    "public_display_tab_2003400992": "F679, zero guests, 2 of 2 ready",
+    "fullscreen_used": false,
+    "volume_or_output_changed": false,
+    "source_or_runtime_deploy_changes": false
+  },
+  "screenshots": [
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/live-orb-four-turn-stop.png",
+    "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/outputs/live-orb-room-after-leave.png"
+  ],
+  "private_process_samples": "/Users/jay/Documents/Codex/2026-10-17/tenant-e2e-tester/work/orb-live-process-samples.jsonl"
+}
