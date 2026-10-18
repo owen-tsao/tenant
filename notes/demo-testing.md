@@ -16,6 +16,8 @@ Reviewed source, automated tests, live transport, human experience and physical 
 
 ## Current matrix
 
+Root19:59 PT: **voicef228b39 deployed**,484Python+12Node independentPASS; actualpublicHTTPS/WSS nativeguestdefaulttext returned TEXT_DEFAULT,0say andLeave200. Local E2E Tester nowowns autonomousinterfaceexperiments; Jayonlyconfirmsunobservablephysicalresults, nottestinitiation. Cloudownerswere replacedwithlocalMacchats; no sourcefakescountasphysicalproof. Programphysicalexpiry remainsunverified, with noforcedrepeat.
+
 Root19:48 PT: follow-up real expiry/fullbeat run **NOT STARTED** after Jay questioned repeating physical tests. Preserve manualstopPASS; automaticexpiry source checks pass but its post-fix physical outcome remainsUNVERIFIED. No automatic new ON/audio, no claim that the earlier interrupted expiry passed.
 
 Root19:46 PT: **post-fix stop PASS on0b4a1ec**. Actual native guest30BPM/1sON/1sOFF → freshly requested phoneOFF while beatcontinues → separately requested beatstop; Jay confirmed both observations, matching OFFACK and cleanup phone/audioConfirmed. See tests/evidence/2026-10-17-stop-recovery-live.json. Fullbeat2s states were not requested in this run. A separate SAMEguest fullbeat/expiry trial is pending; no real expiry or UNKNOWN-injection physical pass claimed.

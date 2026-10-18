@@ -338,6 +338,16 @@ Program stop lets already-sent bounded phone commands and actual audio-status re
 
 ---
 
+### Reply voice — deployed f228b39
+
+New guests get text replies. A genuine native turn may interpret an explicit ongoing-voice request through private helper `reply-voice`: `{request_id,enabled:true,device_id,speaker_ref}` using exact inventory values, or `{request_id,enabled:false}` to opt out. Consent belongs to the exact lease/controller generation and enrolled speaker connection; reconnect/replacement/new guest never silently inherits it. One-off requested `say` stays independent and suppresses duplicate automatic narration.
+
+Web and Photon share the policy. Final text is published first, then an explicitly owned background job may speak only while consent, revision, connection and access still match after queue waits. Opt-out blocks unsent narration; already-started speech may finish. Cleanup is bounded, and optional speech-close failure cannot skip native/helper teardown. A newly enrolled speaker can prompt a choice in the next genuine conversational turn; no proactive model loop or OS/Bluetooth output observer is claimed. Selected output and volume remain unchanged.
+
+Validation:484 Python +12 unchanged Node checks and independent exact-hash review pass. A real public HTTPS/WSS guest request to the fixed native room conversation returned text, recorded `TEXT_DEFAULT`, sent zero room `say` requests and left successfully. Natural ongoing opt-in/opt-out and physical effects are now owned by the local tester. Source and real default-text evidence are separate from unobserved optical/acoustic outcomes.
+
+---
+
 ## 11. Security & safety (also what VEYZL will look at)
 
 - Secrets only in env (`PHOTON_API_KEY`, `LLM_API_KEY`, `HOST_TOKEN`, `DEVICE_TOKEN`); `.env` gitignored; keys scoped to one Photon project.
