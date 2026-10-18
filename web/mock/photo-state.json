@@ -1,0 +1,11 @@
+{
+  "_": "Mock for GET /photos/viewer/state (display.html?mock=1). Steps play in order, `after` ms apart; `version` is offset each round so it always increases. Relative image_url resolves under /mock/. `pending` mirrors the real field: a still is ready and awaiting this viewer's receipt.",
+  "loop": true,
+  "steps": [
+    { "after": 2000,  "version": 1, "photo": null, "pending": false },
+    { "after": 16000, "version": 1, "photo": null, "pending": true },
+    { "after": 2500,  "version": 2, "pending": false,
+      "photo": { "photo_id": "mock-photo", "image_url": "photo.jpg", "captured_at": null, "source_label": "Jay's phone" } },
+    { "after": 40000, "version": 3, "photo": null, "pending": false }
+  ]
+}

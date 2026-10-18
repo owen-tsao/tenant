@@ -47,6 +47,7 @@
 
       <section class="region ledger">
         <div class="eyebrow">What has happened</div>
+        <span class="corner" id="photo-pending" hidden><span class="pix" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>taking a photo…</span></span>
         <div class="region-body ledger-body">
           <div class="hl" id="hl" hidden>
             <canvas class="hl-photo" id="hl-photo" hidden></canvas>
@@ -65,12 +66,12 @@
 (function () {
   const T = window.Tenant;
   const $ = (id) => document.getElementById(id);
-  const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let lastLogKey = null, host = null, lastState = null, lastActor = null, leftTimer = null, photoTimer = null;
+  let host = null, lastState = null, lastActor = null, leftTimer = null, photoTimer = null;
   const seenGuests = new Set(); const liveGuests = new Map(); // guest_id -> display_name, to notice who left
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
   const key = (r) => `${r.t}|${r.text}`;
+  const txt = (r) => r.text || "";   // Brain rows may carry subject/rest without text; never let one row abort the frame
 
   $("motif").innerHTML = T.motif();
   // Setup link keeps ?mock=1 so the pair of pages stays in the same world.
@@ -78,43 +79,74 @@
 
   // Headline split: Brain gives subject/rest; otherwise split on a device label or "Guest N".
   function split(r, devices) {
-    if (r.subject) return [r.subject, r.rest || r.text.slice(r.subject.length)];
+    const text = txt(r);
+    if (r.subject) return [r.subject, r.rest || text.slice(r.subject.length)];
     const names = devices.map(d => d.label).concat(["The room speaker", "The room", "The tablet"]);
-    for (const n of names) if (r.text.startsWith(n)) return [n, r.text.slice(n.length)];
-    const m = /^(Guest \d+|Someone who had left)/.exec(r.text);
-    if (m) return [m[1], r.text.slice(m[1].length)];
-    return ["", r.text];
+    for (const n of names) if (text.startsWith(n)) return [n, text.slice(n.length)];
+    const m = /^(Guest \d+|Someone who had left)/.exec(text);
+    if (m) return [m[1], text.slice(m[1].length)];
+    return ["", text];
   }
   // Which device a row is about, for the "acted last" dot.
   function actorOf(r, devices) {
     if (r.kind !== "ok") return null;
     if (r.device) return r.device;
-    const d = devices.find(d => r.text.startsWith(d.label)); if (d) return d.id;
-    if (/^The room speaker/.test(r.text)) { const s = devices.find(d => T.glyphKind(d.label) === "speaker"); return s ? s.id : null; }
+    const text = txt(r);
+    const d = devices.find(d => text.startsWith(d.label)); if (d) return d.id;
+    if (/^The room speaker/.test(text)) { const s = devices.find(d => T.glyphKind(d.label) === "speaker"); return s ? s.id : null; }
     return null;
   }
 
+  // Tiles are updated in place, never rebuilt: rebuilding restarted the glyph animation on every
+  // state frame (choppy). "Acting" is latched for ACT_MS from the moment a device goes busy OR a fresh
+  // "ok" row names it, so a 200 ms flashlight still reads as a full beat on the screen.
+  const ACT_MS = 2500, tiles = new Map(), actingUntil = new Map(), seenOk = new Set();
+  let actTimer = null, primedOk = false;
   function renderDevices(s, log) {
-    const devices = s.devices;
+    const devices = s.devices, now = performance.now(), wrap = $("devices");
     const freshOk = log.find(r => r.kind === "ok" && actorOf(r, devices));
     if (freshOk) lastActor = actorOf(freshOk, devices);
-    $("devices").innerHTML = devices.map(d => {
+    for (const r of log) {
+      if (r.kind !== "ok") continue;
+      const k = key(r), who = actorOf(r, devices);
+      if (who && primedOk && !seenOk.has(k)) actingUntil.set(who, now + ACT_MS); // history on the first frame does not light anything
+      seenOk.add(k);
+    }
+    primedOk = true;
+    for (const d of devices) if (d.busy) actingUntil.set(d.id, Math.max(actingUntil.get(d.id) || 0, now + ACT_MS));
+    let order = true;
+    devices.forEach((d, i) => {
       const kind = T.glyphKind(d.label);
-      const words = d.caps.map(T.capWord).filter((v, i, a) => a.indexOf(v) === i);
+      const words = (d.caps || []).map(T.capWord).filter((v, i, a) => a.indexOf(v) === i);
       const can = words.slice(0, 2).join(", ") + (words.length > 2 ? ` +${words.length - 2} more` : "");
-      const state = !d.online ? "offline" : d.busy ? "working" : "ready";
-      const act = d.busy && d.online ? "acting" : "";
-      return `<div class="inst ${act} ${d.online ? "" : "offline"}" data-kind="${kind}" data-id="${esc(d.id)}">
-        <div class="inst-glyph">${T.glyph(kind)}</div>
-        <div class="inst-name" title="${esc(d.label)}">${esc(d.label)}</div>
-        <div class="inst-can" title="${esc(words.join(", "))}">${esc(can)}</div>
-        <div class="inst-state">${state}${lastActor === d.id ? `<i class="dot ${act ? "" : "live"}" aria-label="acted last"></i>` : ""}</div>
-      </div>`;
-    }).join("");
+      const acting = d.online && (actingUntil.get(d.id) || 0) > now;
+      const state = !d.online ? "offline" : acting ? "working" : "ready";
+      let el = tiles.get(d.id);
+      if (!el) {
+        el = document.createElement("div"); el.className = "inst"; el.dataset.id = d.id;
+        el.innerHTML = `<div class="inst-glyph"></div><div class="inst-name"></div><div class="inst-can"></div><div class="inst-state"><span class="st"></span></div>`;
+        tiles.set(d.id, el); wrap.appendChild(el);
+      }
+      if (el.dataset.kind !== kind) { el.dataset.kind = kind; el.querySelector(".inst-glyph").innerHTML = T.glyph(kind); }
+      el.classList.toggle("acting", acting); el.classList.toggle("offline", !d.online);
+      const nm = el.querySelector(".inst-name"); if (nm.textContent !== d.label) { nm.textContent = d.label; nm.title = d.label; }
+      const cn = el.querySelector(".inst-can"); if (cn.textContent !== can) { cn.textContent = can; cn.title = words.join(", "); }
+      const st = el.querySelector(".st"); if (st.textContent !== state) st.textContent = state;
+      let dot = el.querySelector(".dot");
+      if (lastActor === d.id) { if (!dot) { dot = document.createElement("i"); dot.className = "dot"; dot.setAttribute("aria-label", "acted last"); el.querySelector(".inst-state").appendChild(dot); } dot.classList.toggle("live", !acting); }
+      else if (dot) dot.remove();
+      if (wrap.children[i] !== el) order = false;
+    });
+    for (const [id, el] of tiles) if (!devices.some(d => d.id === id)) { el.remove(); tiles.delete(id); }
+    if (!order) devices.forEach(d => wrap.appendChild(tiles.get(d.id)));   // reorder only when the Brain's order changed
     $("dev-empty").hidden = devices.length > 0;
     const online = devices.filter(d => d.online).length;
     $("dev-count").textContent = devices.length ? `${online} of ${devices.length} ready` : "";
-    $("segs").innerHTML = devices.map(d => `<i class="${!d.online ? "" : d.busy ? "live" : "ready"}"></i>`).join("");
+    $("segs").innerHTML = devices.map(d => `<i class="${!d.online ? "" : (actingUntil.get(d.id) || 0) > now ? "live" : "ready"}"></i>`).join("");
+    // when the newest latch expires, repaint once so the tile settles back
+    const pending = [...actingUntil.values()].filter(t => t > now);
+    clearTimeout(actTimer);
+    if (pending.length) actTimer = setTimeout(() => { if (lastState) renderDevices(lastState, withPhoto((lastState.log || []).slice(0, 40))); }, Math.max(...pending) - now + 20);
     return online;
   }
 
@@ -183,17 +215,19 @@
     $("hl-text").innerHTML = `<b>${esc(sub)}</b>${esc(rest)}`;
     $("hl-t").textContent = T.fmtTime(top.t);
 
-    // photo: render pink-on-plum halftone in the headline slot for 8 s, then collapse it to a 48px thumb
+    // photo: render pink-on-plum halftone in the headline slot for 8 s, then collapse it to a 48px thumb.
+    // The viewer hands rows a decoded `_img`; a photo attaching to a headline already on screen counts as new.
     const fit = () => { photo.style.width = Math.min($("hl").clientWidth - 32, Math.round(photo.clientHeight * photo._img.naturalWidth / photo._img.naturalHeight)) + "px"; T.halftone(photo, photo._img); };
-    if (top.image_url && fresh) {
-      const img = new Image(); img.src = top.image_url;
-      img.onload = () => {
-        if (hlKey !== k) return;                       // something newer landed while the image loaded
-        photoKey = k; photoBig = true; photo._img = img; photo.hidden = false; hl.classList.add("has-photo"); fit();
-        clearTimeout(photoTimer);
-        photoTimer = setTimeout(() => { photoBig = false; hl.classList.remove("has-photo"); hl.classList.add("thumbed"); photo.style.width = ""; T.halftone(photo, photo._img); }, 8000);
-      };
-    } else if (photoKey !== k) { photo.hidden = true; photo.style.width = ""; }
+    const show = (img) => {
+      if (hlKey !== k) return;                       // something newer landed while the image loaded
+      photoKey = k; photoBig = true; photo._img = img; photo.hidden = false; hl.classList.add("has-photo"); hl.classList.remove("thumbed"); fit();
+      clearTimeout(photoTimer);
+      photoTimer = setTimeout(() => { photoBig = false; hl.classList.remove("has-photo"); hl.classList.add("thumbed"); photo.style.width = ""; T.halftone(photo, photo._img); }, 8000);
+    };
+    if (top.image_url && (fresh || (top._img && photoKey !== k))) {
+      if (top._img) show(top._img);
+      else { const img = new Image(); img.src = top.image_url; img.onload = () => show(img); }
+    } else if (photoKey !== k) { clearTimeout(photoTimer); photo.hidden = true; photo.style.width = ""; }   // a newer headline: the old photo's 8 s timer must not restyle this one
 
     // rail: events after the headline, newest on top. Guest asks pair with their result.
     const rows = log.slice(1);
@@ -202,23 +236,44 @@
       // pairing: an ask ("do") whose result is the row above it (newer) draws a connector up
       const paired = r.kind === "do" && (i === 0 ? ["ok", "err", "denied"].includes(top.kind) : ["ok", "err", "denied"].includes(rows[i - 1].kind));
       const dotCls = r.kind === "denied" ? "sq" : r.kind === "do" || r.kind === "guest.join" || r.kind === "guest.leave" ? "ask" : "rest";
-      const thumb = r.image_url ? `<canvas class="thumb" data-src="${esc(r.image_url)}"></canvas>` : "";
+      const thumb = r.image_url ? `<canvas class="thumb" data-i="${i}"></canvas>` : "";
       return `<div class="ev k-${esc(r.kind)} ${paired ? "paired" : ""} ${i === 0 && fresh ? "settle" : ""}">
         <span class="ev-dot ${dotCls}"></span>
         <span class="ev-t">${T.fmtTime(r.t)}</span>
         <span class="ev-text" title="${esc(r.text)}"><b>${esc(sb)}</b>${esc(rs)}</span>${thumb}
       </div>`;
     }).join("");
-    rail.querySelectorAll("canvas.thumb").forEach(c => { const im = new Image(); im.src = c.dataset.src; im.onload = () => T.halftone(c, im); });
+    rail.querySelectorAll("canvas.thumb").forEach(c => {
+      const r = rows[+c.dataset.i]; if (!r) return;
+      if (r._img) { T.halftone(c, r._img); return; }                       // viewer photo: already decoded
+      const im = new Image(); im.src = r.image_url; im.onload = () => T.halftone(c, im);
+    });
+  }
+
+  // The viewer's photo joins the log as a row: on the Brain's own "<source> … photo" row when one is
+  // close in time (so the headline is not said twice), otherwise as "<source_label> took a photo."
+  const viewer = { photo: null, pending: false };
+  function withPhoto(log) {
+    const p = viewer.photo; if (!p) return log;
+    const who = p.source_label || "The room", t = p.captured_at;
+    const attach = { image_url: p.image_url, _img: p.img, photo_id: p.photo_id };
+    const i = log.findIndex(r => r.kind === "ok" && /photo/i.test(txt(r)) && txt(r).startsWith(who) && Math.abs((r.t || 0) - t) < 90);
+    if (i >= 0) { const out = log.slice(); out[i] = Object.assign({}, log[i], attach); return out; }
+    const row = Object.assign({ t, kind: "ok", subject: who, rest: " took a photo.", text: `${who} took a photo.` }, attach);
+    const at = log.findIndex(r => (r.t || 0) <= t);                         // newest first
+    const out = log.slice(); out.splice(at < 0 ? out.length : at, 0, row);
+    return out.slice(0, 40);
   }
 
   function render(s) {
+    // Normalise once so a frame missing a list never throws halfway through a paint (errors here used to be swallowed and froze the screen).
+    s.room = s.room || {}; s.devices = Array.isArray(s.devices) ? s.devices : []; s.guests = Array.isArray(s.guests) ? s.guests : []; s.log = Array.isArray(s.log) ? s.log : [];
     lastState = s;
-    $("code").textContent = s.room.code;
-    const log = (s.log || []).slice(0, 40);
+    $("code").textContent = s.room.code || "";
+    const log = withPhoto(s.log.slice(0, 40));
     const online = renderDevices(s, log);
     renderGuests(s);
-    const g = s.guests || [];
+    const g = s.guests;
 
     // the one state sentence: subject in 600, the rest in 400.
     let subject, rest;
@@ -245,13 +300,27 @@
     if ((e.key === "x" || e.key === "X") && lastState && lastState.guests[0]) {
       host && host.host("host.revoke", { guest_id: lastState.guests[0].guest_id });
     }
-    if (e.key === "t" && e.shiftKey) {
+    if (e.key.toLowerCase() === "t" && e.shiftKey) {   // Shift makes the key "T", so compare case-insensitively
       const t = prompt("Host token"); if (t) localStorage.setItem("tenant.host_token", t.trim());
     }
   });
   window.addEventListener("keyup", (e) => { if ((e.key === "r" || e.key === "R") && rTimer) { clearTimeout(rTimer); rTimer = null; } });
 
-  T.connectDisplay(render).then(h => { host = h; });
+  // Connection: the next state frame repaints everything, so only the lost case needs a line on screen.
+  T.connectDisplay(render, (state, code) => {
+    if (state === "open") return;
+    $("statement").innerHTML = code === 4401 || code === 1008
+      ? `<b>Host token</b> was rejected. Press Shift+T to enter it.`
+      : `<b>Reconnecting</b> to the room…`;
+  }).then(h => { host = h; });
+
+  // Photos never travel in the state log. If this browser holds the host token it is the room's viewer:
+  // the latest still (and the moment one is ready) comes from /photos/viewer/state and is painted here.
+  T.connectPhotoViewer((v) => {
+    viewer.photo = v.photo; viewer.pending = v.pending;
+    $("photo-pending").hidden = !v.pending;
+    if (lastState) render(lastState);
+  }).catch(() => {});
 })();
 </script>
 </body>

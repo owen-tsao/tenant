@@ -39,6 +39,7 @@
 </main>
 
 <script src="shared.js"></script>
+<script src="dots.js"></script>
 <script>
 (function () {
   const T = window.Tenant;
@@ -72,8 +73,15 @@
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
   function add(html) { const el = document.createElement("div"); el.innerHTML = html; const node = el.firstElementChild; thread.appendChild(node); thread.scrollTop = thread.scrollHeight; return node; }
-  function showTyping() { if (!typing) typing = add(`<div class="msg room"><span class="typing"><i></i><i></i><i></i></span></div>`); }
-  function hideTyping() { if (typing) { typing.remove(); typing = null; } }
+  // Thinking: a 28px globe of squares assembles and its lights take turns until the room answers.
+  // Falls back to the three dots if the canvas fails.
+  function showTyping() {
+    if (typing) return;
+    typing = add(`<div class="msg room thinking"><canvas class="think" width="28" height="28" aria-label="The room is thinking"></canvas></div>`);
+    try { const orb = T.sphere(typing.querySelector("canvas"), { size: 28, rings: 9 }); orb.assemble().then(() => orb.think()); typing._orb = orb; }
+    catch (_) { typing.innerHTML = `<span class="typing"><i></i><i></i><i></i></span>`; }
+  }
+  function hideTyping() { if (!typing) return; typing._orb && typing._orb.destroy(); typing.remove(); typing = null; }
   function remaining() { return deadline == null ? null : Math.max(0, Math.ceil((deadline - performance.now()) / 1000)); }
   function canCompose() { return !!conn && connected && !terminal && !leaving; }
 

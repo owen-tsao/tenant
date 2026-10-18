@@ -9,35 +9,51 @@
 </head>
 <body>
 <main class="join" id="join">
-  <div class="eyebrow" id="room">Room</div>
-  <h1>Talk to this room from your phone.</h1>
-  <p>Ask for a light, some music, a photo. Nothing to install, no account. What you ask is shown on the room’s screen, and your access ends when you leave or after 10 minutes.</p>
+  <header class="join-nav">
+    <span class="brand"><span class="mark" aria-hidden="true"></span>Tenant</span>
+    <span class="eyebrow" id="room">Room</span>
+  </header>
 
-  <div id="step-choose" class="alt">
-    <button class="btn btn-primary" id="chat">Chat here</button>
-    <button class="btn" id="text">Text the room</button>
+  <div class="join-stage" aria-hidden="true">
+    <canvas class="orb" id="orb"></canvas>
   </div>
 
-  <div id="step-phone" class="reveal">
-    <input class="input" id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Your mobile number" aria-label="Your mobile number">
-    <button class="btn btn-primary" id="go-text">Open Messages</button>
-    <button class="btn" id="back">Back</button>
-    <div class="note">We give the room your number so it can reply by iMessage. We don't keep it after you leave.</div>
-    <div id="err-phone" class="err" role="alert" hidden></div>
-    <button class="btn btn-primary" id="chat3" hidden>Chat here instead</button>
-  </div>
+  <div class="join-content">
+    <div class="join-head">
+      <div class="eyebrow">Ten minutes, nothing to install</div>
+      <h1>Talk to this room <em>from your phone.</em></h1>
+    </div>
+    <div class="join-aside">
+      <p>Ask for a light, some music, a photo. What you ask is shown on the room’s screen, and your access ends when you leave or after ten minutes.</p>
 
-  <div id="step-sms" class="reveal">
-    <p>Text <strong>join <span id="code2"></span></strong> to the number below. Messages should open with it ready to send.</p>
-    <div class="number mono" id="number"></div>
-    <a class="btn btn-primary" id="sms" href="#">Open Messages</a>
-    <button class="btn" id="chat2">Or chat here instead</button>
-  </div>
+      <div id="step-choose" class="alt">
+        <button class="btn btn-primary" id="chat">Chat here</button>
+        <button class="btn" id="text">Text the room</button>
+      </div>
 
-  <div id="err" class="err" hidden></div>
+      <div id="step-phone" class="reveal">
+        <input class="input" id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Your mobile number" aria-label="Your mobile number">
+        <button class="btn btn-primary" id="go-text">Open Messages</button>
+        <button class="btn" id="back">Back</button>
+        <div class="note">We give the room your number so it can reply by iMessage. We don't keep it after you leave.</div>
+        <div id="err-phone" class="err" role="alert" hidden></div>
+        <button class="btn btn-primary" id="chat3" hidden>Chat here instead</button>
+      </div>
+
+      <div id="step-sms" class="reveal">
+        <p>Text <strong>join <span id="code2"></span></strong> to the number below. Messages should open with it ready to send.</p>
+        <div class="number mono" id="number"></div>
+        <a class="btn btn-primary" id="sms" href="#">Open Messages</a>
+        <button class="btn" id="chat2">Or chat here instead</button>
+      </div>
+
+      <div id="err" class="err" hidden></div>
+    </div>
+  </div>
 </main>
 
 <script src="shared.js"></script>
+<script src="dots.js"></script>
 <script>
 (function () {
   const T = window.Tenant;
@@ -47,6 +63,20 @@
   const code = (m ? m[1] : new URLSearchParams(location.search).get("room") || "7F3A").toUpperCase();
   $("room").textContent = `Room ${code}`;
   $("code2").textContent = code;
+
+  // The hero: a globe of pink squares assembles, then idles with its lights taking turns.
+  // Joining runs the bright sweep through it — "connected" — before the page hands off.
+  // Size the globe to the band it sits in. The visible sphere is ~60% of the canvas, so on a laptop the canvas
+  // may run a little wider than its half of the split hero; on a phone a bit less so both buttons stay above the fold.
+  const band = document.querySelector(".join-stage").getBoundingClientRect();
+  const desk = innerWidth >= 760;
+  const orbSize = Math.round(Math.max(180, desk
+    ? Math.min(band.width * 1.1, band.height * .9, 720)
+    : Math.min(band.width * .8, band.height * .6, 460)));
+  const orb = T.sphere($("orb"), { size: orbSize });
+  orb.assemble().then(() => orb.think());
+  let joining = false;
+  function connectedFx() { if (joining) return Promise.resolve(); joining = true; return orb.resolve(700); }
 
   function show(step) {
     for (const id of ["step-choose", "step-phone", "step-sms"]) {
@@ -70,9 +100,9 @@
   async function joinChat(btn) {
     busy(btn, true);
     try {
-      const r = await T.postJoin(code);
+      const [r] = await Promise.all([T.postJoin(code), connectedFx()]);
       location.href = r.chat_url;
-    } catch (e) { fail(e.message || "Couldn't join. Try again."); busy(btn, false); }
+    } catch (e) { fail(e.message || "Couldn't join. Try again."); busy(btn, false); joining = false; }
   }
 
   $("chat").onclick = () => joinChat($("chat"));
