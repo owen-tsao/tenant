@@ -187,3 +187,10 @@ Current setup, evidence, limits and operator controls: [film crew](film-crew.md)
 ## Queued: stronger beat flashes on the live orb
 
 Jay likes the supplied live orb and asks about flashing it on the song's beat. Current orb reacts to canonical audio energy at the verified player position. The selected CYANIDE path already provides analyzed beat timestamps; a separate beat envelope can drive orb brightness without a second clock or restarting music/lights. This is a small proposed visual change, queued behind the in-flight messaging fix. No new integration or beat-perfect physical synchronization is claimed.
+
+
+## Co-drawing across a divider — queued, 2026-10-18
+
+Jay draws a line through the middle of a page and invites Tenant in chat: “Draw with me. Draw on the right side of the line whatever you feel like.” Jay keeps drawing on the left. The agent contributes its own marks while respecting the shared space; handwriting could later become another way to address it.
+
+Current iPad decision is chat instructions only. The existing drawing-bell/photo lab accepts Mac mouse/trackpad strokes; it does not yet offer agent-authored strokes, a shared iPad canvas or a Notability connection. Keep this scene optional until a real shared writable surface is proven. Acceptance: actual divider recognized, agent marks remain on the chosen side, Jay’s marks remain intact, and Stop prevents further agent strokes. No canned replay presented as live observation.

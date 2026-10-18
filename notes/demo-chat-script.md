@@ -61,7 +61,7 @@ If demonstrating permission ending, use the existing visible Leave/host reset pa
 
 - Earlier music/light/orb trials: bounded physical passes already recorded; the complete current iPad script is not freshly accepted.
 - Drawing engine, shuffle and browser-to-browser photo channel: prior software checks passed; revised bell sound accepted by Jay.
-- Current album: opened in Chrome alongside the room display; physical TV confirmation pending.
-- New room-agent capability guide: preparation in progress; needs a genuine guest-chat check before claiming integration.
+- Current album: Jay confirmed it is visible on the TV after manually moving the normal Chrome window; automatic window movement did not work in this connection.
+- New room-agent capability guide: deployed in981bb90. One genuine guest-chat request to stop drawing bells passed: the agent read the guide, clicked the actual Stop sound control, and fresh independent page state showed “Sound stopped, including echoes” with the same Coastal dusk photo and stroke0. Sound was already off, so this establishes control wiring/preservation, not audible interruption of active bells or full-script reliability. Browser-session contention forced a native-control fallback; do not promise instantaneous responses.
 - iPad: chat only by Jay's choice. Actual drawing remains Mac mouse/trackpad; Notability is not connected.
 - Celsius: separate owner, separate acceptance. No implicit launch or camera reservation here.
