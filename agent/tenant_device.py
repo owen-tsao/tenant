@@ -29,7 +29,7 @@ def invoke(context_path, operation, payload=None):
         encoded = json.dumps(request, separators=(',', ':')).encode() + b'\n'
         if len(encoded) > MAX_BYTES:
             raise ValueError('Request too large')
-        timeout = context.get('long_timeout', 122) if operation in ('light-blink', 'photo-capture') or operation.startswith('program-') else 8
+        timeout = context.get('long_timeout', 122) if operation in ('light-blink', 'photo-capture', 'question-answer') or operation.startswith(('program-', 'demo-photo-')) else 8
         if operation == 'call' and isinstance(payload, dict) and payload.get('cap') == 'say':
             timeout = context.get('speech_timeout', 17)
         if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
@@ -58,7 +58,9 @@ def main(argv=None):
     parser.add_argument('--context', required=True)
     parser.add_argument('operation', choices=('inventory', 'call', 'light-blink', 'program-start',
                                              'program-update', 'program-stop', 'program-status', 'reply-voice',
-                                             'photo-capture', 'photo-status'))
+                                             'photo-capture', 'photo-status', 'demo-photo-prepare',
+                                             'demo-photo-capture', 'demo-photo-cancel', 'demo-photo-status',
+                                             'question-answer', 'question-answer-stop'))
     args = parser.parse_args(argv)
     try:
         payload = None
@@ -68,6 +70,10 @@ def main(argv=None):
                 raise ValueError('Request too large')
             payload = json.loads(text)
             valid = (isinstance(payload, dict) and (
+                (args.operation in ('question-answer', 'question-answer-stop') and set(payload) == {'request_id'}) or
+                (args.operation in ('demo-photo-prepare', 'demo-photo-status') and set(payload) == {'request_id'}) or
+                (args.operation in ('demo-photo-capture', 'demo-photo-cancel') and set(payload) == {'request_id', 'photo_id'}
+                 and isinstance(payload['photo_id'], str)) or
                 (args.operation == 'photo-capture' and set(payload) == {'request_id', 'source_device_id'}) or
                 (args.operation == 'photo-status' and set(payload) == {'request_id', 'capture_request_id'}) or
                 (args.operation == 'call' and set(payload) == {'request_id', 'device_id', 'cap', 'args'}) or

@@ -13,6 +13,10 @@ Latest direction, 2026-10-18: Jay wants one connected demonstration of four exis
 
 Supporting features already built include QR/web access to the real room agent, the Photon channel, temporary access/leave/reset, contributed phone lights and a host display. Use them as the shared entry/control layer. Paired iPhone navigation is a separate earlier bounded capability; it is not required in this four-part script. Celsius remains explicitly paused. The standalone private transcript stays on as Jay requested and must not be stopped or modified by the demos.
 
+## Latest rehearsal evidence (2026-10-18)
+
+Actual Tenant app Q&A and external captions passed Jay’s physical check. Photo readiness in Tenant and one countdown/capture passed, but the still did not physically appear on the TV despite its intended-screen receipt. The photo owner is fixing actual window placement and adding Jay’s requested visible black3,2,1 text. Do not call the combined demonstration ready until those final physical checks pass. Music→Bose is accepted; real iPad and JBL remain hardware followups. Details: `tests/evidence/2026-10-18-combined-demo-rehearsal.json`.
+
 ## Connected rehearsal script
 
 Use one current Tenant guest chat for the interaction. The lines below are intentional requests, not an automatic command batch. Wait for each result and allow follow-ups; do not cue capabilities from this coordinating Codex chat during the take.

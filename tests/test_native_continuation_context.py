@@ -10,7 +10,7 @@ import json
 from types import SimpleNamespace
 import unittest
 
-from agent.room_session import MAX_APPLICATION_CONTEXT, RoomSession, RoomSessionError
+from agent.room_session import APPLICATION_CONTEXT_FRAGMENT, MAX_APPLICATION_CONTEXT, RoomSession, RoomSessionError
 from brain.core.bus import Bus
 from brain.core.leases import Leases
 from brain.core.log import EventLog
@@ -77,9 +77,11 @@ class NativeContinuationContextTests(unittest.IsolatedAsyncioTestCase):
 
     def context(self, params):
         context = params['additionalContext']
-        self.assertEqual(set(context), {'tenant_devices'})
-        self.assertEqual(context['tenant_devices']['kind'], 'application')
-        return context['tenant_devices']['value']
+        self.assertIn('tenant_devices', context)
+        for entry in context.values():
+            self.assertEqual(entry['kind'], 'application')
+            self.assertLessEqual(len(entry['value']), APPLICATION_CONTEXT_FRAGMENT)
+        return ''.join(entry['value'] for entry in context.values())
 
     async def test_exact_guest_input_and_continuation_contract_reach_only_private_application_context(self):
         self.enable_all_context_branches()
@@ -205,7 +207,10 @@ class NativeApplicationContextBudgetTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len(requests), 1)
                 self.assertEqual(requests[0]['params']['input'],
                                  [{'type': 'text', 'text': 'Exact unchanged input.'}])
-                self.assertEqual(requests[0]['params']['additionalContext']['tenant_devices']['value'], context)
+                fragments = requests[0]['params']['additionalContext']
+                self.assertEqual(''.join(entry['value'] for entry in fragments.values()), context)
+                self.assertTrue(all(len(entry['value']) <= APPLICATION_CONTEXT_FRAGMENT
+                                    for entry in fragments.values()))
 
     async def test_oversize_or_invalid_context_never_submits_and_does_not_poison_next_explicit_request(self):
         session, socket = await self.session()

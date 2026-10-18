@@ -239,6 +239,8 @@ def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=N
     app.state.core = core
     from brain.core.photo_install import install_photos
     install_photos(app, core)
+    from brain.core.celsius_install import install_celsius
+    install_celsius(app, core)  # Dormant host routes; no capture/model startup.
     previous_lifespan = app.router.lifespan_context
 
     @asynccontextmanager
@@ -263,6 +265,9 @@ def install_core(app, planner, *, clock=time.time, log_path=None, cleanup_hook=N
                 if core.photon is not None:
                     with suppress(Exception):
                         await core.photon.close()
+                if core.celsius is not None:
+                    with suppress(Exception):
+                        await core.celsius.close(reason='shutdown')
                 if hasattr(core.agent, 'close'):
                     with suppress(Exception):
                         await core.agent.close()

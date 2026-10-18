@@ -1,0 +1,77 @@
+{
+  "recorded_at": 1792340256.140873,
+  "scope": "Actual Tenant web guest requests, genuine shared room agent, no iPad/JBL claim",
+  "checks": {
+    "context": {
+      "before": "single application fragment was shortened in middle, hiding Q&A instructions",
+      "after": "four fragments observed in actual local rollout with no truncation",
+      "fragment_char_limit": 2000,
+      "total_char_limit": 8000
+    },
+    "qa": {
+      "time": 1792339697.279496,
+      "app_request": "Answer that question.",
+      "user_confirmed": "one answer, TV captions only, cleared",
+      "native_status": {
+        "speaking": false,
+        "thinking": false,
+        "finishing": false,
+        "window_visible": false,
+        "speech_completed": true,
+        "projected_words": 42,
+        "phrase_switches": 3,
+        "overlay_display": 0
+      },
+      "results": [
+        {
+          "ok": true,
+          "code": "COMPLETED",
+          "speech_started": true,
+          "speech_completed": true,
+          "caption_completed": true,
+          "word_callbacks": 42,
+          "phrase_switches": 3
+        }
+      ],
+      "context_fragments": 4,
+      "context_truncated": false
+    },
+    "photo": {
+      "requests": [
+        "Take a photo of us.",
+        "Not yet.",
+        "Yes, I am ready."
+      ],
+      "readiness_and_one_countdown_user_confirmed": true,
+      "new_saved_jpegs": 1,
+      "decoded_dimensions": [
+        1280,
+        720
+      ],
+      "photo_booth_exited": true,
+      "intended_screen_receipt": "SAMSUNG",
+      "physical_tv_display": false,
+      "physical_tv_note": "Jay says photo was not on TV. Intended-screen receipt is insufficient. Native viewer placement fix pending.",
+      "new_request": "Visible 3,2,1 using same black response-caption style",
+      "initial_failures": "Two preparation failures before shutter. Private diagnostic found -2700 no ready main window; reopen+bounded wait passed a new clean guest.",
+      "failed_prepare_reply_guard": "software checked and deployed; no false readiness on failed prepare",
+      "same_turn_prepare_unknown_retry_fence": "software checked; latest small fence not yet refreshed in Brain"
+    }
+  },
+  "software": {
+    "repo_focused_tests": 136,
+    "passed": true,
+    "native_fast_demo_previous_checks": 27,
+    "tester_static_context_review": "no blocker; actual untruncated fragment observation verified"
+  },
+  "pending": [
+    "Native result window physical TV placement",
+    "Visible external-only 3,2,1 text",
+    "Final connected script run after changes; no reliability claim"
+  ],
+  "hardware_followups": [
+    "Actual iPad input unavailable",
+    "JBL destination untested; Bose music switch physically accepted earlier"
+  ],
+  "sensitive_content": "No transcript bytes, photo bytes, credentials, private helper paths or guest identifiers in this report"
+}

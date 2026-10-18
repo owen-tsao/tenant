@@ -1,0 +1,79 @@
+{
+  "time": "2026-10-18T08:59:33.117147-07:00",
+  "status": "SOFTWARE_REVIEWED_AND_STAGED; positive combined rehearsal pending monitor",
+  "source_sha256": {
+    "agent/tenant_device.py": "4d611aff8eba939b275c0408fa4d1d76ebac4ce4f02692ac4367df8c73c87eac",
+    "brain/core/native_devices.py": "38a52e8c6a08fb8c4b22ee6eecbd86a1ffe5a27c2b81c470d2c831aa03076a22",
+    "brain/core/room_conversation.py": "2b88e63619a23f311a1ad6260918f044680742a9bf756389f8b2a04c73a5df03",
+    "brain/core/demo_photo.py": "a62df6d4ddc3ea56735f71976016a7c23815035f94d9b23d555c0ae9dcb455e8",
+    "brain/core/prepared_qa.py": "47caeb069dbf81294fab4517ec12255ae0072894aefebe57732460c6b6d5ea09",
+    "tests/test_combined_demo_app.py": "39fa7e5202031ba198f45336c92e4f882bdd12c67b72699f350bb7cd3eb50484",
+    "tests/test_demo_photo.py": "f5eb04ec7c97afe68b7adf370bffa80d5353b50a9a00aa50e63e3dd5dd66c8fb",
+    "tests/test_prepared_qa.py": "7381d7b8007cc369b85a889f5094b4b59854ab4f1619bb0fa03884f1524722c5",
+    "notes/live-demo-agent.md": "83607940542b838003644c6d521228c6bae1f8dd6fee7f922975a0dc28692422",
+    "tenant-fast-demo/SpokenAnswers.swift": "02cd8ed03b0335e5cb69e822fffed6f45892743a15e2993050cf07f398409c74",
+    "tenant-fast-demo/NativeQACommand.swift": "bef4d6bb6fefc9f7969f2635d1db52df7d434328881103756af036bdbe3ad766",
+    "tenant-fast-demo/AnswerLifecycle.swift": "376ebc8c60b20b640be15f4d9f0e4946696915d65b83fd1d4f210695f6d31f32",
+    "tenant-fast-demo/answers.py": "1aed4339134e5b2edf68e6e5335ac0e12a951addd73b9721c62682f37a66eef2",
+    "tenant-fast-demo/photo.py": "9b2acc596efe5d379e6199196fc0657f337c3171ce4c930eb4ee71f120f758cd",
+    "tenant-capability-lab/drawing/core.mjs": "bf53e466786bc59b0c47e3d1e6b192f4e791c9f249aa9a01efc9ad5f8f8061c0",
+    "tenant-capability-lab/drawing/tv.mjs": "5888c5b753a2aaf5b398d31f4a32a92a2a6f7b423011a575018e104d3497da06",
+    "tenant-capability-lab/drawing/album.css": "614951d648bf99b7987cdb54d3f33fd3e50c453cf44a329511c9523a96fe223b"
+  },
+  "software": {
+    "focused_repository_tests": 115,
+    "result": "PASS",
+    "fast_demo_tests": 27,
+    "fast_demo_result": "PASS",
+    "controller_checks": {
+      "count": 5,
+      "scope": "Four actual join/WebSocket cases plus one controller/publication queue case, with scripted native model and fake camera/speech; not physical acceptance",
+      "cases": [
+        "same guest prepare/not-yet/ready and capture once",
+        "ordinary chat denies photo even if model calls helper",
+        "ordinary/quoted/negated app text denies Q&A; fresh request and dedup",
+        "validated app Stop fences pending Q&A",
+        "early readiness waits for preparation question publication and a new grant"
+      ]
+    },
+    "native_owner_reported": {
+      "lifecycle_checks": 40,
+      "command_checks": 13,
+      "candidate_build": "PASS",
+      "independent_static_review": "no finite-path blocker; native protocol3 and bounded before-countdown photo cancellation"
+    }
+  },
+  "staging": {
+    "brain_only_refresh": "verified new owned process, health200, same public room code, zero guests",
+    "native_bundle_sha256": "8946d3f97dc23fa9eeaac33509dd95a1b6a14c90315432ae49afe0bf6ee81bfc",
+    "native_protocol": 3,
+    "backend_ready": true,
+    "speech": false,
+    "caption_visible": false,
+    "word_callbacks": 0,
+    "control_windows": 0,
+    "app_check": "Actual guest joined and left through public UI; no native user turn was sent",
+    "original_flock": "released by original session98852, independently probed free"
+  },
+  "preserved": {
+    "transcript_listening": true,
+    "transcript_mic": "MacBook Pro Microphone",
+    "approved_bell_sha256": "bf53e466786bc59b0c47e3d1e6b192f4e791c9f249aa9a01efc9ad5f8f8061c0",
+    "volume_output_changes_by_root": false,
+    "camera_speech_or_tv_effect_by_root": false,
+    "owen_web_edits": false,
+    "celsius": "paused"
+  },
+  "blocked_physical_acceptance": {
+    "external_display": "User disconnected it to charge Mac; actual inventory has only Built-in Retina Display",
+    "pending": [
+      "One coordinated actual Tenant-app positive Q&A/caption+Stop trial",
+      "Actual same-guest prepare/not-yet/ready/countdown/photo TV trial",
+      "Connected rehearsal including the album-only TV stage"
+    ],
+    "hardware_followups": [
+      "Real iPad input; device not available",
+      "Mac-to-JBL playback; current physical switch pass is Mac-to-Bose"
+    ]
+  }
+}

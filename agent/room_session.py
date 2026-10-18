@@ -15,6 +15,24 @@ from uuid import uuid4
 # Full device/result guidance plus the local demo index exceed 6k on this Mac.
 # Keep a finite pre-submission bound without truncating execution/cleanup rules.
 MAX_APPLICATION_CONTEXT = 8000
+# The desktop renderer shortens each application-context fragment. Keep every
+# fragment below that limit rather than silently losing middle tool guidance.
+APPLICATION_CONTEXT_FRAGMENT = 2000
+
+
+def application_fragments(context):
+    parts = []
+    while context:
+        boundary = min(len(context), APPLICATION_CONTEXT_FRAGMENT)
+        if boundary < len(context):
+            split = context.rfind(' ', 0, boundary)
+            if split > boundary // 2:
+                boundary = split + 1
+        parts.append(context[:boundary])
+        context = context[boundary:]
+    return {('tenant_devices' if index == 0 else f'tenant_devices_{index + 1:02d}'):
+            {'kind': 'application', 'value': part}
+            for index, part in enumerate(parts)}
 
 
 class RoomSessionError(RuntimeError):
@@ -184,12 +202,24 @@ class RoomSession:
             self._events.get_nowait()
         self._events.put_nowait(error)
 
-    async def start_turn(self, text, *, authorize=None, application_context=None):
+    async def start_turn(self, text, *, authorize=None, application_context=None,
+                         image_paths=None, output_schema=None, model=None, effort=None,
+                         turn_trigger=None):
         if not isinstance(text, str) or not text.strip() or len(text) > 8000:
             raise ValueError('A room message of 1–8000 characters is required')
         if application_context is not None and (not isinstance(application_context, str)
                                                 or not 0 < len(application_context) <= MAX_APPLICATION_CONTEXT):
             raise ValueError(f'Application context must contain 1–{MAX_APPLICATION_CONTEXT} characters')
+        images = self._local_images(image_paths)
+        if output_schema is not None and (not isinstance(output_schema, dict)
+                or len(json.dumps(output_schema)) > 8000):
+            raise ValueError('A bounded JSON output schema is required')
+        if model is not None and (not isinstance(model, str) or not model or len(model) > 128):
+            raise ValueError('An explicit supported model is required')
+        if effort is not None and effort not in ('none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max', 'ultra'):
+            raise ValueError('Invalid reasoning effort')
+        if turn_trigger is not None and turn_trigger != 'celsius_observation':
+            raise ValueError('Unsupported observation source')
         async with self._start_lock:
             if self._reset_required:
                 raise RoomSessionError('Room context must be reset before another user can continue')
@@ -200,12 +230,15 @@ class RoomSession:
                 raise RoomSessionError('Room access ended before submission')
             self._busy_unknown = True
             try:
-                params = {'threadId': self.thread_id, 'input': [{'type': 'text', 'text': text}]}
+                params = {'threadId': self.thread_id, 'input': [{'type': 'text', 'text': text}] + images}
+                for key, value in (('outputSchema', output_schema), ('model', model),
+                                   ('effort', effort), ('turnTrigger', turn_trigger)):
+                    if value is not None:
+                        params[key] = value
                 if application_context is not None:
                     # Installed experimental TurnStartParams defines this as
                     # application context, separate from exact guest input.
-                    params['additionalContext'] = {'tenant_devices': {'kind': 'application',
-                                                                      'value': application_context}}
+                    params['additionalContext'] = application_fragments(application_context)
                 result = await self._request('turn/start', params)
             except asyncio.CancelledError:
                 # Cancellation of this client cannot undo shell, UI or physical effects.
@@ -253,7 +286,61 @@ class RoomSession:
                 raise RoomSessionError('Invalid native turn status; it was not retried', outcome_unknown=True)
             return turn['id']
 
-    async def steer_turn(self, text, *, expected_turn_id, authorize=None):
+    @staticmethod
+    def _local_images(image_paths):
+        if image_paths is None:
+            return []
+        if not isinstance(image_paths, (tuple, list)) or not 0 < len(image_paths) <= 2:
+            raise ValueError('One or two real local observation images are required')
+        result = []
+        for value in image_paths:
+            if not isinstance(value, str) or not Path(value).is_absolute():
+                raise ValueError('Observation image paths must be absolute')
+            path = Path(value).resolve(strict=True)
+            if not path.is_file() or path.stat().st_size > 10_000_000:
+                raise ValueError('Invalid observation image')
+            with path.open('rb') as stream:
+                if stream.read(8) != b'\x89PNG\r\n\x1a\n':
+                    raise ValueError('A real PNG observation is required')
+            result.append({'type': 'localImage', 'path': str(path)})
+        return result
+
+    async def scene_baseline(self, model, effort='low'):
+        """Read explicit restorable defaults and verify this account's catalog.
+
+        No model/setting is changed here. Unknown/null baseline effort cannot be
+        restored reliably through optional-field updates, so fail before a turn.
+        """
+        if self.active_turn_id is not None or self._busy_unknown or self._reset_required:
+            raise RoomSessionError('The room is not idle for scene admission')
+        thread = (await self.read_thread()).get('thread', {})
+        baseline = {'model': thread.get('model'), 'effort': thread.get('reasoningEffort')}
+        if (thread.get('id') != self.thread_id or not isinstance(baseline['model'], str)
+                or not baseline['model'] or baseline['effort'] not in
+                ('none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max', 'ultra')):
+            raise RoomSessionError('Explicit restorable room model settings are unavailable')
+        catalog = await self._request('model/list', {'limit': 100, 'includeHidden': False})
+        supported = any(item.get('model') == model and 'image' in item.get('inputModalities', [])
+                        and any(option.get('reasoningEffort') == effort
+                                for option in item.get('supportedReasoningEfforts', []))
+                        for item in catalog.get('data', []) if isinstance(item, dict))
+        if not supported:
+            raise RoomSessionError('The scene model/effort/image combination is not supported here')
+        return baseline
+
+    async def restore_scene_baseline(self, baseline):
+        """Restore and reread exact thread defaults before guest work resumes."""
+        try:
+            await self._request('thread/settings/update', {'threadId': self.thread_id, **baseline})
+            thread = (await self.read_thread()).get('thread', {})
+            if (thread.get('id') != self.thread_id or thread.get('model') != baseline['model']
+                    or thread.get('reasoningEffort') != baseline['effort']):
+                raise RoomSessionError('Room model restoration could not be verified', outcome_unknown=True)
+        except BaseException:
+            self.require_reset()
+            raise
+
+    async def steer_turn(self, text, *, expected_turn_id, authorize=None, image_paths=None):
         """Append to exactly one active turn; never consume events or fall back.
 
         The original turn's caller remains its only event consumer. An uncertain,
@@ -263,6 +350,7 @@ class RoomSession:
             raise ValueError('A room message of 1–8000 characters is required')
         if not isinstance(expected_turn_id, str) or not expected_turn_id:
             raise ValueError('An exact active native turn ID is required')
+        images = self._local_images(image_paths)
         async with self._start_lock:
             if self._reset_required or self._steer_blocked_turn == expected_turn_id:
                 raise RoomSessionError('Steering this room turn is blocked; nothing was retried', code='STEER_BLOCKED')
@@ -272,7 +360,7 @@ class RoomSession:
                 raise RoomSessionError('Room access ended before steering', code='STEER_ACCESS_ENDED')
             try:
                 result = await self._request('turn/steer', {'threadId': self.thread_id,
-                    'input': [{'type': 'text', 'text': text}], 'expectedTurnId': expected_turn_id})
+                    'input': [{'type': 'text', 'text': text}] + images, 'expectedTurnId': expected_turn_id})
             except asyncio.CancelledError:
                 self._steer_blocked_turn = expected_turn_id
                 raise

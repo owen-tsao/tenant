@@ -1,0 +1,307 @@
+{
+  "date": "2026-10-18",
+  "kind": "actual Tenant guest/web-chat Mac-to-Bose switch",
+  "initial": {
+    "output": "Bose NC 700 HP",
+    "input": "Bose NC 700 HP",
+    "outputVolumePercent": 75,
+    "transcript": {
+      "pid": 89952,
+      "microphone": "MacBook Pro Microphone",
+      "enabled": true,
+      "listening": true
+    }
+  },
+  "setup": {
+    "output": "MacBook Pro Speakers",
+    "savedOutputVolumePercent": 69,
+    "noVolumeControlUsed": true
+  },
+  "player": {
+    "pid": 92663,
+    "programId": "p_66e81b85ffd94a1eb2297dfb25d8a3c7",
+    "song": "Daniel Caesar \u2014 CYANIDE",
+    "samePidAtSampledChecks": true,
+    "soleMpvAtSampledChecks": true,
+    "playheadAdvancingBeforeAndAfter": true,
+    "clockDiscontinuitiesBefore": 0,
+    "clockDiscontinuitiesAfter": 2,
+    "numericPlayheadNotRecorded": true
+  },
+  "human": "Jay: Yes, Bose continued playing",
+  "correction": {
+    "requestedByJay": true,
+    "inputBefore": "Bose NC 700 HP",
+    "inputAfter": "MacBook Pro Microphone",
+    "outputUnchanged": "Bose NC 700 HP",
+    "outputVolumeObservedAfter": 50,
+    "volumeControlUsed": false,
+    "reasonForVolumeDifferenceUnestablished": true,
+    "transcriptPidUnchanged": 89952,
+    "transcriptBuiltInMic": true,
+    "transcriptListening": true,
+    "lastAudioAgeSecondsAtCheck": 0.374
+  },
+  "stop": {
+    "guestUiReceipt": "Music stopped, with audio shutdown confirmed.",
+    "independentProcessCheck": "No mpv process remained",
+    "testGuestLeave": "Your access has ended. Scan the room\u2019s code to join again.",
+    "note": "After Leave the native thread reset; later thread retrieval returned setup history, so it is not used as stop evidence."
+  },
+  "turns": [
+    {
+      "id": "01a14fa1-c29b-7403-8600-92bdbb06caea",
+      "status": "interrupted",
+      "startedAt": 1792337363,
+      "completedAt": null,
+      "messages": [
+        {
+          "type": "userMessage",
+          "text": "Stop the music now. Leave the volume, audio output, Tenant Transcript, drawing, TV and photo unchanged."
+        },
+        {
+          "type": "agentMessage",
+          "text": "I\u2019ll stop the music and leave the volume, audio output, Tenant Transcript, drawing, TV, and photo unchanged.",
+          "phase": "commentary"
+        }
+      ],
+      "programReceipts": [
+        {
+          "program_id": "p_66e81b85ffd94a1eb2297dfb25d8a3c7",
+          "state": "running",
+          "bpm": 79.5072115384615,
+          "source": "selected_recording",
+          "song_id": "daniel-caesar-cyanide-42b58460277a",
+          "title": "CYANIDE",
+          "artist": "Daniel Caesar",
+          "song_clock": {
+            "state": "ready",
+            "playhead_advancing": true,
+            "source": "recording-derived beat positions plus live mpv audio playhead",
+            "sample_age_ms": 156.249,
+            "sample_uncertainty_ms": 1.643,
+            "discontinuities": 2,
+            "physical_alignment_verified": false
+          },
+          "clock": "recording-derived beats mapped from bracketed live audio playhead",
+          "phase_wall_ms": 0,
+          "audio_device_id": "laptop",
+          "light_device_ids": [],
+          "participants": {},
+          "reserved_light_ids": [],
+          "missed_ticks": 0,
+          "reason": null,
+          "cleanup": {},
+          "recovery": {},
+          "recent_dispatch_timings": [],
+          "visual": {
+            "update_available": true,
+            "physical_rendering_verified": false
+          },
+          "physical_sync_measured": false,
+          "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "01a14fa0-89a2-7072-b54f-f76af1b1802a",
+      "status": "completed",
+      "startedAt": 1792337283,
+      "completedAt": 1792337329,
+      "messages": [
+        {
+          "type": "userMessage",
+          "text": "Move the music that\u2019s already playing to my Bose headphones. Keep the song playing from where it is, keep both volume settings unchanged, and leave the built-in microphone and Tenant Transcript alone."
+        },
+        {
+          "type": "agentMessage",
+          "text": "I\u2019ll check for your Bose headphones and switch the music output while preserving playback, both volumes, the microphone, and Tenant Transcript.",
+          "phase": "commentary"
+        },
+        {
+          "type": "agentMessage",
+          "text": "Switched output to Bose NC 700 HP; the latest status showed \u201cCYANIDE\u201d playing. I didn\u2019t restart it or adjust either volume.\n\nTenant Transcript is untouched. The microphone input was already set to Bose; I left it unchanged.",
+          "phase": "final_answer"
+        }
+      ],
+      "programReceipts": [
+        {
+          "program_id": "p_66e81b85ffd94a1eb2297dfb25d8a3c7",
+          "state": "running",
+          "bpm": 79.5072115384615,
+          "source": "selected_recording",
+          "song_id": "daniel-caesar-cyanide-42b58460277a",
+          "title": "CYANIDE",
+          "artist": "Daniel Caesar",
+          "song_clock": {
+            "state": "ready",
+            "playhead_advancing": true,
+            "source": "recording-derived beat positions plus live mpv audio playhead",
+            "sample_age_ms": 190.419,
+            "sample_uncertainty_ms": 0.747,
+            "discontinuities": 0,
+            "physical_alignment_verified": false
+          },
+          "clock": "recording-derived beats mapped from bracketed live audio playhead",
+          "phase_wall_ms": 0,
+          "audio_device_id": "laptop",
+          "light_device_ids": [],
+          "participants": {},
+          "reserved_light_ids": [],
+          "missed_ticks": 0,
+          "reason": null,
+          "cleanup": {},
+          "recovery": {},
+          "recent_dispatch_timings": [],
+          "visual": {
+            "update_available": true,
+            "physical_rendering_verified": false
+          },
+          "physical_sync_measured": false,
+          "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+        },
+        {
+          "program_id": "p_66e81b85ffd94a1eb2297dfb25d8a3c7",
+          "state": "running",
+          "bpm": 79.5072115384615,
+          "source": "selected_recording",
+          "song_id": "daniel-caesar-cyanide-42b58460277a",
+          "title": "CYANIDE",
+          "artist": "Daniel Caesar",
+          "song_clock": {
+            "state": "ready",
+            "playhead_advancing": true,
+            "source": "recording-derived beat positions plus live mpv audio playhead",
+            "sample_age_ms": 240.034,
+            "sample_uncertainty_ms": 0.82,
+            "discontinuities": 2,
+            "physical_alignment_verified": false
+          },
+          "clock": "recording-derived beats mapped from bracketed live audio playhead",
+          "phase_wall_ms": 0,
+          "audio_device_id": "laptop",
+          "light_device_ids": [],
+          "participants": {},
+          "reserved_light_ids": [],
+          "missed_ticks": 0,
+          "reason": null,
+          "cleanup": {},
+          "recovery": {},
+          "recent_dispatch_timings": [],
+          "visual": {
+            "update_available": true,
+            "physical_rendering_verified": false
+          },
+          "physical_sync_measured": false,
+          "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "01a14f9f-9cac-7840-b3d7-4d56d543aeb8",
+      "status": "completed",
+      "startedAt": 1792337222,
+      "completedAt": 1792337260,
+      "messages": [
+        {
+          "type": "userMessage",
+          "text": "Play CYANIDE by Daniel Caesar on the Mac speakers. Keep the current volume and leave the TV, drawing and photo as they are."
+        },
+        {
+          "type": "agentMessage",
+          "text": "I\u2019ll play \u201cCYANIDE\u201d by Daniel Caesar on the Mac speakers, keeping the current volume and the TV, drawing, and photo unchanged.",
+          "phase": "commentary"
+        },
+        {
+          "type": "agentMessage",
+          "text": "Started \u201cCYANIDE\u201d by Daniel Caesar on the Mac; the latest status showed it playing. Volume, TV, drawing, and photo are unchanged.",
+          "phase": "final_answer"
+        }
+      ],
+      "programReceipts": [
+        {
+          "program_id": "p_66e81b85ffd94a1eb2297dfb25d8a3c7",
+          "state": "running",
+          "bpm": 79.5072115384615,
+          "source": "selected_recording",
+          "song_id": "daniel-caesar-cyanide-42b58460277a",
+          "title": "CYANIDE",
+          "artist": "Daniel Caesar",
+          "song_clock": {
+            "state": "ready",
+            "playhead_advancing": true,
+            "source": "recording-derived beat positions plus live mpv audio playhead",
+            "sample_age_ms": 0.041,
+            "sample_uncertainty_ms": 3.34,
+            "discontinuities": 0,
+            "physical_alignment_verified": false
+          },
+          "clock": "recording-derived beats mapped from bracketed live audio playhead",
+          "phase_wall_ms": 0,
+          "audio_device_id": "laptop",
+          "light_device_ids": [],
+          "participants": {},
+          "reserved_light_ids": [],
+          "missed_ticks": 0,
+          "reason": null,
+          "cleanup": {},
+          "recovery": {},
+          "recent_dispatch_timings": [],
+          "visual": {
+            "update_available": true,
+            "physical_rendering_verified": false
+          },
+          "physical_sync_measured": false,
+          "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+        },
+        {
+          "program_id": "p_66e81b85ffd94a1eb2297dfb25d8a3c7",
+          "state": "running",
+          "bpm": 79.5072115384615,
+          "source": "selected_recording",
+          "song_id": "daniel-caesar-cyanide-42b58460277a",
+          "title": "CYANIDE",
+          "artist": "Daniel Caesar",
+          "song_clock": {
+            "state": "ready",
+            "playhead_advancing": true,
+            "source": "recording-derived beat positions plus live mpv audio playhead",
+            "sample_age_ms": 232.758,
+            "sample_uncertainty_ms": 1.296,
+            "discontinuities": 0,
+            "physical_alignment_verified": false
+          },
+          "clock": "recording-derived beats mapped from bracketed live audio playhead",
+          "phase_wall_ms": 0,
+          "audio_device_id": "laptop",
+          "light_device_ids": [],
+          "participants": {},
+          "reserved_light_ids": [],
+          "missed_ticks": 0,
+          "reason": null,
+          "cleanup": {},
+          "recovery": {},
+          "recent_dispatch_timings": [],
+          "visual": {
+            "update_available": true,
+            "physical_rendering_verified": false
+          },
+          "physical_sync_measured": false,
+          "audio_light_clock_alignment": "live playhead bracket uncertainty reported; optical/acoustic offset unmeasured"
+        }
+      ]
+    }
+  ],
+  "bellAssessment": {
+    "sourceFiles": [
+      "../tenant-capability-lab/drawing/app.mjs",
+      "../tenant-capability-lab/drawing/simulation.mjs"
+    ],
+    "defaultAudioContext": true,
+    "simulationHasNoExplicitSink": true,
+    "sameSystemRouteApplicable": true,
+    "preserveExistingContextAndTails": true,
+    "physicalBellSwitchNotTested": true,
+    "source": "https://developer.chrome.com/blog/audiocontext-setsinkid"
+  }
+}

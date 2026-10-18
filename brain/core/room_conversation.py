@@ -78,6 +78,7 @@ class ConversationAgent:
         self._native_turn_lease = None
         self._steer_blocked_identity = None
         self._terminal_failures = {}
+        self._observation_permit = None
         self.device_tools = None
         self.programs = None
         self.reply_speech = None
@@ -173,6 +174,9 @@ class ConversationAgent:
 
     def access_ended(self, guest_id):
         """Synchronous authority transition; asynchronously interrupt/drain native work."""
+        permit = self._observation_permit
+        if permit is not None and permit.lease.guest_id == guest_id:
+            permit.owner.invalidate()
         if self._controller != guest_id:
             return
         self._terminal_failures.clear()
@@ -315,6 +319,8 @@ class ConversationAgent:
             self._first_guest_turn = None
 
     async def reset_context(self):
+        if self._observation_permit is not None:
+            await self._observation_permit.owner.close(reason='room_reset')
         controller = self._controller
         if controller:
             self.access_ended(controller)
@@ -357,6 +363,8 @@ class ConversationAgent:
         if self.device_tools is not None:
             grant = await self.device_tools.prepare(guest_id, generation, self.leases.current(guest_id),
                                                      self.settings.thread_id)
+            self.device_tools.demo_photos.observe_turn(grant, text)
+            self.device_tools.prepared_qa.observe_turn(grant, text)
             # Intended continuity is not a receipt for current playback. Supply
             # the verification rule afresh without modifying exact guest text.
             application_context = self.device_tools.context(grant).replace(
@@ -368,13 +376,19 @@ class ConversationAgent:
             if self.device_tools is not None:
                 self.device_tools.finish(grant)
 
-    async def _run_native_turn(self, text, guest_id, generation, *, grant=None, application_context=None):
+    async def _run_native_turn(self, text, guest_id, generation, *, grant=None, application_context=None,
+                               turn_options=None, allow_native_approvals=True, observation_authorize=None):
         session = self._session
         native_lease = grant.lease if grant is not None else self.leases.current(guest_id)
-        options = {'authorize': lambda: self._allowed(guest_id, generation)
-                   and self.leases.current(guest_id) is native_lease}
+        def allowed():
+            return (self._allowed(guest_id, generation)
+                    and self.leases.current(guest_id) is native_lease
+                    and (observation_authorize is None or observation_authorize()))
+        options = {'authorize': allowed}
         if application_context is not None:
             options['application_context'] = application_context
+        if turn_options is not None:
+            options.update(turn_options)
         turn_id = await session.start_turn(text, **options)
         self._native_turn_identity = (guest_id, generation, turn_id)
         self._native_turn_lease = native_lease
@@ -387,7 +401,7 @@ class ConversationAgent:
         try:
             async with asyncio.timeout(self.settings.turn_timeout):
                 while True:
-                    if not self._allowed(guest_id, generation):
+                    if not allowed():
                         await self._drain_active()
                         return self._denied(guest_id)
                     try:
@@ -403,6 +417,8 @@ class ConversationAgent:
                             raise RoomSessionError('A stale native approval arrived')
                         continue
                     if 'id' in event:
+                        if not allow_native_approvals:
+                            raise RoomSessionError('An observation requested a native tool; the scene was stopped')
                         await self._answer_request(event, guest_id, generation, turn_id)
                     if event.get('method') == 'error':
                         if params.get('willRetry') is True:
@@ -423,15 +439,18 @@ class ConversationAgent:
                             raise NativeTurnError(status, turn_id=turn_id)
                         if status != 'completed':
                             raise RoomSessionError('Invalid native terminal status', outcome_unknown=True)
-                        if not self._allowed(guest_id, generation):
+                        if not allowed():
                             return self._denied(guest_id)
                         if not final:
                             return self.reply('Tenant finished without a text reply. The request was not repeated.')
                         self.log.append('ok', 'Tenant replied to the guest.', guest_id=guest_id,
                                         thread_id=self.settings.thread_id, turn_id=turn_id, generation=generation)
+                        reply_text = final[-1]
+                        if grant is not None:
+                            reply_text = self.device_tools.demo_photos.final_reply(grant, reply_text)
                         return ReplyFrames(CompletedReply(
                             guest_id, generation, self.settings.thread_id, turn_id,
-                            self._redact(final[-1]), self.leases.current(guest_id),
+                            self._redact(reply_text), self.leases.current(guest_id),
                             explicit_speech_attempted=bool(grant and grant.explicit_speech_attempted),
                             voice_revision=self.reply_speech.revision_for(grant) if self.reply_speech is not None and grant else None))
         except BaseException:
@@ -439,6 +458,79 @@ class ConversationAgent:
             # Starting another shielded drain here could orphan native work if
             # the browser disconnects while that cleanup is already running.
             raise
+
+    async def arm_observation_scene(self, owner, lease):
+        """Admit an explicitly armed local scene under a real current room lease."""
+        from brain.core.celsius import ObservationPermit
+        if self._lock.locked() or self._observation_permit is not None:
+            raise RoomSessionError('Room conversation is busy')
+        async with self._lock:
+            if (self._failed or self.leases.current(lease.guest_id) is not lease
+                    or not ('computer' in lease.scopes or '*' in lease.scopes)
+                    or not owner.source_active()
+                    or (self._controller is not None and self._controller != lease.guest_id
+                        and self.leases.current(self._controller) is not None)):
+                raise RoomSessionError('Scene admission is not authorized for this controller')
+            self.leases.current(lease.guest_id, activate=True)
+            generation = self._admit(lease.guest_id)
+            await self._connect()
+            if self._clean_generation != generation:
+                await self._reset_native()
+                if self._allowed(lease.guest_id, generation):
+                    self._clean_generation = generation
+            if not self._allowed(lease.guest_id, generation) or not owner.source_active():
+                raise RoomSessionError('Scene authority ended during admission')
+            # Catalog/settings metadata only; no model call or setting mutation.
+            await self._session.scene_baseline(owner.model, 'low')
+            permit = ObservationPermit(owner, lease, generation, self.leases.room.epoch)
+            self._observation_permit = permit
+            return permit
+
+    async def observe(self, permit, observation):
+        """One same-room native observer; source data never becomes guest history.
+
+        The existing controller/event consumer and turn steering remain in use.
+        Scene defaults are restored and verified while holding the controller
+        lock, including cancellation/failure, before ordinary chat may resume.
+        """
+        if permit is not self._observation_permit or not permit.allows(observation):
+            raise RoomSessionError('Observation authority is no longer current')
+        text, context, images, schema = permit.owner.prepare(observation)
+        identity, session = self._native_turn_identity, self._session
+        expected = (permit.lease.guest_id, permit.generation)
+        if (identity is not None and identity[:2] == expected and session is not None
+                and session.active_turn_id == identity[2]):
+            async with self._steer_lock:
+                if not permit.allows(observation) or self._native_turn_identity != identity:
+                    raise RoomSessionError('Observation turn ended before steering')
+                accepted = await session.steer_turn(context, expected_turn_id=identity[2],
+                    authorize=lambda: permit.allows(observation), image_paths=images)
+                if accepted != identity[2]:
+                    raise RoomSessionError('Observation steering outcome is unknown', outcome_unknown=True)
+                return [{'type': 'action', 'text': 'Observation added to current scene'}]
+        async with self._lock:
+            if permit is not self._observation_permit or not permit.allows(observation):
+                raise RoomSessionError('Observation authority ended before submission')
+            baseline = await session.scene_baseline(permit.owner.model, 'low')
+            try:
+                try:
+                    return await self._run_native_turn(text, permit.lease.guest_id, permit.generation,
+                        application_context=context, allow_native_approvals=False,
+                        observation_authorize=permit.lifetime_allows, turn_options={
+                            'authorize': lambda: permit.allows(observation),
+                            'image_paths': images, 'output_schema': schema, 'model': permit.owner.model,
+                            'effort': 'low', 'turn_trigger': 'celsius_observation'})
+                except BaseException:
+                    await self._cancel_cleanup(permit.lease.guest_id, permit.generation)
+                    raise
+            finally:
+                try:
+                    async with asyncio.timeout(self.settings.cleanup_timeout):
+                        await session.restore_scene_baseline(baseline)
+                except BaseException:
+                    self._failed = True
+                    session.require_reset()
+                    raise
 
     async def _steer_native_turn(self, text, guest_id, generation, lease, identity, session):
         # This lock orders follow-ups only. The original controller retains its
@@ -462,6 +554,12 @@ class ConversationAgent:
                 return [{'type': 'action', 'text': 'A previous follow-up could not be confirmed. Wait for the current request to finish.'}]
             try:
                 self.leases.record_public(lease, 'guest', self._redact(text))
+                if self.device_tools is not None:
+                    for grant in tuple(self.device_tools._grants.values()):
+                        if (grant.guest_id == guest_id and grant.generation == generation
+                                and grant.lease is lease and grant.turn_id == identity[2]):
+                            self.device_tools.prepared_qa.observe_turn(grant, text)
+                            self.device_tools.demo_photos.observe_turn(grant, text)
                 accepted = await session.steer_turn(text, expected_turn_id=identity[2], authorize=authorized)
                 if accepted != identity[2]:
                     raise RoomSessionError('Steering did not confirm the exact turn', outcome_unknown=True)
@@ -481,6 +579,11 @@ class ConversationAgent:
             return [{'type': 'action', 'text': 'Added to current request'}]
 
     async def turn(self, guest_id, text):
+        permit = self._observation_permit
+        if permit is not None:
+            # Ordinary guest input takes control back from proactive observation.
+            # Cleanup/model restoration finish before its unchanged turn path.
+            await permit.owner.close(reason='guest_input')
         lease = self.leases.current(guest_id)
         if lease is None:
             return self._denied(guest_id)
@@ -497,15 +600,19 @@ class ConversationAgent:
         self.leases.current(guest_id, activate=True)
         generation = self._admit(guest_id)
         identity, session = self._native_turn_identity, self._session
+        photo_reply = (self.device_tools is not None
+                       and self.device_tools.demo_photos.requires_new_turn(guest_id, text))
         if (identity is not None and identity[:2] == (guest_id, generation)
                 and self._native_turn_lease is lease and session is not None
-                and session.active_turn_id == identity[2]):
+                and session.active_turn_id == identity[2] and not photo_reply):
             return await self._steer_native_turn(text, guest_id, generation, lease, identity, session)
         async with self._lock:
             if self._failed:
                 return self.reply('Tenant could not verify a clean conversation. Ask the host to check the connection; nothing was retried.')
             if not self._allowed(guest_id, generation):
                 return self._denied(guest_id)
+            if photo_reply and not await self.device_tools.demo_photos.wait_for_prompt(guest_id, text):
+                return self.reply('The photo readiness question was not delivered yet. No countdown started; reply again after it appears in Tenant.')
             self._native_turn_identity = None
             self._native_turn_lease = None
             try:
@@ -576,6 +683,8 @@ class ConversationAgent:
         return max(self.settings.cleanup_timeout, queue) + ordinary
 
     async def close(self):
+        if self._observation_permit is not None:
+            await self._observation_permit.owner.close(reason='shutdown')
         self._terminal_failures.clear()
         self._native_turn_identity = None
         controller = self._controller

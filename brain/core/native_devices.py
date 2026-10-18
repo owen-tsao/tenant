@@ -67,6 +67,10 @@ class NativeDevices:
         self.programs = None
         self.reply_voice = None
         self.photos = None
+        from brain.core.demo_photo import DemoPhotos
+        self.demo_photos = DemoPhotos(self)
+        from brain.core.prepared_qa import PreparedQA
+        self.prepared_qa = PreparedQA(self)
 
     async def prepare(self, guest_id, generation, lease, thread_id):
         if self._closed:
@@ -98,6 +102,8 @@ class NativeDevices:
     def finish(self, grant):
         if grant is None:
             return
+        self.demo_photos.finish(grant)
+        self.prepared_qa.finish(grant)
         grant.closed = True
         self._grants.pop(grant.token, None)
         grant.path.unlink(missing_ok=True)
@@ -105,6 +111,8 @@ class NativeDevices:
     def revoke_all(self):
         for grant in tuple(self._grants.values()):
             self.finish(grant)
+        self.demo_photos.invalidate()
+        self.prepared_qa.invalidate()
 
     def redact(self, text):
         for grant in self._grants.values():
@@ -186,11 +194,13 @@ class NativeDevices:
             text += ('\nPhotos: use inventory.photos. photo-capture takes request_id,source_device_id; '
                      'photo-status takes request_id,capture_request_id. No raw camera calls or retries. '
                      'Captured/stored are not displayed; only a matching viewer receipt confirms rendering.')
+        text += self.demo_photos.context(grant)
+        text += self.prepared_qa.context(grant)
         demo_guide = Path(__file__).resolve().parents[2] / 'notes' / 'live-demo-agent.md'
         if demo_guide.is_file():
-            text += ('\nPrepared local drawing / sunset photo album: when the guest requests this, '
+            text += ('\nPrepared local demos (drawing / sunset album, Photo Booth, fast judge Q&A): when requested, '
                      f'read {demo_guide} for current entry points and limitations. '
-                     'The iPad is a chat terminal, not a connected drawing sensor. '
+                     'iPad drawing input is not connected; current drawing input is Mac mouse/replay. '
                      'Use the real agent tools and visible controls; do not invent an input connection '
                      'or launch an unrequested rehearsal.')
         return text
@@ -296,14 +306,19 @@ class NativeDevices:
         valid_photo = self.photos is not None and (
             (operation == 'photo-capture' and fields == {'request_id', 'source_device_id'}) or
             (operation == 'photo-status' and fields == {'request_id', 'capture_request_id'}))
-        if not valid_call and not valid_blink and not valid_program and not valid_voice and not valid_photo:
+        valid_demo_photo = (
+            operation in ('demo-photo-prepare', 'demo-photo-status') and fields == {'request_id'}
+            or operation in ('demo-photo-capture', 'demo-photo-cancel') and fields == {'request_id', 'photo_id'}
+            and isinstance(request.get('photo_id'), str))
+        valid_qa = operation in ('question-answer', 'question-answer-stop') and fields == {'request_id'}
+        if not valid_call and not valid_blink and not valid_program and not valid_voice and not valid_photo and not valid_demo_photo and not valid_qa:
             return denied('INVALID', 'Invalid helper request. Nothing was sent.')
         request_id = request['request_id']
         if (not isinstance(request_id, str) or not 1 <= len(request_id) <= 80
                 or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in request_id)):
             return denied('INVALID', 'A short request ID is required. Nothing was sent.')
         payload = ({key: copy.deepcopy(request[key]) for key in ('device_id', 'cap', 'args')} if valid_call else
-                   {key: copy.deepcopy(request[key]) for key in fields} if valid_program or valid_voice or valid_photo else
+                   {key: copy.deepcopy(request[key]) for key in fields} if valid_program or valid_voice or valid_photo or valid_demo_photo or valid_qa else
                    {'device_id': copy.deepcopy(request['device_id']), 'count': copy.deepcopy(request.get('count', 3))})
         payload['operation'] = operation
         try:
@@ -335,7 +350,19 @@ class NativeDevices:
         caller_connected = connected
         connected = lambda: caller_connected() and metadata_guard()
         try:
-            if valid_photo:
+            if valid_qa:
+                if operation == 'question-answer':
+                    grant.explicit_speech_attempted = True
+                response = await self.prepared_qa.dispatch(grant, operation,
+                    {key: value for key, value in payload.items() if key != 'operation'},
+                    authorized=lambda: self.permitted(grant) and connected())
+            elif valid_demo_photo:
+                if operation in ('demo-photo-prepare', 'demo-photo-capture'):
+                    grant.explicit_speech_attempted = True
+                response = await self.demo_photos.dispatch(grant, operation,
+                    {key: value for key, value in payload.items() if key != 'operation'},
+                    authorized=lambda: self.permitted(grant) and connected())
+            elif valid_photo:
                 from brain.core.photos import PhotoError
                 try:
                     if operation == 'photo-status':
