@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import aifc
 from dataclasses import dataclass
 import json
 import math
@@ -12,6 +13,10 @@ import subprocess
 import tempfile
 import time
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+if __package__:
+    from .beat_audio import BeatAudio, BeatError, capabilities as beat_capabilities
+else:
+    from beat_audio import BeatAudio, BeatError, capabilities as beat_capabilities
 
 
 class AudioError(Exception):
@@ -74,11 +79,12 @@ end run'''
 class AudioDispatcher:
     """Inject runner/system/exists for deterministic tests; no effects on import."""
     def __init__(self, config: Config | None = None, *, runner=subprocess.run,
-                 system=platform.system, exists=lambda p: Path(p).exists()):
+                 system=platform.system, exists=lambda p: Path(p).exists(), beats=None):
         self.config = config or Config()
         self.runner, self.exists = runner, exists
         self.is_mac = (system() if callable(system) else system) == "Darwin"
         self.music_ready = False
+        self.beats = beats if beats is not None else BeatAudio()
         self.discovery_error = "Set TENANT_MUSIC_PLAYLIST to a playlist containing downloaded local audio."
 
     def _run(self, argv, timeout, *, input=None):
@@ -120,6 +126,8 @@ class AudioDispatcher:
             caps["volume"] = {"description": "Set Mac output volume from 0 to 100; output hardware may have fixed volume.", "args": {"level": {"type": "integer", "minimum": 0, "maximum": 100}}}
         if self.exists("/usr/bin/say") and self.exists("/usr/bin/afplay"):
             caps["say"] = {"description": "Speak a short phrase through the Mac's current audio output.", "args": {"text": {"type": "string", "maxLength": 160}}}
+        if self.exists('/usr/bin/afplay'):
+            caps.update(beat_capabilities())
         if self.music_ready:
             caps["music.play"] = {"description": "Play the first downloaded local track in the prepared room playlist; no streaming or arbitrary search.", "args": {}}
             caps["music.pause"] = {"description": "Pause Music on this Mac.", "args": {}}
@@ -130,6 +138,11 @@ class AudioDispatcher:
             raise AudioError("FAILED", "args must be an object.")
         if cap not in self.capabilities():
             raise AudioError("UNSUPPORTED", self.discovery_error if cap in ("music.play", "music.pause") else "Capability is not available on this device.")
+        if cap.startswith('beat.'):
+            try:
+                return self.beats.dispatch(cap, args, timeout)
+            except BeatError as exc:
+                raise AudioError(exc.code, exc.message) from None
         if cap == "volume":
             level = args.get("level")
             if set(args) != {"level"} or type(level) is not int or not 0 <= level <= 100:
@@ -148,12 +161,31 @@ class AudioDispatcher:
             expires_at = time.monotonic() + timeout
             with tempfile.TemporaryDirectory(prefix="tenant-speech-") as directory:
                 audio = str(Path(directory) / 'speech.aiff')
-                self._run(["/usr/bin/say", "-o", audio], timeout, input=text)
+                try:
+                    self._run(["/usr/bin/say", "-o", audio], timeout, input=text)
+                except AudioError as exc:
+                    if exc.code == 'UNKNOWN':
+                        raise AudioError('FAILED', 'Speech rendering did not finish; no audio started.') from None
+                    raise
+                try:
+                    # Read the rendered clip, not an estimate from word count.
+                    # The repo targets Python 3.12, which includes aifc.
+                    with aifc.open(audio, 'rb') as clip:
+                        duration = clip.getnframes() / clip.getframerate()
+                    if not math.isfinite(duration) or duration <= 0:
+                        raise ValueError('Invalid clip duration')
+                except (OSError, EOFError, aifc.Error, ValueError, ZeroDivisionError):
+                    raise AudioError('FAILED', 'Speech duration could not be verified; no audio started.') from None
                 remaining = expires_at - time.monotonic()
-                if remaining <= 0:
-                    raise AudioError("FAILED", "Deadline elapsed before speech playback; no audio started.")
-                self._run(["/usr/bin/afplay", audio], remaining)
-            return {"spoken": True, "audible_verified": False}
+                # Reserve one second for player startup/completion and a small
+                # acknowledgment margin. These are engineering allowances;
+                # audible timing still requires a real-device measurement.
+                playback_budget = duration + 1.0
+                if playback_budget + .25 > remaining:
+                    raise AudioError('FAILED', 'The rendered speech does not fit the remaining deadline; no audio started.')
+                self._run(["/usr/bin/afplay", audio], playback_budget)
+            return {"spoken": True, "audible_verified": False,
+                    "rendered_duration_ms": round(duration * 1000)}
         if args:
             raise AudioError("FAILED", "This prepared music capability accepts no arguments.")
         state = self._script(MUSIC_PLAY, self.config.playlist, timeout=timeout) if cap == "music.play" else self._script(MUSIC_PAUSE, timeout=timeout)
@@ -161,6 +193,9 @@ class AudioDispatcher:
         if state.lower() not in expected:
             raise AudioError("UNKNOWN", "Music did not confirm the requested state; it may have acted. Do not retry automatically.")
         return {"state": state.lower(), "audible_verified": False}
+
+    def stop_programs(self):
+        return self.beats.close()
 
 
 class DeviceAgent:
@@ -223,7 +258,11 @@ class DeviceAgent:
             remaining = expires_at - time.monotonic()
             if remaining <= 0:
                 raise AudioError("FAILED", "Deadline elapsed before execution; no action started.")
-            return self.dispatcher.dispatch(frame.get("cap"), frame.get("args", {}), min(remaining, 4.0))
+            # Speech uses the caller's lease-bounded budget and checks its
+            # rendered duration before playback. Other controls keep their
+            # existing four-second OS bound.
+            budget = remaining if frame.get('cap') == 'say' else min(remaining, 4.0)
+            return self.dispatcher.dispatch(frame.get("cap"), frame.get("args", {}), budget)
 
         try:
             result = await asyncio.to_thread(execute_before_deadline)
@@ -269,8 +308,13 @@ class DeviceAgent:
         finally:
             # Do not cancel to_thread: cancellation cannot stop the OS action.
             # Finish recording outcome before reconnect; never send on a new socket.
-            if tasks:
-                await asyncio.gather(*tasks, return_exceptions=True)
+            try:
+                if tasks:
+                    await asyncio.gather(*tasks, return_exceptions=True)
+            finally:
+                stop_programs = getattr(self.dispatcher, 'stop_programs', None)
+                if stop_programs is not None:
+                    await asyncio.to_thread(stop_programs)
 
     async def run(self, url, connect=None):
         if connect is None:

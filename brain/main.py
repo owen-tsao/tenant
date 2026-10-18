@@ -27,6 +27,7 @@ async def reset_cleanup(core):
     # Its durable enrollment is enough to prevent a false clean-room claim.
     missing = set(core.registry.enrollments) - set(core.registry.devices)
     async def stop(dev, cap, args):
+        original_connection = dev.ws
         result = await core.bus.call(dev.id, cap, args, timeout=4,
                                      authorize=lambda current, *_: current.room_id == core.registry.room.id)
         payload = result.result if isinstance(result.result, dict) else {}
@@ -40,6 +41,9 @@ async def reset_cleanup(core):
                         actor='host.reset', device_id=dev.id, cap=cap,
                         req=result.req, ok=confirmed, ack_ok=result.ok,
                         code='UNCONFIRMED_STATE' if result.ok and not confirmed else result.code)
+        programs = getattr(core.agent, 'programs', None)
+        if confirmed and cap == 'light' and programs is not None:
+            programs.confirm_host_off(dev, original_connection, result)
         return confirmed
     tasks = []
     for dev in core.registry.devices.values():

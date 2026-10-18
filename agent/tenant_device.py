@@ -16,7 +16,9 @@ def invoke(context_path, operation, payload=None):
     if len(encoded) > MAX_BYTES:
         raise ValueError('Request too large')
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
-        timeout = context.get('long_timeout', 122) if operation == 'light-blink' else 8
+        timeout = context.get('long_timeout', 122) if operation == 'light-blink' or operation.startswith('program-') else 8
+        if operation == 'call' and isinstance(payload, dict) and payload.get('cap') == 'say':
+            timeout = context.get('speech_timeout', 17)
         if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
             raise ValueError('Invalid helper deadline')
         connection.settimeout(timeout)
@@ -35,11 +37,12 @@ def invoke(context_path, operation, payload=None):
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Use the current Tenant native-turn device grant.')
     parser.add_argument('--context', required=True)
-    parser.add_argument('operation', choices=('inventory', 'call', 'light-blink'))
+    parser.add_argument('operation', choices=('inventory', 'call', 'light-blink', 'program-start',
+                                             'program-update', 'program-stop', 'program-status'))
     args = parser.parse_args(argv)
     try:
         payload = None
-        if args.operation in ('call', 'light-blink'):
+        if args.operation != 'inventory':
             text = sys.stdin.read(MAX_BYTES + 1)
             if len(text.encode()) > MAX_BYTES:
                 raise ValueError('Request too large')
@@ -47,7 +50,11 @@ def main(argv=None):
             valid = (isinstance(payload, dict) and (
                 (args.operation == 'call' and set(payload) == {'request_id', 'device_id', 'cap', 'args'}) or
                 (args.operation == 'light-blink' and {'request_id', 'device_id'} <= set(payload)
-                 and set(payload) <= {'request_id', 'device_id', 'count'})))
+                 and set(payload) <= {'request_id', 'device_id', 'count'}) or
+                (args.operation == 'program-start' and set(payload) == {'request_id', 'device_id', 'bpm'}) or
+                (args.operation == 'program-update' and {'request_id', 'program_id'} < set(payload)
+                 and set(payload) <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id'}) or
+                (args.operation in ('program-stop', 'program-status') and set(payload) == {'request_id', 'program_id'})))
             if not valid:
                 raise ValueError('Invalid call')
         result = invoke(args.context, args.operation, payload)

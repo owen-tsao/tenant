@@ -49,14 +49,21 @@ class ConversationAgent:
         self._failed = False
         self._first_guest_turn = None
         self.device_tools = None
+        self.programs = None
         if registry is not None and bus is not None:
             from brain.core.native_devices import NativeDevices
             self.device_tools = NativeDevices(registry, bus, leases, log, self._device_turn_allowed,
-                                               turn_timeout=settings.turn_timeout)
+                                               turn_timeout=settings.turn_timeout,
+                                               speech_timeout=settings.cleanup_timeout)
 
     def _device_turn_allowed(self, grant):
         return (self._allowed(grant.guest_id, grant.generation)
                 and self._session is not None and self._session.active_turn_id == grant.turn_id)
+
+    def allows_program(self, lease, generation):
+        """Program authority belongs to this exact current controller lease."""
+        return (lease is not None and self.leases.current(lease.guest_id) is lease
+                and self._allowed(lease.guest_id, generation))
 
     def label_is_ambiguous(self, device):
         if self.registry is None:
@@ -99,7 +106,16 @@ class ConversationAgent:
             self._controller = guest_id
             if previous:
                 self.leases.revoke(previous)
+                self._end_programs(previous)
         return self._generation
+
+    def _end_programs(self, guest_id):
+        if self.programs is not None:
+            try:
+                self.programs.access_ended(guest_id)
+            except Exception:
+                self._failed = True
+                self.log.append('err', 'Tenant could not confirm room program cleanup.')
 
     def access_ended(self, guest_id):
         """Synchronous authority transition; asynchronously interrupt/drain native work."""
@@ -111,6 +127,7 @@ class ConversationAgent:
         self._controller = None
         self._generation += 1
         self._clean_generation = None
+        self._end_programs(guest_id)
         generation = self._generation
         try:
             task = asyncio.create_task(self._settle_ended(generation))
@@ -332,7 +349,8 @@ class ConversationAgent:
                                         thread_id=self.settings.thread_id, turn_id=turn_id, generation=generation)
                         return ReplyFrames(CompletedReply(
                             guest_id, generation, self.settings.thread_id, turn_id,
-                            self._redact(final[-1]), self.leases.current(guest_id)))
+                            self._redact(final[-1]), self.leases.current(guest_id),
+                            explicit_speech_attempted=bool(grant and grant.explicit_speech_attempted)))
         except BaseException:
             # The outer controller keeps the lock through one bounded cleanup.
             # Starting another shielded drain here could orphan native work if
@@ -388,11 +406,25 @@ class ConversationAgent:
                                 guest_id=guest_id, generation=generation)
                 return self.reply('Tenant could not confirm the result. Already-started actions may have happened; nothing was retried.')
 
+    def program_cleanup_timeout(self):
+        # Audio stop may wait behind already-accepted speech. Leave one ordinary
+        # action allowance for cancellation settlement after that queue budget.
+        ordinary = self.device_tools.action_timeout if self.device_tools is not None else 5
+        queue = getattr(self.programs, 'audio_queue_timeout', self.settings.cleanup_timeout)
+        return max(self.settings.cleanup_timeout, queue) + ordinary
+
     async def close(self):
         controller = self._controller
         if controller:
             self.leases.revoke(controller)
             self.access_ended(controller)
+        if self.programs is not None:
+            try:
+                async with asyncio.timeout(self.program_cleanup_timeout()):
+                    await self.programs.close()
+            except Exception:
+                self._failed = True
+                self.log.append('err', 'Tenant could not confirm room program cleanup.')
         for task in tuple(self._cleanup_tasks):
             task.cancel()
         if self._cleanup_tasks:

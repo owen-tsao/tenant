@@ -1,0 +1,90 @@
+{
+  "recorded_at": "2026-10-18T01:57:27.284977+00:00",
+  "status": "OFFLINE_IMPLEMENTED_REVIEWED_PHYSICAL_ACCEPTANCE_NOT_PERFORMED",
+  "base_revision": "a713dcae04127adbf3b4384604daaca6f077b495",
+  "source_sha256": {
+    "agent/beat_audio.py": "9bbcadf7d0c1d3ef650ddd55c2b759b649aa61ff042f78ec049cfd6354872de4",
+    "agent/laptop.py": "8b8ad67a5e5f8e487cb1a5a6d1dfc064fc2ab60ea2af98bc2507d0d85a8371e6",
+    "brain/core/room_programs.py": "bbd69550d247b67d475ec40981f31fd19f189b05879982bb798c27e9c50d57e4",
+    "brain/core/conversation_speech.py": "350bebc0dd778b8a7477c4eea2608724acd5fc76e59448b2b10ecd9f927e3a8e",
+    "tests/test_beat_audio.py": "dfbf8f65578713016a10458023d6a31fb48ce10eb71d2b40896d1b776f96c1bc",
+    "tests/test_room_programs.py": "281d4173f2a6b5c74d63e17fb69307949a373273c6576aa30e8a0a31b82dc33b",
+    "tests/test_room_program_races.py": "938ea8b83a41c50f0494430665d4b3b5d352b438d8502f2f1bac456bd6e605a7",
+    "tests/test_laptop_audio.py": "0ee8505e7a809a38f5eaee41ee8a88c876ed286bb28f549a7167a72f6c33d23b",
+    "tests/test_conversation_speech.py": "c9e5c833cd77697f35b030921ee44fb239d030f1c07ef4db205e0b7feb0985b9"
+  },
+  "claim": "A genuine native room conversation can start a grant-owned generated beat, return a reply, then attach/detach exact phone lights or change tempo in later turns using the same conversation.",
+  "scope": {
+    "web_edits": false,
+    "live_playback_or_hardware_commands": false,
+    "runtime_restart": false,
+    "volume_or_default_output_changes": false,
+    "new_packages_or_model_api": false,
+    "music_library_changes": false
+  },
+  "contract": {
+    "operations": [
+      "program-start",
+      "program-update",
+      "program-status",
+      "program-stop"
+    ],
+    "update_fields": [
+      "bpm",
+      "light_device_id",
+      "remove_light_device_id"
+    ],
+    "lifetime": "Captured exact guest lease/controller generation/thread/room/epoch survives native-turn finish, ends on replacement/revoke/expiry/reset.",
+    "phase": "Generated file uses absolute sample-grid beat boundaries; backend uses mapped afplay process-launch timestamp and monotonic grid.",
+    "tempo_update": "Stops owned previous loop and confirms cleanup, then starts a new loop with a new phase; no seamless tempo-warp claim.",
+    "phone_pulse": "ON at future beat boundary, OFF at one quarter of period. Unsent stale ON is skipped, never caught up. Sent UNKNOWN stops future program steps.",
+    "ownership": "No job/step count cap. A boolean phone output follows one clock; actionable conflict\u2192confirmed detach\u2192ordinary action preserves music. UNKNOWN cleanup remains reserved until exact quiescent host-reset OFF receipt.",
+    "preparation": "beat.prepare renders no playback; beat.start separately rechecks current native authority after render.",
+    "speech_overlap": "An unsent queued status read is congestion, not audio failure. Owned stop queue budget must include accepted speech budget plus normal stop allowance.",
+    "truth": "Process launch/ACK/dispatch are not physical audibility or optical synchronization."
+  },
+  "checks": {
+    "focused_python": {
+      "passed": 95,
+      "failed": 0,
+      "skipped": 0
+    },
+    "independent_reviewer": "room_programs_review; no remaining blocking source defect after fixes",
+    "review_regressions": [
+      "Tempo restart cannot steal/release another logical device lock.",
+      "Detach and access-ended cleanup coalesce and preserve confirmed outcomes.",
+      "Aborted tempo restart releases known-clean reservations.",
+      "Blocked WAV preparation never blocks another owned audio stop."
+    ],
+    "other_cases": [
+      "Exact owner and current-turn checks before prepare/start/update/stop.",
+      "Native turn completion does not stop the beat; later same-guest phone attach follows the same clock.",
+      "Quarter-pulse late join, clock jumps/no backlog, nonbinary100BPM grid, and no cumulative WAV rounding drift.",
+      "Queued revoke sends no later ON; no connection migration/substitution.",
+      "UNKNOWN never replays; phone reservation and explicit host-reset receipt recovery.",
+      "Long accepted speech does not falsely stop the beat; stop has derived queue budget.",
+      "Cancelled quiescence settles shielded output cleanup, preventing late queued commands.",
+      "Explicit speech suppresses auto narration; actual rendered AIFF duration is checked before speech playback."
+    ]
+  },
+  "actual_offline_asset_measurement": {
+    "bpm": 120,
+    "duration_seconds": 600.0,
+    "sample_rate": 22050,
+    "render_seconds": 0.0157,
+    "file_bytes": 26460044,
+    "playback_performed": false,
+    "uncertainty": "One local render timing, not a performance distribution or live audio result."
+  },
+  "remaining": [
+    "Core owner must wire audio_queue_timeout and quiesce/close budget to native speech cleanup bound plus normal stop allowance, then run final combined suite.",
+    "Coordinator must commit/deploy reviewed Brain+audio bridge and verify ordinary automatic speech; do not replay prior UNKNOWN.",
+    "Generated beat audibility and 20-beat audio/phone video test remain unperformed. Proposed feasibility screen: zero extra/missing matches, max absolute signed onset skew<=100ms and drift<=100ms. Failing/unmeasured synchronization must remain labeled approximate."
+  ],
+  "owen_feature_request_if_physical_screen_fails": "Optional phone-local scheduled pattern with program ID, phase/tempo, expiry and keyed cancellation, truthful scheduled ACK and no catch-up/replay; current boolean bridge remains approximate. No web implementation done.",
+  "limits": [
+    "Prepared Music playlist has no BPM metadata and is not synchronized by this engine.",
+    "Clock mapping assumes the current same-host Mac setup; cross-host clock alignment and physical output latency are unmeasured.",
+    "Generic native OS shell effects are outside the enrolled-device Bus lifecycle guarantees."
+  ]
+}

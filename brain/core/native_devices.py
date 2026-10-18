@@ -38,6 +38,7 @@ class TurnGrant:
     turn_id: str | None = None
     closed: bool = False
     deadline: float | None = None
+    explicit_speech_attempted: bool = False
     calls: dict = field(default_factory=dict, repr=False)
     unknown_devices: set = field(default_factory=set, repr=False)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
@@ -48,11 +49,13 @@ def denied(code='PERMISSION', message='This turn has no current device authority
 
 
 class NativeDevices:
-    def __init__(self, registry, bus, leases, log, current, *, action_timeout=5, read_timeout=2, turn_timeout=120):
+    def __init__(self, registry, bus, leases, log, current, *, action_timeout=5, read_timeout=2,
+                 turn_timeout=120, speech_timeout=15):
         self.registry, self.bus, self.leases, self.log = registry, bus, leases, log
         self.current = current
         self.action_timeout, self.read_timeout = action_timeout, read_timeout
         self.turn_timeout = turn_timeout
+        self.speech_timeout = speech_timeout
         self._directory = None
         self._server = None
         self._grants = {}
@@ -60,6 +63,7 @@ class NativeDevices:
         self._closed = False
         self._blink_sleep = asyncio.sleep
         self.device_locks = defaultdict(asyncio.Lock)
+        self.programs = None
 
     async def prepare(self, guest_id, generation, lease, thread_id):
         if self._closed:
@@ -79,7 +83,7 @@ class NativeDevices:
         # model prompt, shell arguments, public frames or audit metadata.
         with open(path, 'x', opener=lambda p, flags: os.open(p, flags, 0o600)) as stream:
             json.dump({'socket': str(path.parent / 'bus.sock'), 'token': token,
-                       'long_timeout': self.turn_timeout + 2}, stream)
+                       'long_timeout': self.turn_timeout + 2, 'speech_timeout': self.speech_timeout + 2}, stream)
         self._grants[token] = grant
         return grant
 
@@ -117,11 +121,11 @@ class NativeDevices:
     def context(self, grant):
         helper = Path(__file__).resolve().parents[2] / 'agent' / 'tenant_device.py'
         command = shlex.join([sys.executable, str(helper), '--context', str(grant.path)])
-        return (
+        text = (
             '[Tenant room integration context]\n'
             'You are the genuine shared room conversation with broad computer tools. '
-            'Start normal replies with a short plain sentence conveying the answer or measured result '
-            '(at most 12 words and 100 characters); longer details can follow below. '
+            'Start normal replies with a concise plain first line conveying the answer or measured result '
+            '(within the speech driver\'s 160-character support); longer details can follow below. '
             'Normal final replies are voiced automatically, so do not call device say merely to narrate them. '
             'For enrolled room light/audio devices, use the private helper below through your existing shell. '
             'Run inventory first; use its exact device IDs, online state and argument schemas. '
@@ -142,6 +146,19 @@ class NativeDevices:
             'UNKNOWN must stop dependent actions; never resend it under another ID or substitute another device. '
             'These commands grant no host bypass and work only during this active native turn.\n'
             '[End Tenant room integration context]')
+        if self.programs is not None:
+            text += (
+                '\nRoom programs use the same helper prefix with program-start, program-update, program-stop, '
+                'or program-status and JSON stdin. Start takes request_id, beat-capable Mac device_id, bpm; save program_id. '
+                'A generated beat continues while you reply and the same guest speaks again. Update takes request_id, '
+                'program_id, and bpm and/or light_device_id and/or remove_light_device_id. Stop/status take request_id, '
+                'program_id. Discover supported Macs and owned programs in inventory.programs. Phone pulses use a '
+                'quarter beat and skip stale unsent ON edges without a backlog. UNKNOWN stops dependent work. '
+                'For a phone CONFLICT, detach it via program-update/remove_light_device_id, then submit the original '
+                'raw action with a fresh request_id only after confirmed detach; music may continue. Never retry UNKNOWN detach. '
+                'A bpm update restarts the loop with a new phase. Process launch/dispatch timestamps do not prove '
+                'physical audio/light sync; prepared Music is not tempo-synced. Programs end with guest access.')
+        return text
 
     async def _handle(self, reader, writer):
         task = asyncio.current_task()
@@ -214,18 +231,26 @@ class NativeDevices:
                                     'count': {'type': 'integer', 'minimum': 1, 'default': 3}},
                                     'interval_ms': 500, 'bounded_by': 'current_turn_and_lease', 'ends_off_on_success': True}]
                                     if any(cap['name'] == 'light' for cap in caps) else [])})
-            return {'ok': True, 'devices': devices}
+            return {'ok': True, 'devices': devices,
+                    **({'programs': self.programs.inventory(grant)} if self.programs is not None else {})}
         valid_call = operation == 'call' and set(request) == {'token', 'operation', 'request_id', 'device_id', 'cap', 'args'}
         valid_blink = (operation == 'light-blink'
                        and {'token', 'operation', 'request_id', 'device_id'} <= set(request)
                        and set(request) <= {'token', 'operation', 'request_id', 'device_id', 'count'})
-        if not valid_call and not valid_blink:
+        fields = set(request) - {'token', 'operation'}
+        valid_program = self.programs is not None and (
+            (operation == 'program-start' and fields == {'request_id', 'device_id', 'bpm'}) or
+            (operation == 'program-update' and {'request_id', 'program_id'} < fields
+             and fields <= {'request_id', 'program_id', 'bpm', 'light_device_id', 'remove_light_device_id'}) or
+            (operation in ('program-stop', 'program-status') and fields == {'request_id', 'program_id'}))
+        if not valid_call and not valid_blink and not valid_program:
             return denied('INVALID', 'Invalid helper request. Nothing was sent.')
         request_id = request['request_id']
         if (not isinstance(request_id, str) or not 1 <= len(request_id) <= 80
                 or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in request_id)):
             return denied('INVALID', 'A short request ID is required. Nothing was sent.')
         payload = ({key: copy.deepcopy(request[key]) for key in ('device_id', 'cap', 'args')} if valid_call else
+                   {key: copy.deepcopy(request[key]) for key in fields} if valid_program else
                    {'device_id': copy.deepcopy(request['device_id']), 'count': copy.deepcopy(request.get('count', 3))})
         payload['operation'] = operation
         try:
@@ -246,27 +271,79 @@ class NativeDevices:
         if not owner:
             # Disconnecting a duplicate caller cannot cancel the original action.
             return copy.deepcopy(await asyncio.shield(future))
+        program_targets = self._program_targets(grant, operation, payload) if valid_program else set()
         try:
-            response = await self._execute(grant, payload, blink=valid_blink, connected=connected)
+            if valid_program:
+                if program_targets & grant.unknown_devices:
+                    response = denied('UNKNOWN', 'An affected device has an unknown earlier result. Nothing was resent; '
+                                      'status, stop and detach-only cleanup remain available.')
+                else:
+                    async with asyncio.timeout_at(grant.deadline):
+                        response = await self.programs.dispatch(grant, operation,
+                            {key: value for key, value in payload.items() if key != 'operation'},
+                            authorized=lambda: self.permitted(grant) and connected()
+                            and not (program_targets & grant.unknown_devices))
+            else:
+                response = await self._execute(grant, payload, blink=valid_blink, connected=connected)
         except (Exception, asyncio.CancelledError):
             response = denied('UNKNOWN', 'The operation outcome is unknown. Do not retry or substitute.')
         if response.get('code') == 'UNKNOWN':
-            device_id = payload.get('device_id')
-            if isinstance(device_id, str):
-                grant.unknown_devices.add(device_id)
+            if valid_program:
+                ids = response.get('unknown_device_ids', program_targets)
+                if isinstance(ids, (list, set, tuple)):
+                    grant.unknown_devices.update(device_id for device_id in ids if isinstance(device_id, str))
+            else:
+                device_id = payload.get('device_id')
+                if isinstance(device_id, str):
+                    grant.unknown_devices.add(device_id)
         future.set_result(copy.deepcopy(response))
         return response
+
+    def _program_targets(self, grant, operation, payload):
+        # Read-only status and explicit owned cleanup must remain available even
+        # when prior physical outcomes are unknown. They never authorize replay.
+        if operation == 'program-start':
+            return {payload['device_id']} if isinstance(payload.get('device_id'), str) else set()
+        if operation != 'program-update':
+            return set()
+        program = next((row for row in self.programs.inventory(grant).get('programs', [])
+                        if row['program_id'] == payload.get('program_id')), None)
+        if program is None:
+            return set()
+        targets = {program['audio_device_id']} if 'bpm' in payload else set()
+        if isinstance(payload.get('light_device_id'), str):
+            targets.add(payload['light_device_id'])
+        return targets
+
+    def _program_conflict(self, device_id, grant=None):
+        program_id = self.programs.device_busy(device_id) if self.programs is not None else None
+        if program_id is None:
+            return None
+        if grant is not None and not any(program['program_id'] == program_id
+                for program in self.programs.inventory(grant).get('programs', [])):
+            return {'ok': False, 'code': 'CONFLICT', 'status': 'unsent', 'recovery': 'host_reset',
+                    'message': 'This phone remains reserved by a previous program. Ask the host to reset or verify '
+                               'the bridge; this guest cannot adopt that program. No action was sent.'}
+        return {'ok': False, 'code': 'CONFLICT', 'status': 'unsent', 'program_id': program_id,
+                'detach_operation': 'program-update', 'remove_light_device_id': device_id,
+                'requires_new_request_id_after_confirmed_detach': True,
+                'message': 'This phone follows a room program. Detach it with program-update/remove_light_device_id, '
+                           'then submit the original action with a fresh request ID only after confirmed detach. Do not retry UNKNOWN cleanup.'}
 
     async def _execute(self, grant, payload, *, blink, connected):
         device_id = payload.get('device_id')
         if not isinstance(device_id, str):
             return denied('INVALID', 'A device ID is required. Nothing was sent.')
+        conflict = self._program_conflict(device_id, grant)
+        if conflict is not None:
+            return conflict
         original = self.registry.devices.get(device_id)
         connection = getattr(original, 'ws', None)
         deadline = min(grant.deadline, asyncio.get_running_loop().time()
                        + max(0, grant.lease.expires_at - self.leases.clock()))
         if not blink:
-            deadline = min(deadline, asyncio.get_running_loop().time() + self.action_timeout)
+            budget = self.speech_timeout if payload.get('cap') == 'say' else self.action_timeout
+            deadline = min(deadline, asyncio.get_running_loop().time() + budget)
         executing = False
         try:
             async with asyncio.timeout_at(deadline):
@@ -275,6 +352,9 @@ class NativeDevices:
                 async with self.device_locks[device_id]:
                     if not self.permitted(grant) or not connected():
                         return denied()
+                    conflict = self._program_conflict(device_id, grant)
+                    if conflict is not None:
+                        return conflict
                     if (self.registry.devices.get(device_id) is not original
                             or getattr(original, 'ws', None) is not connection):
                         return denied('OFFLINE', 'The device connection changed. Nothing was sent.')
@@ -305,6 +385,7 @@ class NativeDevices:
 
         def permitted(current):
             return (self.permitted(grant) and connected() and asyncio.get_running_loop().time() < deadline
+                    and self._program_conflict(device_id, grant) is None
                     and device_id not in grant.unknown_devices
                     and self.registry.devices.get(device_id) is dev
                     and current is dev and dev.ws is connection and dev.online
@@ -385,12 +466,20 @@ class NativeDevices:
                         guest_id=grant.guest_id, generation=grant.generation, thread_id=grant.thread_id,
                         turn_id=grant.turn_id, device_id=device_id, cap=cap)
         dispatches = []
+        def observed(req, _device):
+            dispatches.append(req)
+            if cap == 'say':
+                grant.explicit_speech_attempted = True
         try:
-            result = await self.bus.call(device_id, cap, args, timeout=self.action_timeout,
+            budget = self.speech_timeout if cap == 'say' else self.action_timeout
+            remaining = min(budget, grant.deadline - asyncio.get_running_loop().time(),
+                            grant.lease.expires_at - self.leases.clock())
+            result = await self.bus.call(device_id, cap, args, timeout=max(.001, remaining),
                                          authorize=lambda current, capability, _args: self.permitted(grant) and connected()
+                                         and self._program_conflict(device_id, grant) is None
                                          and device_id not in grant.unknown_devices
                                          and current is dev and self.leases.allows(grant.lease, current, capability),
-                                         on_dispatch=lambda req, _dev: dispatches.append(req))
+                                         on_dispatch=observed)
         except (Exception, asyncio.CancelledError):
             # Even a canceled/failed client cannot safely infer that no bytes were sent.
             return ({**denied('UNKNOWN', 'The action outcome is unknown. Do not retry or substitute.'), 'status': 'unknown'}

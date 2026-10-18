@@ -11,8 +11,8 @@ import re
 
 
 FALLBACK = 'I put the details in the chat.'
-MAX_WORDS = 12
-MAX_CHARACTERS = 100
+# Match the enrolled Mac driver's supported input, rather than a word limit.
+MAX_CHARACTERS = 160
 
 
 @dataclass(frozen=True)
@@ -23,6 +23,7 @@ class CompletedReply:
     turn_id: str
     text: str
     lease: object = field(repr=False, compare=False)
+    explicit_speech_attempted: bool = False
 
 
 class ReplyFrames(list):
@@ -44,11 +45,10 @@ def spoken_sentence(text):
         return None
     first_line = text.strip().split('\n', 1)[0]
     candidate = first_line
-    if len(candidate) > MAX_CHARACTERS or len(candidate.split()) > MAX_WORDS:
+    if len(candidate) > MAX_CHARACTERS:
         candidate = re.split(r'(?<=[.!?])\s+', first_line, maxsplit=1)[0].strip()
     unsafe = (
         len(candidate) > MAX_CHARACTERS
-        or len(candidate.split()) > MAX_WORDS
         or not re.search(r'\w', candidate)
         or re.search(r'[\x00-\x1f\x7f`<>\[\]{}()*_#|\\=]', candidate)
         or re.match(r'(?:[-+•]\s|\d+\.\s)', candidate)
@@ -60,7 +60,7 @@ def spoken_sentence(text):
 
 
 class ConversationSpeech:
-    def __init__(self, registry, bus, leases, log, authorize_reply, *, speaker_device_id=None, timeout=4.0):
+    def __init__(self, registry, bus, leases, log, authorize_reply, *, speaker_device_id=None, timeout=15.0):
         self.registry, self.bus, self.leases, self.log = registry, bus, leases, log
         self.authorize_reply = authorize_reply
         self.speaker_device_id = speaker_device_id
@@ -91,8 +91,18 @@ class ConversationSpeech:
             return
         # Consume before any await: cancellation, reconnect and UNKNOWN never replay this turn.
         self._seen.add(key)
+        if receipt.explicit_speech_attempted:
+            # The native turn already sent speech, including a possible UNKNOWN
+            # outcome. Narrating its final text would repeat or obscure that
+            # physical effect. Never infer this from the prose itself.
+            self._record(receipt, 'EXPLICIT_SPEECH_ATTEMPTED')
+            return
         lease = self.leases.current(receipt.guest_id)
         if lease is not receipt.lease or not self.authorize_reply(receipt):
+            self._record(receipt, 'PERMISSION')
+            return
+        timeout = min(self.timeout, lease.expires_at - self.leases.clock())
+        if timeout <= 0:
             self._record(receipt, 'PERMISSION')
             return
         phrase = spoken_sentence(receipt.text)
@@ -111,7 +121,7 @@ class ConversationSpeech:
                     and self.leases.allows(lease, device, cap))
 
         try:
-            result = await self.bus.call(speaker.id, 'say', {'text': phrase}, timeout=self.timeout,
+            result = await self.bus.call(speaker.id, 'say', {'text': phrase}, timeout=timeout,
                                          authorize=permitted)
         except asyncio.CancelledError:
             uncertain = any(owner is speaker for owner in self.bus.uncertain.values())

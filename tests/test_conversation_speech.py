@@ -33,14 +33,19 @@ class SentenceTests(unittest.TestCase):
     def test_short_first_sentence_is_read_without_following_detail(self):
         self.assertEqual(spoken_sentence('Hi! What can I help you with?'), 'Hi! What can I help you with?')
         self.assertEqual(spoken_sentence('Hey! What can I help you with?'), 'Hey! What can I help you with?')
-        self.assertEqual(spoken_sentence('Done. ' + ' '.join(['detail'] * 15)), 'Done.')
+        self.assertEqual(spoken_sentence('Done. ' + ' '.join(['detail'] * 30)), 'Done.')
         self.assertEqual(spoken_sentence('Tenant is ready.'), 'Tenant is ready.')
         self.assertEqual(spoken_sentence('  Hello from Tenant  '), 'Hello from Tenant')
         self.assertEqual(spoken_sentence('Done.\n```python\nprint(123)\n```'), 'Done.')
+        ordinary = 'Done, I blinked the phone five times and spoke the phrase.'
+        self.assertEqual(spoken_sentence(ordinary), ordinary)
+        more_than_twelve_words = 'The phone can blink while the room speaker plays this short spoken reply.'
+        self.assertGreater(len(more_than_twelve_words.split()), 12)
+        self.assertEqual(spoken_sentence(more_than_twelve_words), more_than_twelve_words)
 
     def test_long_code_links_private_markers_and_structured_content_use_safe_fallback(self):
         for text in (
-            ' '.join(['word'] * 13) + '.', 'x' * 101,
+            ' '.join(['word'] * 33) + '.', 'x' * 161,
             '```python\nprint(123)\n```', '`open example`',
             'Visit https://example.invalid for details.',
             'Visit example.invalid for details.', 'print("Hello")',
@@ -80,8 +85,9 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
         }, socket)
         return socket
 
-    def reply(self, text='Hello from Tenant.', *, turn_id='native-1'):
-        return ReplyFrames(CompletedReply(self.lease.guest_id, 1, 'native-room', turn_id, text, self.lease))
+    def reply(self, text='Hello from Tenant.', *, turn_id='native-1', explicit_speech_attempted=False):
+        return ReplyFrames(CompletedReply(self.lease.guest_id, 1, 'native-room', turn_id, text, self.lease,
+                                         explicit_speech_attempted=explicit_speech_attempted))
 
     def status(self):
         return self.log.audit_rows[-1]['audit']['audio_status']
@@ -103,6 +109,47 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
         await self.speech.speak_reply([{'type': 'assistant', 'text': 'Hello from Tenant.'}])
         self.assertEqual(speaker.frames, [])
         self.assertEqual(self.log.rows, [])
+
+    async def test_explicit_speech_receipt_skips_auto_narration_once_without_parsing_text(self):
+        speaker = self.register()
+        reply = self.reply('Done.', explicit_speech_attempted=True)
+        await self.speech.speak_reply(reply)
+        await self.speech.speak_reply(reply)
+        self.assertEqual(speaker.frames, [])
+        self.assertEqual(self.status(), 'EXPLICIT_SPEECH_ATTEMPTED')
+        self.assertEqual(len(self.log.audit_rows), 1)
+        self.assertEqual(json.loads(json.dumps(reply)), [{'type': 'assistant', 'text': 'Done.'}])
+        with self.assertRaises(FrozenInstanceError):
+            reply.completed_reply.explicit_speech_attempted = False
+
+    async def test_explicit_speech_receipt_does_not_queue_or_substitute_after_unknown(self):
+        speaker = self.register(auto=False)
+        reply = self.reply('The spoken result is uncertain.', explicit_speech_attempted=True)
+        await self.bus.locks['laptop'].acquire()
+        try:
+            await asyncio.wait_for(self.speech.speak_reply(reply), .05)
+        finally:
+            self.bus.locks['laptop'].release()
+        other = self.register('other')
+        await self.speech.speak_reply(reply)
+        self.assertEqual(speaker.frames, [])
+        self.assertEqual(other.frames, [])
+        self.assertEqual(self.status(), 'EXPLICIT_SPEECH_ATTEMPTED')
+
+    async def test_mentioning_speech_in_text_is_not_a_dispatch_receipt(self):
+        speaker = self.register()
+        await self.speech.speak_reply(self.reply('I spoke.'))
+        self.assertEqual(speaker.frames[0]['args'], {'text': 'I spoke.'})
+
+    async def test_speech_request_budget_cannot_outlast_the_current_lease(self):
+        speaker = self.register()
+        self.speech.timeout = 15
+        self.lease.expires_at = self.now + .125
+        await self.speech.speak_reply(self.reply())
+        self.assertEqual(len(speaker.frames), 1)
+        self.assertGreater(speaker.frames[0]['deadline_ms'], 0)
+        self.assertLessEqual(speaker.frames[0]['deadline_ms'], 125)
+        self.assertEqual(self.status(), 'ACKNOWLEDGED')
 
     async def test_unsafe_long_reply_uses_only_short_screen_fallback(self):
         speaker = self.register()

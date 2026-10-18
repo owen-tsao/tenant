@@ -1,0 +1,63 @@
+{
+  "recorded_at": "2026-10-18T01:54:40.960770+00:00",
+  "status": "PASS_OFFLINE_PHYSICAL_RECHECK_PENDING",
+  "scope": {
+    "owned": [
+      "brain/core/conversation_speech.py",
+      "tests/test_conversation_speech.py",
+      "agent/laptop.py say and cap-specific execution budget only",
+      "tests/test_laptop_audio.py speech cases only"
+    ],
+    "coordination": "Parent owns beat imports/capabilities/session cleanup in shared laptop.py; core_access_integration owns native helper receipts and timeout glue."
+  },
+  "trigger": {
+    "source": "Root-reported live native multitool observation; not independently replayed by this worker.",
+    "observed": "Explicit device say acknowledged, followed by automatic final narration returning UNKNOWN at the existing four-second deadline.",
+    "inference": "Avoid duplicate attempted speech and align the server, bridge and driver deadlines, rather than narrowing ordinary answers to fit a four-second OS cap."
+  },
+  "decision": {
+    "duplicate_speech": "Immutable CompletedReply optional trailing explicit_speech_attempted=False; true consumes the native thread/turn once and records EXPLICIT_SPEECH_ATTEMPTED before any automatic Bus call.",
+    "receipt_source_contract": "Native device helper sets the flag at actual Bus dispatch for say. Includes later UNKNOWN/cancellation; excludes pre-send refusal. Integration owner implements and tests that glue separately.",
+    "presentation": "Whole safe first line within the driver-supported 160 characters; otherwise a safe first sentence within that limit, or the fixed chat fallback. No word-count or pronunciation cap. Whole greeting and ordinary eleven-/thirteen-word replies remain intact.",
+    "auto_deadline": "ConversationSpeech default 15 seconds, configured from native conversation cleanup timeout by integration owner; min configured budget/live lease remaining. Exact authority is rechecked by existing Bus callback after queueing.",
+    "driver_deadline": "Only say receives the full remaining authenticated frame deadline. Other existing OS commands retain their four-second bound. Rendering is bounded, actual AIFF duration is read using Python 3.12 aifc, and playback is refused before launch unless clip duration plus one-second player allowance and 250ms acknowledgment margin fits remaining time.",
+    "uncertainty": "A failed/timeout file render reports FAILED with no playback; malformed/missing/zero-length duration is refused. Once afplay starts, timeout remains UNKNOWN and is never retried. Driver returns nominal rendered_duration_ms, not acoustic latency or audibility.",
+    "unchanged": "Full text remains in guest chat. No web edits, model service, automatic replay, output-device changes or volume changes."
+  },
+  "verification": {
+    "command": ".venv/bin/python -m unittest tests.test_laptop_audio tests.test_conversation_speech -q",
+    "passed": 62,
+    "failed": 0,
+    "skipped": 0,
+    "fixtures": "Synthetic silent AIFF metadata/data and injected subprocess runner only; no subprocess, speech engine, playback or model calls.",
+    "cases": [
+      "True explicit-speech receipt skips automatic output once without parsing final prose.",
+      "True uncertain-speech receipt never queues behind the speaker lock or substitutes/replays after another speaker appears.",
+      "Receipt flag stays immutable and absent from wire JSON; older six-argument constructors keep the false default.",
+      "Mentioning speech in prose is not an authoritative dispatch receipt.",
+      "Whole greeting and meaningful eleven-/thirteen-word sentences remain intact; long/code/link/private-marker prose still uses the safe fallback.",
+      "A five-second synthetic rendered clip is allowed with a fifteen-second deadline and gets a six-second bounded player budget.",
+      "A clip that cannot fit actual remaining budget, expired rendering, missing/malformed/zero-duration audio never starts a player.",
+      "Speech gets the real remaining frame deadline instead of four seconds; other controls retain four seconds; expired executor work never dispatches.",
+      "Automatic speech frame deadline cannot outlast its current lease.",
+      "Existing post-text order, reconnect/cancellation, revoked/expired queued speech, UNKNOWN and transport-failure checks still pass."
+    ],
+    "source_sha256": {
+      "brain/core/conversation_speech.py": "350bebc0dd778b8a7477c4eea2608724acd5fc76e59448b2b10ecd9f927e3a8e",
+      "tests/test_conversation_speech.py": "c9e5c833cd77697f35b030921ee44fb239d030f1c07ef4db205e0b7feb0985b9",
+      "agent/laptop.py": "8b8ad67a5e5f8e487cb1a5a6d1dfc064fc2ab60ea2af98bc2507d0d85a8371e6",
+      "tests/test_laptop_audio.py": "0ee8505e7a809a38f5eaee41ee8a88c876ed286bb28f549a7167a72f6c33d23b"
+    },
+    "audio_or_model_calls": false,
+    "runtime_restart": false,
+    "web_edits": false,
+    "volume_or_output_changes": false
+  },
+  "limits": [
+    "One-second player and 250ms acknowledgment allowances are conservative engineering margins, not measured guarantees; real Mac validation remains required.",
+    "Actual rendered AIFF duration is nominal file duration, not optical/acoustic onset or end-to-end physical latency.",
+    "Root must deploy and verify ordinary greeting plus explicit tool speech without duplicate final narration using the actual audio bridge.",
+    "Broad OS speech invoked outside the native device helper is not intercepted by this receipt flag.",
+    "Already-started physical playback cannot be undone by ordinary revocation; UNKNOWN is never replayed."
+  ]
+}

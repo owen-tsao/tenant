@@ -30,9 +30,15 @@ class Core:
                                            private_values=(self.config.host_token, self.config.device_token,
                                                            os.getenv('PHOTON_API_KEY', '')),
                                            registry=self.registry, bus=self.bus)
+            from brain.core.room_programs import RoomPrograms
+            self.agent.programs = RoomPrograms(self.registry, self.bus, self.leases, self.log,
+                lambda owner: self.agent.allows_program(owner.lease, owner.generation),
+                device_locks=self.agent.device_tools.device_locks,
+                audio_queue_timeout=conversation.cleanup_timeout + self.agent.device_tools.action_timeout)
+            self.agent.device_tools.programs = self.agent.programs
             from brain.core.conversation_speech import ConversationSpeech
             self.speech = ConversationSpeech(self.registry, self.bus, self.leases, self.log,
-                                             self.agent.allows_reply)
+                                             self.agent.allows_reply, timeout=conversation.cleanup_timeout)
         self.credentials = {}
         self.cleanup_hook = cleanup_hook
         self.photon = None
@@ -152,21 +158,33 @@ class Core:
         context_cleanup = None
         if hasattr(self.agent, 'reset_context'):
             context_cleanup = 'confirmed' if await self.agent.reset_context() else 'unconfirmed'
+        programs = getattr(self.agent, 'programs', None)
+        program_cleanup = None
+        if programs is not None:
+            try:
+                async with asyncio.timeout(self.agent.program_cleanup_timeout()):
+                    await programs.quiesce()
+            except Exception:
+                self.log.append('err', 'Room program cleanup could not be confirmed.')
+            program_cleanup = 'confirmed' if programs.cleanup_confirmed() else 'unconfirmed'
         cleanup = 'not_configured'
         if self.cleanup_hook:
             try:
                 async with asyncio.timeout(5):
                     outcome = await self.cleanup_hook(self)
                 # Cleanup must explicitly attest its confirmed outcome.
-                cleanup = 'confirmed' if outcome is True else 'unconfirmed'
+                cleanup = 'confirmed' if outcome is True and (programs is None or programs.cleanup_confirmed()) else 'unconfirmed'
             except (Exception, TimeoutError):
                 cleanup = 'unconfirmed'
             sentence = ('Room reset cleanup was confirmed.' if cleanup == 'confirmed'
                         else 'Room access has ended, but cleanup could not be confirmed.')
             self.log.append('ok' if cleanup == 'confirmed' else 'err', sentence, cleanup=cleanup)
+        if programs is not None:
+            program_cleanup = 'confirmed' if programs.cleanup_confirmed() else 'unconfirmed'
         return {'ok': self.registry.persistence_healthy, 'room_code': self.registry.room.code,
                 'revoked': revoked, 'cleanup': cleanup,
                 **({} if context_cleanup is None else {'context_cleanup': context_cleanup}),
+                **({} if program_cleanup is None else {'program_cleanup': program_cleanup}),
                 **({} if self.registry.persistence_healthy else {'error': 'Room state could not be saved; guest control is disabled'})}
 
 

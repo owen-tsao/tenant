@@ -1,5 +1,6 @@
 """Deterministic audio checks: never invoke macOS or produce sound."""
 import asyncio
+import aifc
 import json
 import subprocess
 import threading
@@ -11,16 +12,28 @@ from pathlib import Path
 from agent import laptop
 
 
+def synthetic_speech(path, duration=.05):
+    """Silent AIFF bytes only; never invokes a player or the speech engine."""
+    with aifc.open(str(path), 'wb') as clip:
+        clip.setnchannels(1)
+        clip.setsampwidth(2)
+        clip.setframerate(1000)
+        clip.writeframes(b'\x00\x00' * round(duration * 1000))
+
+
 class Runner:
-    def __init__(self, stdout='1\n', error=None):
+    def __init__(self, stdout='1\n', error=None, speech_duration=.05):
         self.calls = []
         self.stdout = stdout
         self.error = error
+        self.speech_duration = speech_duration
 
     def __call__(self, argv, **kwargs):
         self.calls.append((argv, kwargs))
         if self.error:
             raise self.error
+        if argv[:2] == ['/usr/bin/say', '-o']:
+            synthetic_speech(argv[2], self.speech_duration)
         return subprocess.CompletedProcess(argv, 0, self.stdout, '')
 
 
@@ -63,7 +76,10 @@ class DispatchTests(unittest.TestCase):
         self.assertEqual(self.make(exists=lambda p: False).discover(), {})
 
     def test_unconfigured_music_omitted(self):
-        self.assertEqual(set(self.make(playlist=None).discover()), {'say', 'volume'})
+        caps = self.make(playlist=None).discover()
+        self.assertTrue({'say', 'volume'} <= set(caps))
+        self.assertNotIn('music.play', caps)
+        self.assertNotIn('music.pause', caps)
 
     def test_empty_media_omitted_and_dispatch_honest(self):
         d = self.make(Runner('0'))
@@ -123,6 +139,7 @@ class DispatchTests(unittest.TestCase):
             calls.append(argv)
             if argv[0] == '/usr/bin/afplay':
                 raise subprocess.TimeoutExpired('afplay', opts['timeout'])
+            synthetic_speech(argv[2])
             return subprocess.CompletedProcess(argv, 0, '', '')
         d = self.make(runner)
         with self.assertRaises(laptop.AudioError) as err:
@@ -130,6 +147,46 @@ class DispatchTests(unittest.TestCase):
         self.assertEqual(err.exception.code, 'UNKNOWN')
         self.assertEqual([argv[0] for argv in calls], ['/usr/bin/say', '/usr/bin/afplay'])
         self.assertFalse(Path(calls[0][2]).parent.exists())
+
+    def test_real_rendered_duration_allows_ordinary_sentence_with_sufficient_deadline(self):
+        d = self.make(Runner(speech_duration=5))
+        text = 'Done, I blinked the phone five times and spoke the phrase.'
+        with patch('agent.laptop.time.monotonic', side_effect=[0, .1]):
+            result = d.dispatch('say', {'text': text}, timeout=15)
+        self.assertEqual(self.runner.calls[0][1]['input'], text)
+        self.assertEqual(self.runner.calls[0][1]['timeout'], 15)
+        self.assertEqual(self.runner.calls[1][1]['timeout'], 6)
+        self.assertEqual(result['rendered_duration_ms'], 5000)
+        self.assertTrue(result['spoken'])
+        self.assertFalse(result['audible_verified'])
+
+    def test_actual_clip_that_cannot_fit_is_refused_before_playback(self):
+        for duration, elapsed in ((5, .1), (3, 1), (.05, 3.9)):
+            with self.subTest(duration=duration, elapsed=elapsed):
+                d = self.make(Runner(speech_duration=duration))
+                with patch('agent.laptop.time.monotonic', side_effect=[0, elapsed]), self.assertRaises(laptop.AudioError) as err:
+                    d.dispatch('say', {'text': 'An ordinary sentence.'}, timeout=4)
+                self.assertEqual(err.exception.code, 'FAILED')
+                self.assertIn('no audio started', str(err.exception))
+                self.assertEqual(len(self.runner.calls), 1)
+                self.assertFalse(Path(self.runner.calls[0][0][2]).parent.exists())
+
+    def test_missing_malformed_or_empty_rendered_audio_is_not_played(self):
+        for content in (None, b'not an AIFF clip', b'FORM\x00\x00\x00\x04AIFF'):
+            calls = []
+            def runner(argv, **opts):
+                calls.append(argv)
+                if content is not None:
+                    Path(argv[2]).write_bytes(content)
+                return subprocess.CompletedProcess(argv, 0, '', '')
+            with self.subTest(content=content), self.assertRaises(laptop.AudioError) as err:
+                self.make(runner).dispatch('say', {'text': 'Hello'})
+            self.assertEqual(err.exception.code, 'FAILED')
+            self.assertEqual(len(calls), 1)
+        with self.assertRaises(laptop.AudioError) as err:
+            self.make(Runner(speech_duration=0)).dispatch('say', {'text': 'Hello'})
+        self.assertEqual(err.exception.code, 'FAILED')
+        self.assertEqual(len(self.runner.calls), 1)
 
     def test_invalid_speech_rejected_before_os(self):
         d = self.make()
@@ -155,13 +212,14 @@ class DispatchTests(unittest.TestCase):
         with self.assertRaises(laptop.AudioError):
             d.dispatch('volume', {'level': 21})
 
-    def test_os_timeout_is_unknown_not_success(self):
+    def test_render_timeout_is_unsent_speech_not_success(self):
         d = self.make(Runner(error=subprocess.TimeoutExpired('say', 1)))
         with self.assertRaises(laptop.AudioError) as err:
             d.dispatch('say', {'text': 'hi'}, timeout=.2)
-        self.assertIn('unknown', str(err.exception))
-        self.assertEqual(err.exception.code, 'UNKNOWN')
+        self.assertIn('no audio started', str(err.exception))
+        self.assertEqual(err.exception.code, 'FAILED')
         self.assertEqual(self.runner.calls[0][1]['timeout'], .2)
+        self.assertEqual(len(self.runner.calls), 1)
 
     def test_missing_binary_fails(self):
         d = self.make(Runner(error=FileNotFoundError()))
@@ -239,8 +297,17 @@ class ProtocolTests(unittest.IsolatedAsyncioTestCase):
         await self.agent.handle(command(deadline_ms=125))
         self.assertGreater(self.dispatcher.calls[-1][-1], 0)
         self.assertLessEqual(self.dispatcher.calls[-1][-1], .125)
-        await self.agent.handle(command(req='r2', deadline_ms=99000))
+        await self.agent.handle(command(req='r2', cap='volume', args={'level': 50}, deadline_ms=99000))
         self.assertEqual(self.dispatcher.calls[-1][-1], 4)
+
+    async def test_speech_receives_full_remaining_server_budget_instead_of_four_seconds(self):
+        async def immediate_worker(function):
+            with patch('agent.laptop.time.monotonic', return_value=1):
+                return function()
+        with patch('agent.laptop.asyncio.to_thread', new=immediate_worker):
+            result = await self.agent.handle(command(deadline_ms=15000), received_at=0)
+        self.assertEqual(result['type'], 'ok')
+        self.assertEqual(self.dispatcher.calls[-1][-1], 14)
 
     async def test_duplicate_never_replays(self):
         first = await self.agent.handle(command())

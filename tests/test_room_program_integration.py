@@ -1,0 +1,403 @@
+"""Real helper/Core/program composition, with fake native turns and bridges only."""
+import asyncio
+import copy
+from dataclasses import replace
+import io
+import json
+import unittest
+from unittest.mock import patch
+
+from agent.beat_audio import capabilities
+from agent.tenant_device import invoke, main
+from brain.config import Config
+from brain.main import create_app
+from test_room_conversation import Clock, NativeSession, settings_for
+from test_room_programs import Socket
+
+
+class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        self.native, self.clock = NativeSession(), Clock()
+        self.native.auto_finish = False
+        self.app = create_app(Config('device-private', 'host-private', 'TEST', 'https://tenant.test'),
+                              conversation=settings_for(self.native))
+        self.core, self.agent = self.app.state.core, self.app.state.core.agent
+        self.core.leases.clock = self.clock
+        self.lease = self.core.leases.create()
+        self.audio = self.register('laptop', {**capabilities(),
+            'music.play': {'description': 'Prepared music', 'args': {}}})
+        self.phone = self.register('phone', {'light': {'description': 'Light', 'args': {'on': {'type': 'boolean'}}}})
+        self.assertEqual(self.agent.programs.audio_queue_timeout,
+                         self.agent.settings.cleanup_timeout + self.agent.device_tools.action_timeout)
+        self.agent.programs.action_timeout = .03
+        self.agent.programs.audio_queue_timeout = self.agent.settings.cleanup_timeout + .03
+        self.agent.device_tools.action_timeout = .03
+        self.agent.device_tools.speech_timeout = .03
+        self.assertEqual(self.core.speech.timeout, self.agent.settings.cleanup_timeout)
+        self.assertGreater(self.agent.program_cleanup_timeout(), self.agent.programs.audio_queue_timeout)
+        self.turn = None
+    async def asyncTearDown(self):
+        if self.turn is not None and not self.turn.done():
+            self.turn.cancel()
+            await asyncio.gather(self.turn, return_exceptions=True)
+        await self.agent.close()
+
+    def register(self, name, caps):
+        socket = Socket(self.core.bus)
+        socket.device = self.core.registry.register({'type': 'hello', 'id': name, 'label': name,
+            'room': 'TEST', 'caps': caps}, socket)
+        return socket
+
+    async def begin(self, text='Start a beat.', *, lease=None):
+        self.native.started.clear()
+        self.turn = asyncio.create_task(self.agent.turn((lease or self.lease).guest_id, text))
+        await self.native.started.wait()
+        self.grant = next(iter(self.agent.device_tools._grants.values()))
+        self.assertLessEqual(len(self.native.application_contexts[-1]), 4000)
+        return self.grant
+
+    async def finish(self, text='The requested result is recorded.'):
+        await self.native.finish(self.native.active_turn_id, text)
+        result = await self.turn
+        self.turn = None
+        return result
+
+    async def call(self, operation, request_id, **payload):
+        return await asyncio.to_thread(invoke, self.grant.path, operation, {'request_id': request_id, **payload})
+
+    async def start(self):
+        await self.begin()
+        result = await self.call('program-start', 'start', device_id='laptop', bpm=600)
+        self.assertTrue(result['ok'], result)
+        return self.agent.programs.programs[result['result']['program_id']]
+
+    async def attach(self, program):
+        result = await self.call('program-update', 'attach', program_id=program.id, light_device_id='phone')
+        self.assertTrue(result['ok'], result)
+        return result
+
+    async def test_one_chat_starts_replies_then_later_turn_attaches_and_stops_same_program(self):
+        program = await self.start()
+        old_grant = self.grant
+        first = await self.finish('The beat is running.')
+        self.assertEqual(first[-1]['text'], 'The beat is running.')
+        self.assertTrue(old_grant.closed)
+        self.assertTrue(program.active)
+        self.assertTrue(self.agent.allows_program(self.lease, program.owner.generation))
+        self.assertFalse(self.agent.allows_program(copy.copy(self.lease), program.owner.generation))
+        await self.begin('Now add my phone to that beat.')
+        inventory = await asyncio.to_thread(invoke, self.grant.path, 'inventory')
+        self.assertEqual(inventory['programs']['programs'][0]['program_id'], program.id)
+        self.assertTrue(inventory['programs']['audio_devices'][0]['generated_beat'])
+        self.assertNotIn('beat.start', [cap['name'] for cap in inventory['devices'][0]['caps']])
+        await self.attach(program)
+        frames = [await asyncio.wait_for(self.phone.events.get(), 1) for _ in range(2)]
+        self.assertEqual([frame['args']['on'] for frame in frames], [True, False])
+        status = await self.call('program-status', 'status', program_id=program.id)
+        self.assertFalse(status['result']['physical_sync_measured'])
+        self.assertEqual(sum(frame['cap'] == 'beat.start' for frame in self.audio.frames), 1)
+        stopped = await self.call('program-stop', 'stop', program_id=program.id)
+        self.assertTrue(stopped['ok'], stopped)
+        self.assertFalse(program.active)
+        await self.finish('The program stopped.')
+
+    async def test_conflict_detach_then_original_steady_light_in_same_native_turn(self):
+        program = await self.start()
+        await self.attach(program)
+        await asyncio.wait_for(self.phone.events.get(), 1)
+        async with asyncio.timeout(.2):
+            conflict = await self.call('call', 'steady-before', device_id='phone', cap='light', args={'on': True})
+        self.assertEqual(conflict['code'], 'CONFLICT')
+        self.assertEqual(conflict['program_id'], program.id)
+        self.assertTrue(conflict['requires_new_request_id_after_confirmed_detach'])
+        detached = await self.call('program-update', 'detach', program_id=program.id, remove_light_device_id='phone')
+        self.assertTrue(detached['ok'], detached)
+        self.assertTrue(program.active)
+        steady = await self.call('call', 'steady-after', device_id='phone', cap='light', args={'on': True})
+        self.assertTrue(steady['ok'], steady)
+        self.assertEqual(self.phone.frames[-1]['args'], {'on': True})
+        self.assertEqual(sum(frame['cap'] == 'beat.start' for frame in self.audio.frames), 1)
+        await self.finish('The phone is steady; the beat continues.')
+
+    async def test_unknown_detach_preserves_reservation_and_refuses_raw_actions_without_wait(self):
+        program = await self.start()
+        await self.attach(program)
+        await asyncio.wait_for(self.phone.events.get(), 1)
+        self.phone.ack = False
+        detached = await self.call('program-update', 'detach', program_id=program.id, remove_light_device_id='phone')
+        self.assertEqual(detached['code'], 'UNKNOWN')
+        before = len(self.phone.frames)
+        async with asyncio.timeout(.2):
+            conflict = await self.call('light-blink', 'blink', device_id='phone', count=5)
+        self.assertEqual(conflict['code'], 'CONFLICT')
+        self.assertEqual(len(self.phone.frames), before)
+        self.assertTrue(program.active)
+        self.assertEqual(self.agent.programs.device_busy('phone'), program.id)
+        self.phone.ack = True
+        await self.finish('Phone cleanup is unknown; the beat continues.')
+        next_guest = self.core.leases.create()
+        await self.begin('Use the phone.', lease=next_guest)
+        blocked = await self.call('call', 'new-owner-phone', device_id='phone', cap='light', args={'on': True})
+        self.assertEqual(blocked['code'], 'CONFLICT')
+        self.assertEqual(blocked['recovery'], 'host_reset')
+        self.assertNotIn('program_id', blocked)
+        await self.finish('The host needs to recover the phone.')
+
+    async def test_program_ledger_deduplicates_start_and_does_not_limit_distinct_programs(self):
+        first = await self.start()
+        duplicate = await self.call('program-start', 'start', device_id='laptop', bpm=600)
+        self.assertEqual(duplicate['result']['program_id'], first.id)
+        changed = await self.call('program-start', 'start', device_id='laptop', bpm=300)
+        self.assertEqual(changed['code'], 'INVALID')
+        second = await self.call('program-start', 'start-two', device_id='laptop', bpm=300)
+        self.assertTrue(second['ok'], second)
+        self.assertNotEqual(second['result']['program_id'], first.id)
+        self.assertEqual(sum(frame['cap'] == 'beat.start' for frame in self.audio.frames), 2)
+        await self.finish()
+
+    async def test_raw_unknown_then_late_ack_cannot_launch_program_on_same_mac(self):
+        await self.begin('Play music, then use a beat only if confirmed.')
+        self.audio.ack = False
+        unknown = await self.call('call', 'raw-unknown', device_id='laptop', cap='music.play', args={})
+        self.assertEqual(unknown['code'], 'UNKNOWN')
+        frame = self.audio.frames[0]
+        self.core.bus.receive(self.audio.device, {'type': 'ok', 'req': frame['req'], 'result': {'state': 'playing'}})
+        self.audio.ack = True
+        blocked = await self.call('program-start', 'new-id-program', device_id='laptop', bpm=600)
+        self.assertEqual(blocked['code'], 'UNKNOWN')
+        self.assertFalse(any(frame['cap'].startswith('beat.') for frame in self.audio.frames))
+        independent = await self.call('call', 'independent-phone', device_id='phone', cap='light', args={'on': True})
+        self.assertTrue(independent['ok'])
+        await self.finish('The audio outcome is unknown; the phone is on.')
+
+    async def test_program_unknown_then_late_ack_cannot_replay_raw_audio_on_same_mac(self):
+        await self.begin('Start a generated beat.')
+        self.audio.ack = False
+        unknown = await self.call('program-start', 'program-unknown', device_id='laptop', bpm=600)
+        self.assertEqual(unknown['code'], 'UNKNOWN')
+        frame = self.audio.frames[0]
+        self.core.bus.receive(self.audio.device, {'type': 'ok', 'req': frame['req'],
+            'result': {'state': 'prepared', 'program_id': frame['args']['program_id']}})
+        self.audio.ack = True
+        before = len(self.audio.frames)
+        blocked = await self.call('call', 'new-id-raw', device_id='laptop', cap='music.play', args={})
+        self.assertEqual(blocked['code'], 'UNKNOWN')
+        self.assertEqual(len(self.audio.frames), before)
+        independent = await self.call('call', 'independent-phone', device_id='phone', cap='light', args={'on': True})
+        self.assertTrue(independent['ok'])
+        await self.finish('The beat outcome is unknown; the phone is on.')
+
+    async def test_guest_leave_and_exact_expiry_invalidate_program_authority_immediately(self):
+        program = await self.start()
+        generation = program.owner.generation
+        await self.finish()
+        self.core.revoke(self.lease.guest_id, actor='guest')
+        self.assertFalse(program.active)
+        self.assertFalse(self.agent.allows_program(self.lease, generation))
+        await asyncio.wait_for(program.cleanup_task, .3)
+        self.assertEqual(program.cleanup['audio'], 'confirmed')
+
+    async def test_exact_expiry_sweep_stops_a_program_after_native_turn_finished(self):
+        program = await self.start()
+        await self.finish()
+        self.clock.now = self.lease.expires_at
+        self.core.sweep()
+        self.assertFalse(program.active)
+        self.assertFalse(self.agent.allows_program(self.lease, program.owner.generation))
+        await asyncio.wait_for(program.cleanup_task, .3)
+
+    async def test_new_guest_has_clean_context_and_cannot_adopt_previous_program(self):
+        program = await self.start()
+        await self.finish('A previous guest beat.')
+        other = self.core.leases.create()
+        await self.begin('I am a new guest.', lease=other)
+        self.assertFalse(program.active)
+        self.assertEqual(self.lease.state, 'released')
+        denied = await self.call('program-status', 'old-status', program_id=program.id)
+        self.assertEqual(denied['code'], 'PERMISSION')
+        self.assertEqual(self.native.history[-1]['text'], 'I am a new guest.')
+        self.assertEqual(len(self.native.history), 2)
+        await self.finish()
+
+    async def test_host_reset_invalidates_program_then_cleans_native_anchor(self):
+        program = await self.start()
+        await self.finish()
+        result = await self.core.reset()
+        self.assertEqual(result['context_cleanup'], 'confirmed')
+        self.assertFalse(program.active)
+        self.assertFalse(self.agent.allows_program(self.lease, program.owner.generation))
+        self.assertEqual([turn['id'] for turn in self.native.history], list(self.agent.settings.anchor_turn_ids))
+        await asyncio.wait_for(program.cleanup_task, .3)
+        self.assertFalse(self.agent.programs._closed)
+        other = self.core.leases.create()
+        await self.begin('Start a fresh guest beat.', lease=other)
+        restarted = await self.call('program-start', 'new-guest-beat', device_id='laptop', bpm=300)
+        self.assertTrue(restarted['ok'], restarted)
+        self.assertNotEqual(restarted['result']['program_id'], program.id)
+        await self.finish('A new guest beat started.')
+        await self.agent.close()
+        self.assertTrue(self.agent.programs._closed)
+
+    async def test_existing_host_reset_off_receipt_recovers_unknown_phone_for_next_guest(self):
+        program = await self.start()
+        await self.attach(program)
+        await asyncio.wait_for(self.phone.events.get(), 1)  # A confirmed ON.
+        self.phone.ack = False
+        ended = asyncio.Event()
+        invalidate = self.agent.programs._invalidate
+        def observed_invalidation(current, reason):
+            invalidate(current, reason)
+            if current is program: ended.set()
+        self.agent.programs._invalidate = observed_invalidation
+        unknown_frame = await asyncio.wait_for(self.phone.events.get(), 1)
+        await asyncio.wait_for(ended.wait(), 1)
+        await asyncio.wait_for(program.cleanup_task, .3)
+        self.assertEqual(self.agent.programs.device_busy('phone'), program.id)
+        self.assertIn(unknown_frame['req'], self.core.bus.uncertain)
+        self.core.bus.receive(self.phone.device, {'type': 'ok', 'req': unknown_frame['req'], 'result': {'on': False}})
+        self.phone.ack = True
+        await self.finish('The phone outcome needs recovery.')
+        before = len(self.phone.frames)
+        reset = await self.core.reset()
+        self.assertEqual(reset['program_cleanup'], 'confirmed', reset)
+        self.assertEqual(reset['cleanup'], 'confirmed', reset)
+        self.assertEqual(len(self.phone.frames), before + 1)  # Existing host OFF only.
+        self.assertIsNone(self.agent.programs.device_busy('phone'))
+        new_guest = self.core.leases.create()
+        await self.begin('Turn the phone on.', lease=new_guest)
+        result = await self.call('call', 'new-guest-on', device_id='phone', cap='light', args={'on': True})
+        self.assertTrue(result['ok'], result)
+        await self.finish('The phone is on.')
+
+    async def test_host_reset_does_not_claim_full_cleanup_when_audio_stop_is_unknown(self):
+        program = await self.start()
+        await self.finish()
+        self.audio.ack = False
+        reset = await self.core.reset()
+        self.assertEqual(reset['program_cleanup'], 'unconfirmed')
+        self.assertEqual(reset['cleanup'], 'unconfirmed')
+        self.assertEqual(program.cleanup['audio'], 'unknown')
+        self.audio.ack = True
+
+    async def test_reset_waits_for_program_queue_budget_beyond_native_cleanup_budget(self):
+        await self.start()
+        await self.finish()
+        self.agent.settings = replace(self.agent.settings, cleanup_timeout=.01)
+        self.agent.programs.audio_queue_timeout = .2
+        entered, release = asyncio.Event(), asyncio.Event()
+        original = self.agent.programs.quiesce
+        async def delayed_queue_settlement():
+            entered.set()
+            await release.wait()
+            return await original()
+        self.agent.programs.quiesce = delayed_queue_settlement
+        reset = asyncio.create_task(self.core.reset())
+        try:
+            await entered.wait()
+            await asyncio.sleep(.03)  # Beyond the separate native cleanup budget.
+            self.assertFalse(reset.done())
+            release.set()
+            result = await asyncio.wait_for(reset, .3)
+            self.assertEqual(result['program_cleanup'], 'confirmed', result)
+            self.assertEqual(result['cleanup'], 'confirmed', result)
+        finally:
+            release.set()
+            await asyncio.gather(reset, return_exceptions=True)
+            self.agent.programs.quiesce = original
+
+    async def test_program_close_timeout_still_closes_native_and_private_helper_resources(self):
+        program = await self.start()
+        await self.finish()
+        directory = self.agent.device_tools._directory.name
+        original = self.agent.programs.close
+        async def hung_program_close():
+            await asyncio.Event().wait()
+        self.agent.programs.close = hung_program_close
+        try:
+            async with asyncio.timeout(.6):
+                await self.agent.close()
+            self.assertTrue(self.native.closed)
+            from pathlib import Path
+            self.assertFalse(Path(directory).exists())
+            self.assertFalse(program.active)
+            self.assertFalse(self.agent.allows_program(self.lease, program.owner.generation))
+        finally:
+            self.agent.programs.close = original
+            await original()
+
+    async def test_completed_turn_before_queued_start_never_launches_old_program(self):
+        await self.begin()
+        lock = self.core.bus.locks['laptop']
+        await lock.acquire()
+        queued = asyncio.Event()
+        original = self.core.bus.call
+        async def with_queue_barrier(*args, **kwargs):
+            if args[1] == 'beat.prepare': queued.set()
+            return await original(*args, **kwargs)
+        self.core.bus.call = with_queue_barrier
+        pending = asyncio.create_task(self.call('program-start', 'queued-start', device_id='laptop', bpm=600))
+        await queued.wait()
+        await self.finish('Nothing started yet.')
+        lock.release()
+        result = await pending
+        self.assertFalse(result['ok'])
+        self.assertFalse(any(frame['cap'] in ('beat.prepare', 'beat.start') for frame in self.audio.frames))
+
+    async def test_helper_explicit_speech_receipt_suppresses_duplicate_auto_narration(self):
+        speaker = self.register('speaker', {'say': {'description': 'Speech', 'args': {'text': {'type': 'string'}}}})
+        original = speaker.send_json
+        async def speech_ack(frame):
+            if frame['cap'] == 'say':
+                speaker.frames.append(frame)
+                self.core.bus.receive(speaker.device, {'type': 'ok', 'req': frame['req'], 'result': {'spoken': True}})
+            else:
+                await original(frame)
+        speaker.send_json = speech_ack
+        await self.begin('Say hello on the speaker.')
+        result = await self.call('call', 'say-once', device_id='speaker', cap='say', args={'text': 'Hello.'})
+        self.assertTrue(result['ok'])
+        frames = await self.finish('Hello.')
+        self.assertTrue(frames.completed_reply.explicit_speech_attempted)
+        await self.core.speech.speak_reply(frames)
+        self.assertEqual(len(speaker.frames), 1)
+
+    async def test_unknown_explicit_speech_is_not_narrated_or_retried(self):
+        speaker = self.register('speaker', {'say': {'description': 'Speech', 'args': {'text': {'type': 'string'}}}})
+        speaker.ack = False
+        await self.begin('Say hello on the speaker.')
+        result = await self.call('call', 'say-unknown', device_id='speaker', cap='say', args={'text': 'Hello.'})
+        self.assertEqual(result['code'], 'UNKNOWN')
+        frames = await self.finish('Speech could not be confirmed.')
+        self.assertTrue(frames.completed_reply.explicit_speech_attempted)
+        await self.core.speech.speak_reply(frames)
+        self.assertEqual(len(speaker.frames), 1)
+
+    async def test_explicit_speech_frame_uses_speech_policy_bounded_by_live_lease(self):
+        speaker = self.register('speaker', {'say': {'description': 'Speech', 'args': {'text': {'type': 'string'}}}})
+        async def speech_ack(frame):
+            speaker.frames.append(frame)
+            self.core.bus.receive(speaker.device, {'type': 'ok', 'req': frame['req'], 'result': {'spoken': True}})
+        speaker.send_json = speech_ack
+        self.agent.device_tools.speech_timeout = .25
+        self.lease.expires_at = self.clock.now + .12
+        await self.begin('Say hello.')
+        result = await self.call('call', 'speech-budget', device_id='speaker', cap='say', args={'text': 'Hello.'})
+        self.assertTrue(result['ok'])
+        self.assertGreater(speaker.frames[0]['deadline_ms'], 30)  # Ordinary action budget is .03s.
+        self.assertLessEqual(speaker.frames[0]['deadline_ms'], 120)
+        await self.finish('Hello.')
+
+    def test_cli_program_update_schema_accepts_detach_and_rejects_extra_actions(self):
+        payload = {'request_id': 'detach', 'program_id': 'owned', 'remove_light_device_id': 'phone'}
+        with patch('agent.tenant_device.invoke', return_value={'ok': True}) as dispatch:
+            with patch('sys.stdin', io.StringIO(json.dumps(payload))), patch('sys.stdout', new_callable=io.StringIO):
+                self.assertEqual(main(['--context', '/private/fake-context', 'program-update']), 0)
+            self.assertEqual(dispatch.call_args.args[2], payload)
+        payload['shell'] = 'unsupported'
+        with patch('agent.tenant_device.invoke') as dispatch:
+            with patch('sys.stdin', io.StringIO(json.dumps(payload))), patch('sys.stdout', new_callable=io.StringIO):
+                self.assertEqual(main(['--context', '/private/fake-context', 'program-update']), 1)
+            dispatch.assert_not_called()
+
+
+if __name__ == '__main__': unittest.main()
