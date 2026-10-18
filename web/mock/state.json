@@ -44,16 +44,17 @@
       "display_name": "Guest 1",
       "channel": "photon",
       "expires_in": 412,
+      "lease_total": 600,
       "scopes": ["*"],
       "last_text": "turn on a light"
     }
   ],
   "log": [
-    { "t": 1760742061.2, "kind": "ok",         "text": "Owen's phone turned its flashlight on." },
-    { "t": 1760742059.8, "kind": "do",         "text": "Guest 1 asked for a light." },
-    { "t": 1760742031.0, "kind": "guest.join", "text": "Guest 1 joined by text." },
+    { "t": 1760742061.2, "kind": "ok",         "subject": "Owen's phone", "rest": " turned its flashlight on.", "text": "Owen's phone turned its flashlight on.", "device": "owen-phone" },
+    { "t": 1760742059.8, "kind": "do",         "subject": "Guest 1", "rest": " asked for a light.", "text": "Guest 1 asked for a light." },
+    { "t": 1760742031.0, "kind": "guest.join", "subject": "Guest 1", "rest": " joined by text.", "text": "Guest 1 joined by text." },
     { "t": 1760741900.5, "kind": "denied",     "text": "Someone who had left asked to turn off the light. The room said no." },
-    { "t": 1760741880.1, "kind": "err",        "text": "The tablet didn't answer in time." },
-    { "t": 1760741700.0, "kind": "cmd",        "text": "The room was reset. New code: 7F3A." }
+    { "t": 1760741880.1, "kind": "err",        "subject": "The tablet", "rest": " didn't answer in time.", "text": "The tablet didn't answer in time." },
+    { "t": 1760741700.0, "kind": "cmd",        "subject": "The room", "rest": " was reset. New code: 7F3A.", "text": "The room was reset. New code: 7F3A." }
   ]
 }
