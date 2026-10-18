@@ -1,0 +1,53 @@
+{
+  "test": "One persistent room conversation resets model context between users",
+  "status": "PASS_TRANSPORT_CONTEXT_PROBE",
+  "room_thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+  "setup_anchor_turn_ids": [
+    "01a14c77-662a-7f81-b7fc-b0aa4ced3b79"
+  ],
+  "history_mode": "paginated",
+  "transport": "Existing local app-server Unix WebSocket",
+  "setup": "A supported archive/unarchive cycle released the previous native writer before this proof.",
+  "started_at": 1792284596.201257,
+  "finished_at": 1792284601.441634,
+  "duration_seconds": 5.24,
+  "initial_turn_ids": [
+    "01a14c77-662a-7f81-b7fc-b0aa4ced3b79"
+  ],
+  "guest_a": {
+    "turn_id": "01a14c7c-9875-7072-b574-15b128fcb479",
+    "status": "completed",
+    "output": "Marker noted.",
+    "item_counts": {
+      "userMessage": 1,
+      "agentMessage": 1
+    },
+    "tool_count": 0
+  },
+  "after_a_revert_turn_ids": [
+    "01a14c77-662a-7f81-b7fc-b0aa4ced3b79"
+  ],
+  "guest_b": {
+    "turn_id": "01a14c7c-a1a3-7571-892b-41c4939eb417",
+    "status": "completed",
+    "output": "No previous guest marker is available.",
+    "item_counts": {
+      "userMessage": 1,
+      "agentMessage": 1
+    },
+    "tool_count": 0
+  },
+  "previous_marker_absent_from_guest_b": true,
+  "guest_b_denied_previous_marker": true,
+  "final_turn_ids": [
+    "01a14c77-662a-7f81-b7fc-b0aa4ced3b79"
+  ],
+  "mechanical_reset": "thread/revert before the first guest turn, followed by paginated verification of the exact retained setup anchor.",
+  "limitations": [
+    "The random harmless marker is intentionally omitted from this public evidence.",
+    "No tools, files, applications, or physical effects were invoked by either test turn.",
+    "A and B were synthetic model turns. Real guest admission, lease handoff, voice input, and broad computer actions remain untested in this new path.",
+    "Stored history and model context were verified; native app live rendering was not tested by this proof.",
+    "History reset does not undo previously started computer or physical effects."
+  ]
+}
