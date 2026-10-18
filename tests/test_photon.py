@@ -665,6 +665,34 @@ class PhotonRouteTests(unittest.TestCase):
         self.assertEqual(self.native.counter, 0)
         self.assertEqual(self.channel.client.allocated, [])
 
+    def test_implicit_cookie_recovery_rechecks_permission_after_waiting_for_enrollment_lock(self):
+        from concurrent.futures import ThreadPoolExecutor
+        first = self.join(phone=PHONE).json()
+        lease = self.core.leases.leases[first['guest_id']]
+        deadlines = (lease.expires_at, lease.joining_until)
+        reached_enroll = asyncio.Event()
+        original = self.channel.enroll
+        async def entering(*args, **kwargs):
+            # The route has already matched the original cookie to this binding.
+            reached_enroll.set()
+            return await original(*args, **kwargs)
+        self.channel.enroll = entering
+        self.client.portal.call(self.channel._enroll_lock.acquire)
+        with ThreadPoolExecutor() as pool:
+            waiting = pool.submit(self.join, phone=PHONE)
+            self.client.portal.call(reached_enroll.wait)
+            self.client.portal.call(self.core.revoke, first['guest_id'])
+            self.client.portal.call(self.channel._enroll_lock.release)
+            result = waiting.result(timeout=2)
+        self.assertEqual(result.status_code, 404)
+        self.assertEqual(result.json()['code'], 'INVITATION_EXPIRED')
+        self.assertEqual(lease.state, 'released')
+        self.assertEqual((lease.expires_at, lease.joining_until), deadlines)
+        self.assertEqual(len(self.channel.client.allocated), 1)
+        self.assertEqual(len(self.core.credentials), 1)
+        self.assertTrue(self.core.authentic_token(lease.guest_id, first['guest_token']))
+        self.assertEqual(self.native.counter, 0)
+
     def test_phone_join_never_bypasses_origin_or_current_invitation(self):
         before = len(self.core.leases.leases)
         for headers, code, expected in [({}, 'TEST', 403),
