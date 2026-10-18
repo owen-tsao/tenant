@@ -1,0 +1,15 @@
+{
+  "status": "READ_ONLY_SCHEMA_FEASIBILITY",
+  "installed_schema_dynamicTools_field": {
+    "ThreadStartParams.json": true,
+    "ThreadResumeParams.json": false,
+    "ThreadForkParams.json": false,
+    "TurnStartParams.json": false,
+    "ThreadSettingsUpdateParams.json": false
+  },
+  "decision": "Retain the existing fixed room chat; do not pretend new dynamic tools can be added through unsupported resume fields. A private helper invoked by the existing native shell is a proposed existing-Bus fallback, not implemented or tested.",
+  "unsupported_registration": "No supported installed client method adds dynamic tools to an existing thread. MCP reload reads disk configuration; per-thread config refresh remains unproven.",
+  "changed_live_chat_or_global_configuration": false,
+  "physical_effects": false,
+  "official_reference": "https://learn.chatgpt.com/docs/app-server#dynamic-tool-calls-experimental"
+}
