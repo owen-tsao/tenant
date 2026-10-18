@@ -1,0 +1,395 @@
+{
+  "recorded_at": "2026-10-18T01:51:54.419269+00:00",
+  "status": "PASS_TRANSPORT_NATIVE_MULTI_ACTION_HUMAN_OBSERVATION_PENDING",
+  "source_revision": "8f1b7ee",
+  "scope": "One actual public web guest request through the fixed native room agent, private helper and enrolled real phone/Mac bridges. No host-do bypass.",
+  "request": "Please flash Jay's phone five times, then say 'Tenant can coordinate' from Room speaker. Leave the flashlight off.",
+  "native_reply": "Jay\u2019s phone flashed five times; its flashlight is confirmed off. Room speaker reported finishing \u201cTenant can coordinate.\u201d",
+  "native_turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+  "native_thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+  "request_started_at": 1792288120.275622,
+  "assistant_text_received_at": 1792288138.743103,
+  "request_to_assistant_text_ms": 18467,
+  "automated_checks": {
+    "current_base_isolated_python_pass": 324,
+    "unchanged_phone_runtime_node_pass": 12,
+    "independent_source_review": "access_contract_review PASS on all seven frozen files; same-device sequencing and unsent/UNKNOWN findings fixed",
+    "audio_program_wip_excluded": true
+  },
+  "phone_edge_acknowledgements": 10,
+  "explicit_speech_acknowledgements": 1,
+  "events": [
+    {
+      "t": 1792288120.690666,
+      "kind": "cmd",
+      "audit": {
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "generation": 1
+      }
+    },
+    {
+      "t": 1792288126.5044532,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 0
+      }
+    },
+    {
+      "t": 1792288126.588264,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 0,
+        "req": "r_ddd8e483f9274f56b2aad491b72f59aa",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288127.089893,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 1
+      }
+    },
+    {
+      "t": 1792288127.214337,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 1,
+        "req": "r_bc56b32be1e649e084544f3da5ec7187",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288127.715631,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 2
+      }
+    },
+    {
+      "t": 1792288127.942463,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 2,
+        "req": "r_2fc8a2f619cf4aaabbe1b3d9e7a3c1c1",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288128.4433641,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 3
+      }
+    },
+    {
+      "t": 1792288128.506616,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 3,
+        "req": "r_afaa249491984bb094209c43c7c1648b",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288129.007563,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 4
+      }
+    },
+    {
+      "t": 1792288129.05327,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 4,
+        "req": "r_90d7714fc35d4e29b6535096c1dc476e",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288129.553869,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 5
+      }
+    },
+    {
+      "t": 1792288129.620936,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 5,
+        "req": "r_0b60481d664640b9aa618607e3fabc41",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288130.1222432,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 6
+      }
+    },
+    {
+      "t": 1792288130.167562,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 6,
+        "req": "r_f8ffaaefeccd41dfb54eb616b965f036",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288130.6681862,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 7
+      }
+    },
+    {
+      "t": 1792288130.736284,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 7,
+        "req": "r_2706ad10151042cd9b89fce552f0bc31",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288131.237775,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 8
+      }
+    },
+    {
+      "t": 1792288131.271811,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 8,
+        "req": "r_cf8ee94cdd16476fabcfb31d19c2658b",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288131.773563,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 9
+      }
+    },
+    {
+      "t": 1792288131.856197,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "phone-a",
+        "cap": "light",
+        "operation": "light-blink",
+        "edge": 9,
+        "req": "r_9bec5d3a8fa04c9a95d2492169bab656",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288134.560513,
+      "kind": "cmd",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "laptop",
+        "cap": "say"
+      }
+    },
+    {
+      "t": 1792288137.095527,
+      "kind": "ok",
+      "audit": {
+        "generation": 1,
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "device_id": "laptop",
+        "cap": "say",
+        "req": "r_fcf616d5f8ea41828bdf26039817e932",
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792288138.735632,
+      "kind": "ok",
+      "audit": {
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "generation": 1
+      }
+    },
+    {
+      "t": 1792288142.737355,
+      "kind": "speech",
+      "audit": {
+        "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+        "turn_id": "01a14cb2-5f6a-7291-acea-3ce81f0951a3",
+        "generation": 1,
+        "audio_status": "UNKNOWN",
+        "device_id": "laptop",
+        "req": "r_087430a2a2244c389f7de62313c47906"
+      }
+    },
+    {
+      "t": 1792288143.850584,
+      "kind": "guest.leave",
+      "audit": {}
+    }
+  ],
+  "human_observation": "PENDING",
+  "post_leave": {
+    "tested_at": 1792288249.793291,
+    "status": "PASS_AUTHORITY_DENIAL",
+    "ended_cookie_can_view_terminal_status": true,
+    "reply": "You're no longer in Room E39D. Scan the room code to join again.",
+    "native_or_device_commands": 0,
+    "limit": "Credential authentication remains valid for ended-state display; authority is checked separately."
+  },
+  "automatic_reply_narration": {
+    "status": "UNKNOWN_AFTER_EXPLICIT_SPEECH_COMPLETED",
+    "timeout_seconds": 4,
+    "replayed": false,
+    "decision": "Audio owner is fixing duplicate explicit/automatic narration and coherent speech budget. This failure remains recorded separately from confirmed device actions."
+  },
+  "limits": [
+    "Human seeing five distinct cycles/final OFF and hearing the requested phrase is still required.",
+    "Device ACKs do not measure optical/acoustic onset or music synchronization.",
+    "One trial is not a reliability estimate.",
+    "Background music programs are separate and not deployed.",
+    "Default output and volume were not changed."
+  ]
+}
