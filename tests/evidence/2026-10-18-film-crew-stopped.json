@@ -1,0 +1,25 @@
+{
+  "test": "film-crew-user-cancelled-cleanup",
+  "observed_at": 1792318201.873586,
+  "status": "STOPPED_AT_USER_REQUEST",
+  "manual_rendered_cuts_passed": 10,
+  "unarmed_real_model_observations": 36,
+  "unarmed_numeric_valid": true,
+  "unarmed_inference_ms_range": [
+    18.403083027806133,
+    28.587874956429005
+  ],
+  "unarmed_observation_is_not_semantic_acceptance": true,
+  "automatic_trial_armed": false,
+  "automatic_trial_tested": false,
+  "owned_OBS_processes": 0,
+  "OBS_websocket_listener_open": false,
+  "owned_watch_sampler_control_processes_running": false,
+  "owned_diagnostic_VDO_viewer_tabs": 0,
+  "OBS_stream_record_started": false,
+  "cleanup": "normal main OBS Quit; exact old stalled startup PID41331 force-terminated after prior SIGTERM failed",
+  "saved_profile_collection_and_evidence_preserved": true,
+  "music_audio_untouched": true,
+  "phone_pages": "Root asked user to close; remote closure not claimed",
+  "resume_requires_new_user_request_and_orientation_config_review": true
+}

@@ -54,6 +54,8 @@ def run_watch(control, classifier, *, seconds, validation_ready, arm,
         scene, revision = state()
         if revision or not director.arm(now=clock(), current_scene=scene, revision=revision):
             raise ValueError('Automatic choice needs its rehearsal receipt and an unchanged WIDE scene.')
+        emit(json.dumps({'kind': 'observation_armed', 'observed_monotonic': clock(),
+                         'scene': 'WIDE', 'limit': 'one_semantic_choice'}))
     try:
         while clock() < deadline:
             scene, revision = state()

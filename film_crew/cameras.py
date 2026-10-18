@@ -74,6 +74,10 @@ def _parse_url(value, direction, options):
             if params['codec'] not in VIEW_CODECS:
                 raise ValueError
             expected.add('codec')
+        if direction == 'view' and 'forceviewerlandscape' in params:
+            if params['forceviewerlandscape'] not in {'90', '270'}:
+                raise ValueError
+            expected.add('forceviewerlandscape')
         if len(params) != len(pairs) or set(params) != expected:
             raise ValueError
         if any(params[key] != value for key, value in options.items()):

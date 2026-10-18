@@ -82,6 +82,11 @@ staged OBS 32.2.2. Camera browser inputs are muted with monitoring disabled;
 setup refuses enabled global microphone/desktop inputs, active outputs, and
 Studio Mode. It does not alter system audio or other scene collections.
 Closing disconnects control sockets and leaves the last program scene intact.
+Actual OBS reports typed SDK error 604 for `GetReplayBufferStatus` when no
+replay output is configured. That exact read-only exception is treated as
+unavailable/inactive without disconnecting; every other error remains blocking.
+The adapter does not enable or start replay buffering. Exact installed SDK
+error-class compatibility was also checked offline with no connection opened.
 Per-scene Cut overrides are checked immediately before switching. The request
 socket serializes operations; the separate event socket latches operator scene
 or collection changes. Delayed own acknowledgements are consumed once, in

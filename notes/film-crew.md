@@ -1,5 +1,7 @@
 # Tenant live film crew
 
+**Paused at Jay’s explicit request to stop and pivot.** Both actual feeds and ten rendered manual cuts passed. The real adapter adopted the setup and an unarmed model pass produced36 numeric observations. Roles were remapped in software; close-up orientation remains unresolved. The automatic trial was never armed, and disconnect/reconnect remains untested. No new live work is authorized by this checkpoint. Saved setup/evidence are retained; the unused private trial approval is revoked.
+
 The requested demo is two real iPhones feeding this Mac, an obvious WIDE/OBJECT cut in OBS, then one silent model-driven choice when someone demonstrates an object. Reuse VDO.Ninja, OBS and a pretrained local model. No custom phone app, new video transport, guest-page changes, audio capture or external broadcast.
 
 ## What is established

@@ -7,8 +7,9 @@ import json
 import logging
 from pathlib import Path
 import struct
+import sys
 import tempfile
-from types import SimpleNamespace
+from types import SimpleNamespace, ModuleType
 import unittest
 from unittest.mock import patch
 import zlib
@@ -67,6 +68,7 @@ class FakeObs:
         self.fail = None
         self.fail_after = None
         self.after_request = None
+        self.request_errors = {}
         self.kinds = ['browser_source', 'text_ft2_source_v2']
         self.outputs = dict(record=False, stream=False, replay=False, virtual=False)
         self.screenshot = 'data:image/png;base64,' + base64.b64encode(png()).decode()
@@ -86,6 +88,10 @@ class FakeObs:
             raise AssertionError('adapter must use raw protocol responses')
         data = copy.deepcopy(data or {})
         self.calls.append((request, data))
+        if request in self.request_errors:
+            error = self.request_errors[request]
+            logging.getLogger('obsws_python.reqs').error('private request error: %s', error)
+            raise error
         if self.fail == request:
             logging.getLogger('obsws_python.reqs').error('private failed request %s %s', PASSWORD, PRIVATE)
             raise RuntimeError(PASSWORD + PRIVATE)
@@ -754,6 +760,81 @@ class ObsControlTests(unittest.TestCase):
 
     def test_manual_override_during_sdk_lock_wait_prevents_cut(self):
         self.assert_pre_send_lock_wait_invalidation(manual_override=True)
+
+    def sdk_error_module(self):
+        module = ModuleType('obsws_python.error')
+        class OBSSDKRequestError(Exception):
+            def __init__(self, req_name, code, comment):
+                self.req_name, self.code = req_name, code
+                super().__init__(f'Request {req_name} returned code {code}. With message: {comment}')
+        class OBSSDKTimeoutError(Exception):
+            pass
+        module.OBSSDKRequestError = OBSSDKRequestError
+        module.OBSSDKTimeoutError = OBSSDKTimeoutError
+        return module
+
+    def test_exact_typed_replay_unavailable_allows_configure_and_verified_adoption(self):
+        errors = self.sdk_error_module()
+        error = errors.OBSSDKRequestError('GetReplayBufferStatus', 604, PASSWORD + PRIVATE)
+        self.fake.request_errors['GetReplayBufferStatus'] = error
+        with patch.dict(sys.modules, {'obsws_python.error': errors}):
+            self.configured()
+            self.assertEqual(self.fake.closed, 0)
+            self.fake.persistent.clear()
+            self.fake.calls.clear()
+            result = self.control.configure(manifest(), adopt_verified_owned=True)
+            self.assertEqual(result['scene'], 'WIDE')
+            self.assertEqual([name for name, _ in self.writes()], ['SetPersistentData'])
+            self.assertEqual(self.fake.closed, 0)
+
+    def test_replay_unavailable_never_masks_other_errors_or_ducktyped_codes(self):
+        errors = self.sdk_error_module()
+        class DuckError(Exception):
+            req_name, code = 'GetReplayBufferStatus', 604
+        class SubclassError(errors.OBSSDKRequestError):
+            pass
+        cases = [
+            ('GetReplayBufferStatus', errors.OBSSDKRequestError('GetReplayBufferStatus', 600, PRIVATE)),
+            ('GetReplayBufferStatus', errors.OBSSDKRequestError('GetReplayBufferStatus', '604', PRIVATE)),
+            ('GetReplayBufferStatus', errors.OBSSDKRequestError('GetReplayBufferStatus', True, PRIVATE)),
+            ('GetRecordStatus', errors.OBSSDKRequestError('GetRecordStatus', 604, PRIVATE)),
+            ('GetReplayBufferStatus', errors.OBSSDKRequestError('GetStreamStatus', 604, PRIVATE)),
+            ('GetReplayBufferStatus', DuckError(PRIVATE)),
+            ('GetReplayBufferStatus', RuntimeError('604 ' + PRIVATE)),
+            ('GetReplayBufferStatus', errors.OBSSDKTimeoutError(PASSWORD + PRIVATE)),
+            ('GetReplayBufferStatus', SubclassError('GetReplayBufferStatus', 604, PRIVATE))]
+        with patch.dict(sys.modules, {'obsws_python.error': errors}):
+            for index, (request, error) in enumerate(cases):
+                with self.subTest(case=index):
+                    fake, events = FakeObs(), FakeEvents()
+                    fake.request_errors[request] = error
+                    control = ObsControl(password_file=self.password,
+                                         client_factory=lambda **kwargs: fake,
+                                         event_factory=lambda **kwargs: events,
+                                         authorize=lambda: True)
+                    self.addCleanup(control.close)
+                    control.connect()
+                    caught = self.safe_error(lambda: control.configure(manifest()))
+                    self.assertEqual(caught.code, 'request')
+                    self.assertEqual(fake.closed, 1)
+                    self.assertFalse(any(name.startswith(('Set', 'Create')) for name, _ in fake.calls))
+
+    def test_typed_replay_unavailable_comment_is_not_logged(self):
+        errors = self.sdk_error_module()
+        self.fake.request_errors['GetReplayBufferStatus'] = errors.OBSSDKRequestError(
+            'GetReplayBufferStatus', 604, PASSWORD + PRIVATE)
+        stream = io.StringIO()
+        handler = logging.StreamHandler(stream)
+        logger = logging.getLogger('obsws_python')
+        previous = logger.level
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+        self.addCleanup(logger.removeHandler, handler)
+        self.addCleanup(logger.setLevel, previous)
+        with patch.dict(sys.modules, {'obsws_python.error': errors}):
+            self.configured()
+        self.assertNotIn(PRIVATE, stream.getvalue())
+        self.assertNotIn(PASSWORD, stream.getvalue())
 
     def test_manual_override_latches_and_blocks_automatic_switch(self):
         self.configured()

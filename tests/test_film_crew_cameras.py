@@ -165,6 +165,26 @@ class FilmCrewCameraTests(unittest.TestCase):
         value['feeds'][0]['view_url'] += '&codec=h264&codec=vp8'
         self.assert_invalid(value)
 
+    def test_viewer_landscape_quarter_turns_with_h264_keep_phone_links(self):
+        for rotation in ('90', '270'):
+            value = self.value()
+            self.replace_query(value['feeds'][1], 'view', codec='h264', forceviewerlandscape=rotation)
+            validated = validate_manifest(value)
+            self.assertEqual(validated.feed('detail').push_url, self.manifest.feed('detail').push_url)
+            self.assertEqual(validated.feed('wide'), self.manifest.feed('wide'))
+
+    def test_reject_invalid_duplicate_or_sender_landscape_rotation(self):
+        for rotation in ('', '0', '180', '-90', '360', '90,270'):
+            value = self.value()
+            self.replace_query(value['feeds'][1], 'view', forceviewerlandscape=rotation)
+            self.assert_invalid(value)
+        value = self.value()
+        self.replace_query(value['feeds'][1], 'push', forceviewerlandscape='90')
+        self.assert_invalid(value)
+        value = self.value()
+        value['feeds'][1]['view_url'] += '&forceviewerlandscape=90&forceviewerlandscape=270'
+        self.assert_invalid(value)
+
     def test_loading_and_preparing_codec_manifest_preserves_credentials_and_qrs(self):
         value = self.value()
         qr_bytes = {feed.role: (self.runtime / (feed.role + '-phone-qr.png')).read_bytes()

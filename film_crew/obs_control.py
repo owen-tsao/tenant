@@ -78,6 +78,23 @@ def _quiet_client(client):
             instance.logger = _SILENT
 
 
+def _replay_unavailable(request, error):
+    """Only the SDK's typed 604 response for this read means unavailable.
+
+    An unconfigured OBS replay buffer has no output object. Do not confuse
+    arbitrary exceptions, other request errors, or a connection failure with
+    an idle output, and never inspect/log the potentially private comment.
+    """
+    if request != 'GetReplayBufferStatus':
+        return False
+    try:
+        from obsws_python.error import OBSSDKRequestError
+    except ImportError:
+        return False
+    return (type(error) is OBSSDKRequestError and error.req_name == request
+            and type(error.code) is int and error.code == 604)
+
+
 def _password(path):
     try:
         fd = os.open(Path(path), os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
@@ -291,7 +308,9 @@ class ObsControl:
                 return result
             except ObsError:
                 raise
-            except Exception:
+            except Exception as error:
+                if not write and _replay_unavailable(request, error):
+                    return {'outputActive': False, 'outputUnavailable': True}
                 if write:
                     self._uncertain = True
                     self._latch_override()
