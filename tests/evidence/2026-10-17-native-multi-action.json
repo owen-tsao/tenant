@@ -1,6 +1,6 @@
 {
   "recorded_at": "2026-10-18T01:51:54.419269+00:00",
-  "status": "PASS_TRANSPORT_NATIVE_MULTI_ACTION_HUMAN_OBSERVATION_PENDING",
+  "status": "MIXED_PHONE_SMOKE_PASS_COMBINED_PHYSICAL_ACCEPTANCE_OPEN",
   "source_revision": "8f1b7ee",
   "scope": "One actual public web guest request through the fixed native room agent, private helper and enrolled real phone/Mac bridges. No host-do bypass.",
   "request": "Please flash Jay's phone five times, then say 'Tenant can coordinate' from Room speaker. Leave the flashlight off.",
@@ -370,7 +370,10 @@
       "audit": {}
     }
   ],
-  "human_observation": "PENDING",
+  "human_observation": {
+    "report": "Only some of that worked",
+    "status": "PARTIAL_FAIL_FIRST_TRIAL"
+  },
   "post_leave": {
     "tested_at": 1792288249.793291,
     "status": "PASS_AUTHORITY_DENIAL",
@@ -386,10 +389,396 @@
     "decision": "Audio owner is fixing duplicate explicit/automatic narration and coherent speech budget. This failure remains recorded separately from confirmed device actions."
   },
   "limits": [
-    "Human seeing five distinct cycles/final OFF and hearing the requested phrase is still required.",
-    "Device ACKs do not measure optical/acoustic onset or music synchronization.",
-    "One trial is not a reliability estimate.",
-    "Background music programs are separate and not deployed.",
+    "The first partial failure and second no-flashes failure remain in the record.",
+    "The third run is one human-attested phone smoke; Mac speech failed in that same run. Combined acceptance remains open.",
+    "Device acknowledgements do not measure optical/acoustic onset or music synchronization.",
+    "Native visible app rendering, Photon delivery and final program lifecycle checks remain separate gates.",
     "Default output and volume were not changed."
-  ]
+  ],
+  "trial_2": {
+    "source": "Brain8f1b7ee; compatible CLI program candidate held stable during trial",
+    "request": "Please flash the connected Phone light five times, then say 'Tenant can coordinate' from Room speaker. Leave the flashlight off.",
+    "human_report": "I heard the audio but I did not see the flashes",
+    "status": "FAIL_VISIBLE_LIGHT_PASS_AUDIBLE_SPEECH",
+    "file_private_result": "trial2-native-blink-result.json",
+    "later_setup_evidence": "User said the watched phone was not on Connect a light and requested a QR. That does not independently identify every state of the previously connected page."
+  },
+  "trial_3": {
+    "source_revision": "6cb644a",
+    "new_enrolled_device": "jay-visible-phone-oct17",
+    "display_label": "Phone light",
+    "request": "Please flash the connected Phone light five times, then say 'Tenant can coordinate' from Room speaker. Leave the flashlight off.",
+    "native_reply": "The phone flashed five times and is confirmed off. Room speaker did not confirm saying \u201cTenant can coordinate.\u201d",
+    "started_at": 1792288867.175852,
+    "text_received_at": 1792288884.94707,
+    "request_to_assistant_text_ms": 17771,
+    "phone_ack_count": 10,
+    "mac_explicit_speech_ack_count": 0,
+    "events": [
+      {
+        "t": 1792288867.736812,
+        "kind": "cmd",
+        "audit": {
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "generation": 1
+        }
+      },
+      {
+        "t": 1792288873.82629,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 0
+        }
+      },
+      {
+        "t": 1792288873.883782,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 0,
+          "req": "r_5bea19c9f65e4970961e3442cc5eae5b",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288874.3854349,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 1
+        }
+      },
+      {
+        "t": 1792288874.5502,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 1,
+          "req": "r_eb0f3579986f4fefa94f14bfbe05e051",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288875.053016,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 2
+        }
+      },
+      {
+        "t": 1792288875.2495759,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 2,
+          "req": "r_c2e07eeeab1245a5b99df69bbba12807",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288875.751084,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 3
+        }
+      },
+      {
+        "t": 1792288875.807256,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 3,
+          "req": "r_ff0fe56aaadf43fea53978238f4525f6",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288876.308652,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 4
+        }
+      },
+      {
+        "t": 1792288876.449783,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 4,
+          "req": "r_efada3b851de4357abd86ee215aa04d3",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288876.950289,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 5
+        }
+      },
+      {
+        "t": 1792288876.996704,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 5,
+          "req": "r_81b3c3bf50af4ff581ce4e9e108877d6",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288877.497984,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 6
+        }
+      },
+      {
+        "t": 1792288877.566423,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 6,
+          "req": "r_6fdb8dee533247799d59d2d2e719527d",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288878.0680268,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 7
+        }
+      },
+      {
+        "t": 1792288878.208048,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 7,
+          "req": "r_e015a2e2f48e476291c4d9fe328fa52b",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288878.710051,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 8
+        }
+      },
+      {
+        "t": 1792288878.761226,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 8,
+          "req": "r_f08537f4b5874c4ab7d7ce019612b32f",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288879.263079,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 9
+        }
+      },
+      {
+        "t": 1792288879.327861,
+        "kind": "ok",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "jay-visible-phone-oct17",
+          "cap": "light",
+          "operation": "light-blink",
+          "edge": 9,
+          "req": "r_aa356edb9f014e84a9af0829608e4051",
+          "ok": true,
+          "code": null
+        }
+      },
+      {
+        "t": 1792288881.969538,
+        "kind": "cmd",
+        "audit": {
+          "generation": 1,
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "device_id": "laptop",
+          "cap": "say"
+        }
+      },
+      {
+        "t": 1792288884.940489,
+        "kind": "ok",
+        "audit": {
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "generation": 1
+        }
+      },
+      {
+        "t": 1792288884.9409962,
+        "kind": "speech",
+        "audit": {
+          "thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+          "turn_id": "01a14cbd-c590-7692-8b35-3afc7df736fd",
+          "generation": 1,
+          "audio_status": "EXPLICIT_SPEECH_ATTEMPTED",
+          "device_id": null,
+          "req": null
+        }
+      },
+      {
+        "t": 1792288890.290477,
+        "kind": "guest.leave",
+        "audit": {}
+      }
+    ],
+    "human_report": "yes it works",
+    "human_question_context": "Newly enrolled visible phone, five blinks endingOFF plus Tenant can coordinate fromMac",
+    "status": "PHONE_VISIBLE_SMOKE_PASS_MAC_SPEECH_FAILED",
+    "default_output_volume_changed": false,
+    "sample_count": 1,
+    "human_observation_limit": "The brief yes reply confirms the freshly enrolled visible phone in context; it does not override the independent Mac speech failure.",
+    "mac_explicit_speech_status": "FAILED_BEFORE_PLAYBACK_PCM_RENDER_FORMAT",
+    "mac_failure_request_id": "r_c79cc221d2824103a5fd4ad410cdf761",
+    "mac_failure_followup": "Fixed source af6f8be explicitly renders PCM AIFF; later live tempo reply was heard, separately recorded.",
+    "phone_command_to_ack_ms": {
+      "sample_count": 10,
+      "values": [
+        57,
+        165,
+        197,
+        56,
+        141,
+        46,
+        68,
+        140,
+        51,
+        65
+      ],
+      "min": 46,
+      "max": 197,
+      "limit": "Transport acknowledgement, not optical onset; small sample is not a reliability estimate."
+    }
+  },
+  "updated_at": "2026-10-18T02:13:55.981682+00:00"
 }

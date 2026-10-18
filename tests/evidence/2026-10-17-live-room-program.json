@@ -1,0 +1,184 @@
+{
+  "recorded_at": "2026-10-18T02:13:55.984123+00:00",
+  "status": "BEAT_AND_CONVERSATIONAL_SPEECH_HUMAN_SMOKE_PASS_PHONE_SYNC_FAIL",
+  "brain_revision": "6cb644a",
+  "audio_revision": "af6f8be",
+  "channel": "Actual public guest browser through same fixed native room conversation, not a host-device shortcut",
+  "native_thread_id": "01a14c77-6542-7e42-9067-bb1d28aec72b",
+  "program_id": "p_20d42c9e2ccc432c97bf5e34789b507b",
+  "natural_requests": [
+    {
+      "turn_id": "01a14cc1-97d5-7500-a43f-d96f0f748ebc",
+      "request": "Make a simple 90 BPM beat on the Mac and keep it playing while we talk.",
+      "reply": "The 90 BPM beat is running on the Mac and will keep playing while we talk.",
+      "automatic_speech": "UNKNOWN_NO_REPLAY"
+    },
+    {
+      "turn_id": "01a14cc2-0943-7591-a2c2-8c40c82653d3",
+      "request": "What tempo is the beat?",
+      "reply": "The beat is at 90 BPM.",
+      "automatic_speech": "ACKNOWLEDGED_AND_HUMAN_HEARD"
+    },
+    {
+      "turn_id": "01a14cc3-73c6-70c0-b060-ed9ffa329bff",
+      "request": "Make the connected phone flashlight pulse along with that beat.",
+      "reply": "The phone flashlight is set to pulse with the 90 BPM beat. Exact audio-to-light timing hasn\u2019t been measured.",
+      "receipt_defect": "Installed participant was reported as running before first-cycle acknowledgement.",
+      "physical_result": "FAIL_USER_REPORTED_NO_PULSING",
+      "first_on": "UNKNOWN_NO_REPLAY"
+    }
+  ],
+  "human_reports": [
+    "Beat and spoken answer both worked",
+    "the flash isnt pulsing",
+    "i heard the metronome and audio tho, i think its too fast for the phone"
+  ],
+  "diagnosis": {
+    "documented": "First ON command expired UNKNOWN after166.385ms; engine used quarter-period at90BPM.",
+    "measured_raw_phone_ack_ms": [
+      57,
+      165,
+      197,
+      56,
+      141,
+      46,
+      68,
+      140,
+      51,
+      65
+    ],
+    "inference": "At least one measured raw acknowledgement exceeded the program deadline. This explains a fragile deadline, not the exact optical state or a physical speed limit.",
+    "decision": "Try reviewed half-period60BPM/500ms ON-OFF baseline with first-cycle pending/following receipt; physical test remains required.",
+    "long_speech": "Silent exact-text render measured3.917188s duration plus1.158087s rendering. Old player duration+1s timeout closely matches6.106s live UNKNOWN; actual OS playback delay was not directly measured.",
+    "speech_fix_revision": "4198998",
+    "speech_fix_deployed_at_recording": false
+  },
+  "host_reset": {
+    "started_at": 1792289428.482612,
+    "finished_at": 1792289429.2671092,
+    "source_revision": "6cb644a",
+    "reason": "Explicit host reset after failed program first pulse; not automatic ON retry",
+    "response": {
+      "ok": true,
+      "room_code": "0C4C",
+      "revoked": 1,
+      "cleanup": "unconfirmed",
+      "context_cleanup": "confirmed",
+      "program_cleanup": "confirmed"
+    }
+  },
+  "events": [
+    {
+      "t": 1792289118.1758862,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14cc1-97d5-7500-a43f-d96f0f748ebc"
+      }
+    },
+    {
+      "t": 1792289126.333172,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14cc1-97d5-7500-a43f-d96f0f748ebc"
+      }
+    },
+    {
+      "t": 1792289132.1308732,
+      "kind": "program",
+      "audit": {
+        "program_id": "p_20d42c9e2ccc432c97bf5e34789b507b"
+      }
+    },
+    {
+      "t": 1792289132.43933,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14cc1-97d5-7500-a43f-d96f0f748ebc",
+        "audio_status": "UNKNOWN",
+        "device_id": "laptop",
+        "req": "r_e7c0642f5dc04fd2b9671c8fc9f4c1fd"
+      }
+    },
+    {
+      "t": 1792289147.222869,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14cc2-0943-7591-a2c2-8c40c82653d3"
+      }
+    },
+    {
+      "t": 1792289149.0994968,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14cc2-0943-7591-a2c2-8c40c82653d3"
+      }
+    },
+    {
+      "t": 1792289152.168758,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14cc2-0943-7591-a2c2-8c40c82653d3",
+        "audio_status": "ACKNOWLEDGED",
+        "device_id": "laptop",
+        "req": "r_c3df4ba995be4138b68af87e57983293"
+      }
+    },
+    {
+      "t": 1792289240.01887,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14cc3-73c6-70c0-b060-ed9ffa329bff"
+      }
+    },
+    {
+      "t": 1792289246.24425,
+      "kind": "program",
+      "audit": {
+        "program_id": "p_20d42c9e2ccc432c97bf5e34789b507b",
+        "device_id": "jay-visible-phone-oct17",
+        "req": "r_56ad8b236c0643b7b0f03717a2ba5d1b",
+        "target_monotonic_ms": 333565989.686,
+        "bus_call_monotonic_ms": 333565990.713,
+        "dispatch_monotonic_ms": 333565990.792,
+        "ack_monotonic_ms": 333566157.177,
+        "ack_code": "UNKNOWN"
+      }
+    },
+    {
+      "t": 1792289246.251889,
+      "kind": "program",
+      "audit": {
+        "program_id": "p_20d42c9e2ccc432c97bf5e34789b507b",
+        "reason": "UNKNOWN",
+        "cleanup": {
+          "jay-visible-phone-oct17": "unknown",
+          "audio": "confirmed"
+        }
+      }
+    },
+    {
+      "t": 1792289247.516695,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14cc3-73c6-70c0-b060-ed9ffa329bff"
+      }
+    },
+    {
+      "t": 1792289255.679873,
+      "kind": "speech",
+      "audit": {
+        "turn_id": "01a14cc3-73c6-70c0-b060-ed9ffa329bff",
+        "audio_status": "UNKNOWN",
+        "device_id": "laptop",
+        "req": "r_b15455df4a9b4f4794a97349bc481e9d"
+      }
+    }
+  ],
+  "limits": [
+    "One beat/conversation smoke is not reliability or synchronization evidence.",
+    "Acknowledgement times are not optical/acoustic onset.",
+    "No automatic replay after UNKNOWN.",
+    "Aggregate host cleanup remains unconfirmed even though context/program cleanup passed.",
+    "Default output and user volume unchanged."
+  ]
+}

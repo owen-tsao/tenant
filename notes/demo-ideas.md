@@ -1,62 +1,92 @@
 # Tenant demo ideas
 
-Owner: demo planning. Current through reviewed runtime89a0b4c; consolidated October17, 18:31 PT.
+Owner: demo planning. Updated October17,18:43 PT.
+Base inspected: main b748ca15a3bdaf4fabf2c88388d78e02ba151594.
 
-Keep all candidates here and choose the final demonstration with Jay and Owen. Listing an idea does not authorize implementation or establish that it works. Current acceptance and test cards are in notes/demo-testing.md; scope/channel decisions are in notes/demo-alignment.md.
+## Product direction
 
-## Current product direction
+Public invitation -> temporary guest -> Jay's genuine native Tenant room conversation -> permitted computer/room actions. Keep web and Photon aimed at the SAME native chat/agent. Same-enrollment channels share context and original expiry; a NEW guest gets clean working context and no inherited pending commands.
 
-Public QR -> temporary guest conversation with Jay's signed-in agent -> permitted computer and room actions.
+Coordinated music is explicitly AUTHORIZED. Acceptance is still BLOCKED. One natural request may perform many steps across Mac and phone; no arbitrary one-action or three-blink ceiling.
 
-Keep web chat. Photon is an authorized SECOND channel only into the SAME fixed native Tenant room conversation, not a second model or separate assistant. Same-enrollment web linking preserves identity, working context and original expiry. A new guest must receive fresh working context with no inherited pending commands.
+Audio owns music/timing. Lighting owns execution/permissions. Root owns integration/live checks. Planning owns experience evaluation. Owen owns ALL web files and presentation.
 
-One visible native room chat is requested. Thread storage/readback is proven; actual native app visibility remains unaccepted. Voice input must reach this genuine conversation, not a small command-word interpreter.
+## Single prioritized list
 
-## Candidate: build a room performance
+### 1. Build a room performance — authorized increment
 
-Jay's idea: compose an impromptu performance by adding devices as conversation develops.
+Jay's idea:
+- Demonstrate “dum, dum, dum, dum” and ask the computer to start a beat.
+- Keep conversing while it runs; ask for a change.
+- Ask the phone flashlight to join in time.
+- Adjust and explicitly stop the performance, then end access.
+- Matching visual remains a later option. Use a projector only if already available and verified.
 
-1. Say “Can you start a beat on my computer?” and demonstrate a rhythm such as “dum, dum, dum, dum.”
-2. Let the beat continue and ask for a change.
-3. Say “Sync my phone flashlight with that.”
-4. Ask for a matching computer visual, projected if a projector is actually connected.
-5. Continue developing the performance naturally.
+The point is natural continuation: another device joins an activity already underway. Do not replace it with a command-word rehearsal.
 
-The appeal is continuity: each request builds on the last, and another device joins the same activity.
+What is proven: genuine web conversation, keyboard dictation and automatic Mac speech are human-confirmed; native helper inventory observed Mac and Jay phone. Historical room light/music/speech passes exist.
 
-Status: CANDIDATE ONLY. Historical prepared music, Mac speech and phone torch passes do not establish rhythm interpretation, generated beats, synchronization, visuals or projector output. A private native-shell helper now connects the existing Bus in source-reviewed runtime89a0b4c (296 Python+12 Node checks); actual native-to-device effects are still unaccepted.
+What is proven in one later live trial: a requested 90 BPM beat continued while the same guest asked its tempo and heard the spoken answer. Jay also saw five blinks on a newly enrolled, visible phone in a separate trial. That trial's Mac speech failed before playback; do not call the whole trial passed.
 
-### Smallest timing experiment, after baseline acceptance and demo selection
+What is NOT proven: rhythm interpretation/generation, physical synchronization, adjustment/stop on the final revision, laptop visual or projector. The first phone-to-beat attachment failed with an UNKNOWN first ON command: its 166 ms deadline was shorter than a measured 197 ms raw phone acknowledgement. The program stopped without replay. Audio/core owners are testing a 60 BPM baseline with 500 ms ON/OFF intervals and a receipt that stays pending until the first ON and OFF acknowledge. Source tests and acknowledgements do not prove optical/acoustic timing.
 
-First test rhythm interpretation separately: supply a four-beat rhythm, hear the resulting beat and confirm whether it matches. Prepared music cannot pass the generated-rhythm claim.
+Smallest timing screen, run by Audio/Root after integrated source review:
+1. Separately check the supplied rhythm against the heard beat. Prepared music does not establish generated-rhythm understanding.
+2. Record Mac audio and distinguishable phone pulses together for two20-second takes, with known frame/audio resolution.
+3. Record initial/final skew, each pulse's offset, drift, missing/extra pulses and catch-up bursts. ACK times are not optical/acoustic onset.
+4. Predeclare Audio/Root's timing criterion before testing. Planning proposal: each measured skew <=100ms and change from first to last <=100ms, with no missing/extra pulses or catch-up bursts. Recording resolution must support the criterion; inconclusive evidence is BLOCKED.
+5. Confirm stop and no delayed pulses separately. Two takes are feasibility evidence, not reliability.
 
-Only if an existing reusable timing path is available, test a fixed eight-beat loop for two 20-second takes with Mac audio and phone torch. Capture distinguishable audible beats and visible pulses in one recording with known frame/audio resolution. Record each onset offset, missing/extra pulses and change in offset from first to last beat. Model dispatch or WebSocket acknowledgement times are not physical onset evidence.
+No separate engine/research program is requested here; Audio chooses the smallest implementation within this increment.
 
-Predeclare this proposed feasibility criterion before testing: each measured offset <=100 ms, first-to-last offset change <=100 ms, no missing/extra pulses or catch-up bursts. An inconclusive recording is BLOCKED. Two takes are a feasibility screen, not reliability evidence. Do not build a scene engine or scheduler to rescue a failed spike.
+Fallbacks require explicit Jay/Root choice:
+- If only prepared audio works, label it prepared.
+- If synchronization fails, omit that claim; sequential light/audio actions are not “in time.”
+- If the increment is unstable, use the genuine conversation/room path after final-revision acceptance.
+- Do not make a visual or projector a fallback dependency.
 
-Test a matching Mac visual separately. Projector claims require observing the actual projected output; no projector is a dependency.
+### 2. Borrow the computer/room — fallback after final checks
 
-Fallback: beat plus Mac visual only if both pass; otherwise prepared music with separately requested torch actions, explicitly described as sequential, not synchronized; otherwise the bounded QR/text/light/speech path after final-revision retest.
+Scan, ask naturally, observe useful computer/audio output, involve the phone, make one unscripted follow-up, then end access.
 
-## Other candidates to preserve
+Human conversation and native local-read/web tools passed within bounded observations. Intended interactive Mac/phone effects and native app visibility remain unaccepted. Readback is not proof the chat is visible on screen.
 
-| Idea | Spectator experience | Current position |
+### 3. Borrow the room — bounded fallback
+
+Text -> real light/short speech/prepared music -> Leave -> denied further control.
+
+Strong historical bounded evidence at6075a3a, not automatic acceptance of the changed native path. Retest final deployed behavior.
+
+## Other ideas preserved
+
+| Idea | Experience | Position |
 | --- | --- | --- |
-| Borrow the room | Scan, ask naturally, control an enrolled light, hear the Mac, then end access. | Historical bounded physical core PASS; current genuine-conversation device actions and automatic audio need acceptance. |
-| Keep going when a device disappears | Ask for a disconnected light, receive alternatives, explicitly choose one, and watch only that device respond. | Historical physical smoke PASS after one retained disconnect failure; no silent substitution or retry after UNKNOWN. |
-| Show access ending | End access, try another action and see denial; host reset restores explicit defaults. | Historical core expiry/reset PASS; genuine-conversation final-path checks remain open. |
-| Talk and improvise with the computer | Make a free-form request, let the existing agent use computer tools, then involve a phone. | Human free-form conversation and native local-read/web tools observed; intended interactive Mac/phone effects remain unaccepted. |
-| Coordinate one room scene | One request produces an explicit light state plus a short spoken response. | Earlier planning recommendation, not selected or authorized for implementation. Exact scene belongs to Jay/Root after rehearsal. |
-| React without another prompt | “Whenever someone joins, flash green and say welcome,” then stop future firing when the rule owner's authority ends. | Feature 7 planning only; one rule per guest, bounded existing events, cooldown and dispatch-time authorization. |
-| Photo -> screen | “Take a picture of me and show it”: enrolled iPhone captures a still and a Mac renders the new image. | Feature 5 planning only; camera consent, torch contention, authorized upload/read lifecycle and display handoff need resolution. |
-| Camera/perception interaction | A contributed camera supports a room interaction. | Future candidate only; perception, tracking, video and musical-chairs adjudication remain excluded from the current build. |
+| Device disappears | Explain unavailable target, offer alternatives, wait for explicit choice. | Historical physical smoke passed after one retained disconnect failure. Never silently substitute or retry UNKNOWN. |
+| Show access ending | Leave/expiry denies further commands; host reset restores explicit defaults. | Historical core PASS; new conversation/program lifecycle checks remain open. |
+| Light plus short speech | One natural request coordinates an explicit light state and spoken response. | Alternative within authorized coordination, not an additional project. |
+| Join-triggered welcome | “Whenever someone joins, flash green and say welcome.” | Feature7 CLOSED; one rule/guest, bounded triggers/cooldown, dispatch authority required. |
+| Photo -> screen | Enrolled room phone takes one still and displays it on the Mac. Keep the latest image after Leave until replacement or host reset. | Feature5 implementation CLOSED; reviewed design and finale below, physical acceptance unperformed. Future host retention setting deferred. |
+| Camera/perception interaction | Contributed camera supports room behavior. | Outside increment; no tracking/video/musical-chairs adjudication. |
+| Guest's own coding agent | Guest brings another agent. | Deferred; current system uses Jay's signed-in agent. |
 
-## Final-choice shortlist
+## Selection
 
-1. Genuine computer/room conversation: QR, natural request, visible useful result, phone involvement, one unscripted follow-up and access ending. Prefer only after its actual gates pass.
-2. Bounded room borrowing: QR/text/light/short speech/denial. Strongest historical physical evidence; retest final deployed behavior before using it as fallback.
-3. Progressive performance: strongest expressive candidate; choose only after the rhythm, device-tool and timing checks pass.
+Evaluate the authorized performance using E1 in demo-testing.md, then Jay/Owen choose the final presentation from this ordered list. Keep every candidate; do not present unfinished elements as working.
 
-No final demo selected. Choose the smallest sequence that works visibly, fits the agreed presentation budget and permits an unscripted follow-up. Keep unbuilt portions out of working-demo claims.
+Photo, perception, proactive rules and guest-supplied agents remain CLOSED. Coordinated music implementation is OPEN, physical acceptance BLOCKED. Backend counts do not prove a demonstration.
 
-Features 5–7 IMPLEMENTATION GATE CLOSED. Beat/light/projector and guest-supplied agents remain candidates/deferred work. Backend test counts do not open these gates.
+## Idea stock: interactive demos, marketing and live talks
+
+Jay's idea: Tenant can help other people run more interactive product demos, marketing experiences, presentations and speeches. Audience members can talk naturally with the agent, and their questions or requests can change the presentation and what happens on connected computers and phones.
+
+The room performance is one example of this broader product direction. Preserve this as a positioning/use-case idea for the final discussion; it does not add implementation work to the current demo.
+
+## Photo finale: the judges join the group photo
+
+Jay's finale idea: at the very end, place the enrolled room phone facing the group near the whiteboard/front of the demo area. Invite the judges to gather with the team, frame everyone manually, then ask the same Tenant agent to take the group photo. Display the actual captured image on the Mac.
+
+This uses the existing room-phone -> Mac photo direction, with no person detection or new camera integration. The operator explicitly enables photo capture; the group poses knowingly. A brief visible countdown is a proposed staging detail. Keep the photo displayed until replacement or host reset, per Jay's preference; configurable retention is future work.
+
+Status: finale idea/design only. Capture/upload/viewer are not implemented or physically accepted yet; rehearse the exact phone placement and framing before promising this ending.
+
+Ownership: Lighting/core owns the capture authorization, upload and lifecycle backend; Owen owns phone opt-in, camera framing/capture indication and the Mac viewer. Root integrates and conducts the physical test. The final test is one natural request producing the correct new group photo on the Mac, followed by Leave retaining it and host reset clearing it without a late reappearance.
