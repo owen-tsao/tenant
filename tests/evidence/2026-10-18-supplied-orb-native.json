@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-18",
+  "scope": "Supplied live orb native renderer only; no audio, phone or guest action in this check.",
+  "renderer": "Jay-supplied agent-orb shader; manual sample level0.55, playhead72s; this probe sample is synthetic and not music sync evidence.",
+  "native": {
+    "webgl_draw_ready": true,
+    "transparent_window": true,
+    "fullscreen": false,
+    "size_points": [
+      820,
+      820
+    ],
+    "external_display": "SAMSUNG",
+    "origin_points": [
+      2278,
+      152
+    ],
+    "finite_probe_seconds": 8,
+    "exit_code": 0,
+    "remaining_native_hosts": false
+  },
+  "png": {
+    "size": [
+      1640,
+      1640
+    ],
+    "alpha_range": [
+      0,
+      255
+    ],
+    "clear_fraction": 0.3468,
+    "corner_alpha": 0,
+    "center_alpha": 255
+  },
+  "user_feedback": "User saw preview image and said: this looks good, i saw the image. Aesthetic acceptance only.",
+  "physical_music_light_attachment": "not performed yet",
+  "hardware_brightness": {
+    "tool": "m1ddc source built locally, no write commands",
+    "display_recognized": "SAMSUNG",
+    "read_luminance": "DDC communication failure",
+    "read_max_luminance": "DDC communication failure",
+    "conclusion": "No hardware brightness capability established; no backlight changes attempted."
+  }
+}
