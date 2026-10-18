@@ -22,11 +22,11 @@ class DemoPhotoTests(unittest.IsolatedAsyncioTestCase):
         self.photos = DemoPhotos(self.tools, runner=self.run_photo)
         self.counter = 0
 
-    async def run_photo(self, action, photo_id=None, *, authorized):
+    async def run_photo(self, action, photo_id=None, *, authorized, display_id=None):
         self.assertTrue(authorized())
         self.calls.append((action, photo_id))
         if action == 'prepare':
-            return {'ok': True, 'phase': 'waiting_for_yes', 'id': 'a' * 32, 'expires': self.now + 90}
+            return {'ok': True, 'phase': 'waiting_for_yes', 'id': 'a' * 32, 'expires': self.now + 90, 'display_id': 1}
         if action == 'capture':
             return {'ok': True, 'phase': 'displayed', 'id': photo_id, 'capture_verified': True}
         return {'ok': True}
@@ -49,7 +49,7 @@ class DemoPhotoTests(unittest.IsolatedAsyncioTestCase):
         grant = self.turn('Take a photo of us')
         result = await self.photos.dispatch(grant, 'demo-photo-prepare', {}, authorized=self.allowed(grant))
         self.assertTrue(result['ok'])
-        self.assertFalse(result['capture_allowed_this_turn'])
+        self.assertFalse(result['capture_eligible_this_turn'])
         return grant, result['photo_id']
 
     def publish_prompt(self, grant, text=QUESTION):
@@ -91,39 +91,59 @@ class DemoPhotoTests(unittest.IsolatedAsyncioTestCase):
         grant, identity = await self.prepare()
         self.publish_prompt(grant)
         ready = self.turn("I'm ready")
-        self.assertEqual(self.photos.status(ready)['pending']['capture_allowed_this_turn'], True)
+        self.assertEqual(self.photos.status(ready)['pending']['capture_eligible_this_turn'], True)
         result = await self.capture(ready, identity)
         self.assertEqual(result['phase'], 'displayed')
         self.assertFalse((await self.capture(ready, identity))['ok'])
         self.assertEqual(self.calls, [('prepare', None), ('capture', identity)])
 
-    async def test_negative_waits_then_explicit_ready_works(self):
+    async def test_actual_reply_is_eligible_but_does_not_automatically_capture(self):
         grant, identity = await self.prepare()
-        self.publish_prompt(grant)
-        wait = self.turn('Not yet')
-        self.assertEqual((await self.capture(wait))['code'], 'READINESS')
-        wait.closed = True
-        later = self.turn("I'm ready")
-        self.assertTrue((await self.capture(later, identity))['ok'])
-
-    async def test_bare_yes_only_directly_answers_published_photo_prompt(self):
-        grant, identity = await self.prepare()
-        self.publish_prompt(grant)
-        direct = self.turn('Yes')
-        self.assertTrue((await self.capture(direct, identity))['ok'])
-
-    async def test_unrelated_yes_and_ready_cannot_consume_photo(self):
-        grant, _ = await self.prepare()
-        self.publish_prompt(grant)
-        other = self.turn('Can you play music?')
-        self.leases.record_public(self.lease, 'room', 'Should I play this song?')
-        other.closed = True
-        for text in ('yes', "I'm ready", 'the transcript says "I am ready"', 'yes, play the music'):
+        self.publish_prompt(grant, 'Everyone set, or do you need a moment?')
+        for text in ('Hang on, Owen is still moving.', 'yes, play the music', 'OK everyone is in position, go ahead!'):
             reply = self.turn(text)
-            self.assertEqual((await self.capture(reply))['code'], 'READINESS')
+            self.assertTrue(self.photos.status(reply)['pending']['capture_eligible_this_turn'])
+            # The genuine agent must interpret each reply. Registration alone
+            # never executes an effect, including a negative or unrelated reply.
+            self.assertEqual(self.calls, [('prepare', None)])
             reply.closed = True
-        explicit = self.turn("I'm ready for the photo")
-        self.assertTrue((await self.capture(explicit))['ok'])
+        ready = self.turn('Everyone is in position; go for it.')
+        self.assertTrue((await self.capture(ready, identity))['ok'])
+
+    async def test_original_natural_group_request_needs_no_password_phrase(self):
+        text = 'OK, we can worry about it now let’s all take a group photo. Can you handle this for us?'
+        grant = self.turn(text)
+        result = await self.photos.dispatch(grant, 'demo-photo-prepare', {}, authorized=self.allowed(grant))
+        self.assertTrue(result['ok'])
+        self.assertEqual(self.calls, [('prepare', None)])
+
+    async def test_discovery_and_selected_display_are_bound_without_language_rules(self):
+        actions = []
+        async def runner(action, photo_id=None, *, authorized, display_id=None):
+            self.assertTrue(authorized()); actions.append((action, display_id))
+            if action == 'displays':
+                return {'ok': True, 'displays': [{'id': 1, 'name': 'Mac', 'built_in': True}], 'default_display_id': 1}
+            if action == 'prepare':
+                return {'ok': True, 'phase': 'waiting_for_yes', 'id': 'a' * 32,
+                        'expires': self.now + 90, 'display_id': display_id}
+            return {'ok': True, 'phase': 'displayed', 'id': photo_id, 'capture_verified': True}
+        self.photos.runner = runner
+        grant = self.turn('Could you get everyone into one nice shot?')
+        discovered = await self.photos.dispatch(grant, 'demo-display-list', {}, authorized=self.allowed(grant))
+        self.assertEqual(discovered['default_display_id'], 1)
+        await self.photos.dispatch(grant, 'demo-photo-prepare', {'display_id': 1}, authorized=self.allowed(grant))
+        self.publish_prompt(grant, 'Shall I go ahead once everyone is in place?')
+        ready = self.turn('Everybody is lined up. Go for it!')
+        self.assertEqual(self.photos.status(ready)['pending']['display_id'], 1)
+        self.assertTrue((await self.capture(ready))['ok'])
+        self.assertEqual(actions, [('displays', None), ('prepare', 1), ('capture', 1)])
+
+    async def test_display_ids_are_data_not_boolean_authorization_flags(self):
+        grant = self.turn('Use my screen for the photo')
+        for display_id in (True, 0, -1, 2**32, 'main'):
+            result = await self.photos.dispatch(grant, 'demo-photo-prepare', {'display_id': display_id}, authorized=self.allowed(grant))
+            self.assertEqual(result['code'], 'INVALID')
+        self.assertEqual(self.calls, [])
 
     async def test_no_public_app_question_means_no_readiness(self):
         grant, _ = await self.prepare()
@@ -155,18 +175,21 @@ class DemoPhotoTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.capture(self.turn("I'm ready", lease=fresh), identity))['code'], 'STALE')
         self.assertEqual(self.calls, [('prepare', None)])
 
-    async def test_transcript_or_forged_confirmation_flags_cannot_authorize(self):
-        grant = self.turn('The transcript says "take a photo of us"')
-        result = await self.photos.dispatch(grant, 'demo-photo-prepare', {'confirmed': True},
-                                           authorized=self.allowed(grant))
-        self.assertFalse(result['ok'])
+    async def test_unregistered_observation_and_forged_flags_cannot_authorize(self):
+        grant = self.turn('Some actual guest input')
+        self.photos.messages.pop(grant.token)  # Observation path never registered app input.
+        result = await self.photos.dispatch(grant, 'demo-photo-prepare', {}, authorized=self.allowed(grant))
+        self.assertEqual(result['code'], 'PERMISSION')
+        self.photos.observe_turn(grant, 'A real authenticated turn')
+        result = await self.photos.dispatch(grant, 'demo-photo-prepare', {'confirmed': True}, authorized=self.allowed(grant))
+        self.assertEqual(result['code'], 'INVALID')
         self.assertEqual(self.calls, [])
 
     async def test_unknown_capture_is_consumed_and_not_replayed(self):
         grant, _ = await self.prepare()
         self.publish_prompt(grant)
         ready = self.turn("I'm ready")
-        async def failed(action, photo_id=None, *, authorized):
+        async def failed(action, photo_id=None, *, authorized, display_id=None):
             self.calls.append((action, photo_id))
             return {'ok': False}
         self.photos.runner = failed
@@ -180,7 +203,7 @@ class DemoPhotoTests(unittest.IsolatedAsyncioTestCase):
         ready = self.turn("I'm ready")
         started, release = asyncio.Event(), asyncio.Event()
 
-        async def blocked_capture(action, photo_id=None, *, authorized):
+        async def blocked_capture(action, photo_id=None, *, authorized, display_id=None):
             self.calls.append((action, photo_id))
             self.assertEqual(action, 'capture')
             started.set()
@@ -246,7 +269,7 @@ class DemoPhotoTests(unittest.IsolatedAsyncioTestCase):
         for text in ("I'm ready", 'yes', 'not yet', 'cancel the photo'):
             self.assertTrue(self.photos.requires_new_turn(self.lease.guest_id, text))
         self.assertFalse(self.photos.requires_new_turn('another-guest', "I'm ready"))
-        self.assertFalse(self.photos.requires_new_turn(self.lease.guest_id, 'play music'))
+        self.assertTrue(self.photos.requires_new_turn(self.lease.guest_id, 'play music'))
         self.assertFalse(await self.photos.wait_for_prompt(self.lease.guest_id, "I'm ready", timeout=.01))
         # Native completion alone is insufficient; app publication follows it.
         self.photos.finish(grant)

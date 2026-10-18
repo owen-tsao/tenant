@@ -1,3 +1,7 @@
+# Superseded language admission
+
+Current `brain/core/demo_photo.py` delegates all intent/readiness interpretation to the genuine agent. No phrase matcher remains. See `notes/live-demo-agent.md` for the current contract: actual app provenance, same guest/later turn/published reply, pending ID/expiry and one-shot effects are mechanical; `capture_eligible_this_turn` is not a consent classifier. Display discovery and optional pinned IDs support Mac fallback without a projector. The earlier handoff below is historical.
+
 # Photo readiness: software handoff to the combining owner
 
 Status: **module ready; Root owns shared wiring and the actual guest test.** The previously accepted Mac-camera/countdown/TV-photo implementation is preserved. No service restart, camera capture, TV movement, speech, audio-routing action, transcript action or web-file edit was performed in this software pass.

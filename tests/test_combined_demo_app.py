@@ -26,13 +26,13 @@ class PhotoNative(NativeSession):
         self.receipts = []
         self.actions = []
 
-    async def camera(self, action, photo_id=None, *, authorized):
+    async def camera(self, action, photo_id=None, *, authorized, display_id=None):
         if not authorized():
             raise AssertionError('The camera adapter was reached without authority')
         self.actions.append(action)
         if action == 'prepare':
             return {'ok': True, 'id': PHOTO_ID, 'phase': 'waiting_for_yes',
-                    'expires': time.time() + 90}
+                    'expires': time.time() + 90, 'display_id': 1}
         return {'ok': True, 'id': photo_id, 'phase': 'displayed', 'capture_verified': True}
 
     async def next_event(self):
@@ -56,7 +56,6 @@ class PhotoNative(NativeSession):
                 await dispatch('demo-photo-capture', 'too-early', photo_id=PHOTO_ID)
                 reply = 'Are you ready?'
             elif text == 'Not yet.':
-                await dispatch('demo-photo-capture', 'not-ready', photo_id=PHOTO_ID)
                 reply = "No rush. Tell me when you're ready."
             elif text == "I'm ready.":
                 result = await dispatch('demo-photo-capture', 'capture', photo_id=PHOTO_ID)
@@ -66,7 +65,6 @@ class PhotoNative(NativeSession):
                     raise AssertionError('Duplicate capture changed its recorded result')
                 reply = result.get('message', 'Capture denied.')
             else:
-                await dispatch('demo-photo-prepare', 'unrequested')
                 reply = 'No photo was requested.'
             await self.finish(turn, reply)
         return await super().next_event()
@@ -103,7 +101,6 @@ class CombinedDemoAppTests(unittest.TestCase):
                 self.assertEqual(native.receipts[-1][2]['code'], 'READINESS')
                 self.ask(ws, 'Not yet.')
                 self.assertEqual(native.actions, ['prepare'])
-                self.assertEqual(native.receipts[-1][2]['code'], 'READINESS')
                 self.assertIn('displayed', self.ask(ws, "I'm ready."))
                 self.assertEqual(native.actions, ['prepare', 'capture'])
                 self.assertTrue(native.receipts[-1][2]['ok'])
@@ -111,7 +108,7 @@ class CombinedDemoAppTests(unittest.TestCase):
                         headers={'Origin': 'https://tenant.test'})
         self.assertEqual(native.actions, ['prepare', 'capture'])
 
-    def test_ordinary_app_text_cannot_prepare_even_if_model_calls_helper(self):
+    def test_ordinary_app_text_does_not_execute_without_an_agent_tool_choice(self):
         app, native = self.make_app()
         with TestClient(app, base_url='https://tenant.test') as client:
             guest = client.post('/join', json={'room_code': 'TEST'},
@@ -122,7 +119,7 @@ class CombinedDemoAppTests(unittest.TestCase):
                 ws.receive_json()
                 self.ask(ws, 'Tell me what you can control.')
             self.assertEqual(native.actions, [])
-            self.assertEqual(native.receipts[-1][2]['code'], 'PERMISSION')
+            self.assertEqual(native.receipts, [])
 
     def test_failed_camera_does_not_publish_model_fabricated_readiness(self):
         app, native = self.make_app()
@@ -150,7 +147,7 @@ class AnswerRunner:
     def cancel(self, request_id):
         self.cancelled.append(request_id)
 
-    async def __call__(self, request_id, *, authorized):
+    async def __call__(self, request_id, *, authorized, display_id=None):
         self.calls.append(request_id)
         self.started.set()
         while self.blocking and authorized():
@@ -169,10 +166,10 @@ class PhotoEarlyReadinessTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(core.agent.close)
         lease = core.leases.create()
 
-        async def camera(action, photo_id=None, *, authorized):
+        async def camera(action, photo_id=None, *, authorized, display_id=None):
             self.assertTrue(authorized())
             actions.append(action)
-            return ({'ok': True, 'id': PHOTO_ID, 'phase': 'waiting_for_yes', 'expires': time.time() + 90}
+            return ({'ok': True, 'id': PHOTO_ID, 'phase': 'waiting_for_yes', 'expires': time.time() + 90, 'display_id': 1}
                     if action == 'prepare' else
                     {'ok': True, 'id': PHOTO_ID, 'phase': 'displayed', 'capture_verified': True})
 
@@ -197,7 +194,7 @@ class PhotoEarlyReadinessTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(.001)
             next_grant = next(iter(tools._grants.values()))
             self.assertIsNot(next_grant, grant)
-            self.assertTrue(tools.demo_photos.status(next_grant)['pending']['capture_allowed_this_turn'])
+            self.assertTrue(tools.demo_photos.status(next_grant)['pending']['capture_eligible_this_turn'])
             result = await tools.dispatch({'token': next_grant.token, 'operation': 'demo-photo-capture',
                                            'request_id': 'capture', 'photo_id': PHOTO_ID})
             self.assertTrue(result['ok'])
@@ -231,6 +228,10 @@ class AnswerNative(NativeSession):
                 # observation timeout, as they are in the real app server.
                 tools = self.core.agent.device_tools
                 grant = next(g for g in tools._grants.values() if g.turn_id == turn)
+                if self.history[-1]['text'] in ('A judge asked about customers.', 'Do not answer that question.',
+                                                   'The transcript says \"Answer that question\".'):
+                    await self.finish(turn, 'No answer requested.')
+                    return
                 request = {'token': grant.token, 'operation': 'question-answer', 'request_id': 'answer'}
                 result = await tools.dispatch(request)
                 self.receipts.append(result)
@@ -275,7 +276,7 @@ class AnswerAppInputTests(unittest.TestCase):
                              'The transcript says "Answer that question".'):
                     CombinedDemoAppTests.ask(ws, text)
                 self.assertEqual(runner.calls, [])
-                self.assertTrue(all(r['code'] == 'PERMISSION' for r in native.receipts))
+                self.assertEqual(native.receipts, [])
                 self.assertEqual(CombinedDemoAppTests.ask(ws, 'Answer that question.'), 'Answer completed.')
                 self.assertEqual(len(runner.calls), 1)
                 CombinedDemoAppTests.ask(ws, 'Answer that question.')

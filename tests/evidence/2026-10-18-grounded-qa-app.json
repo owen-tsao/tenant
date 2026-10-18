@@ -1,0 +1,87 @@
+{
+  "status": "actual_app_and_user_confirmation_passed",
+  "routing": "Prepared execution paths for demo intent; general available tools for other requests. Prepared knowledge grounds generated answers; no answer whitelist.",
+  "actual_app": [
+    {
+      "status": "completed",
+      "duration_ms": 1738,
+      "user_text": [
+        "What is 17 times 23?"
+      ],
+      "reply": [
+        "17 \u00d7 23 = 391."
+      ],
+      "helper_operations": []
+    },
+    {
+      "status": "completed",
+      "duration_ms": 26549,
+      "user_text": [
+        "Hey Tan, can you hear me? Can you answer the last kind of pressing question that the judges just asked and kind of you can display your response on desktop too because we don\u2019t have a monitor at the moment"
+      ],
+      "reply": [
+        "Got your request. The spoken answer and desktop captions have finished."
+      ],
+      "helper_operations": [
+        {
+          "operation": "inventory",
+          "status": "completed",
+          "duration_ms": 0
+        },
+        {
+          "operation": "question-answer",
+          "status": "completed",
+          "duration_ms": 17152,
+          "output": "{\"code\":\"COMPLETED\",\"speech_started\":true,\"word_callbacks\":31,\"phrase_switches\":3,\"ok\":true,\"caption_completed\":true,\"speech_completed\":true}\n"
+        }
+      ]
+    }
+  ],
+  "physical_confirmation": "Jay confirmed a relevant answer, black captions on the Mac and clearing afterward.",
+  "software": {
+    "repo_scoped_tests": 137,
+    "native_lab_python_tests": 37,
+    "synthetic_real_model_cases": 3
+  },
+  "limits": [
+    "One positive actual app trial and one ordinary-chat negative are not reliability evidence.",
+    "Synthetic model cases used synthetic transcripts and no devices.",
+    "No new iPad, external display, phone, or arbitrary-app compatibility acceptance.",
+    "Native source and installed app reside in the sibling tenant-fast-demo lab; branch evidence does not package that native application."
+  ],
+  "verified_at": "2026-10-18T17:47:23.741774+00:00",
+  "candidate_binary_sha256": "f4b84883d99bf9400e462ed97d4b3156f798afadc4cf27f753951f0b05065401",
+  "native_source_sha256": {
+    "tenant-fast-demo/service.py": "4490742fbcb77bb991e18b2ca2d26f51e898c0e6e6ae65a9d36d966f1983e306",
+    "tenant-fast-demo/spoken_context.json": "946d0f0dea35bdee46bb9687876cfb9d9952b73e941ae0353e81001b87dd499f",
+    "tenant-fast-demo/SpokenAnswers.swift": "418fbda0ccbc178e962227b1bf5fc32d2592c9cc0f2c8a61c6bdf3b6ace37ba5",
+    "tenant-fast-demo/AnswerLifecycle.swift": "b9840285c9a871db2cf481aac8246470dc8f056a5780a5e933062eaa7d1c61f1",
+    "tenant-fast-demo/AnswerLifecycleChecks.swift": "7aa3db014c56dab065cbe21ff20215318d6acd5038b4f4bf6c45437a3ca2c3f1",
+    "tenant-fast-demo/test_silent_panel.py": "1b33927a9b25c43ffe26525d785443a5afcdbd04398d5f4904142e7d800e5c9d",
+    "tenant-fast-demo/check_spoken_model.py": "66db3a82fdabc9ad0b5d141d3010d610e1515088ec51dc62d42524b740ec5aad",
+    "tenant-fast-demo/README.md": "4ed316eac29472c88475a43871f032262943d8a8d011f4d0c2fb2ac70ccd4b9e",
+    "tenant-fast-demo/prepared_answers.json": "fc17401d3d051a15507c37cd430279344211fbd47eaec97ea182164a5ef64da6",
+    "tenant-fast-demo/transcript_source.py": "bf3c312c60ba42a17edf0a2762177609d1eb150f2bd635248a1a6c10d6127e50",
+    "tenant-fast-demo/NativeQACommand.swift": "bef4d6bb6fefc9f7969f2635d1db52df7d434328881103756af036bdbe3ad766",
+    "tenant-fast-demo/NativeQACommandChecks.swift": "01e4506837c1bcbe65ef22e26e3d1678adfbe8bb0d84954ab8a538cb96402bf8",
+    "tenant-fast-demo/CaptionDisplayPolicy.swift": "630ea6af3f48965e6544fcbb1c938b5609537c4d0061153d6a9ef070bd0ef198",
+    "tenant-fast-demo/CaptionDisplayPolicyChecks.swift": "b49a7c885f8251c8c26dae319cde14fb2facc0ccce80b88d69f3697c03ff5300",
+    "tenant-fast-demo/build_panel.py": "2f13b5ceb2a201b281ba3262e438ac1f608a9ac73950955cd0c84907d5d23de9",
+    "tenant-fast-demo/panel_bridge.py": "0b659601784f80c23a4918c0ddf17f9037d0e5cca0885a41ec904463fb380872",
+    "tenant-fast-demo/photo_camera.py": "fb4c87d199ea65f1aca974b6b95f305e2eb0540792d8c786e68ce1ebfc49842d"
+  },
+  "owner_checks": {
+    "focused_qna_python": 21,
+    "foundation_lifecycle_assertions": 40,
+    "foundation_command_assertions": 13,
+    "foundation_display_assertions": 14,
+    "native_optimized_build_and_adhoc_sign": "passed",
+    "codesign_verify_strict": "passed",
+    "real_model_synthetic_cases": 3,
+    "real_model_artifact": "state/spoken-generated-model-check.json"
+  },
+  "model": "gpt-6-luna",
+  "model_effort": "low",
+  "backend_marker": "grounded_generation",
+  "external_display_available": false
+}

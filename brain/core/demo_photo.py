@@ -1,7 +1,8 @@
 """Leased, two-turn access to the already accepted local photo implementation.
 
 Only ConversationAgent supplies guest text. Microphone/transcript observations,
-helper payload declarations and a remembered photo id cannot authorize capture.
+a remembered photo id and observations cannot supply a later authenticated app turn.
+The genuine agent interprets requests and readiness; this adapter validates provenance and lifecycle.
 The broad native computer tools remain outside this helper's authority boundary.
 """
 from __future__ import annotations
@@ -18,45 +19,7 @@ import sys
 
 
 QUESTION = 'Are you ready?'
-OPERATIONS = {'demo-photo-prepare', 'demo-photo-capture', 'demo-photo-cancel', 'demo-photo-status'}
-
-
-def normalized(text):
-    return re.sub(r'\s+', ' ', text.strip().casefold().replace('’', "'")) if isinstance(text, str) else ''
-
-
-def photo_request(text):
-    # A small admission check, not a second general intent model. The genuine
-    # agent decides whether to call prepare on the actual current app request.
-    return bool(re.fullmatch(
-        r"(?:hey[, ]+(?:tenant[, ]+)?)?(?:(?:can|could|would|will) you |can we )?"
-        r"(?:please )?(?:take|snap|capture|shoot|get)\b[^.!?\n]{0,100}\b(?:photo|picture|selfie)s?\b[^.!?\n]{0,80}[.!?]?",
-        normalized(text)))
-
-
-def explicit_ready(text):
-    return bool(re.fullmatch(
-        r"(?:i(?:'m| am)|we(?:'re| are)) (?:all |now )?ready(?: now)?[.!]?|ready(?: now)?[.!]?|"
-        r"(?:yes[, ]+)?(?:i(?:'m| am)|we(?:'re| are)) ready[.!]?",
-        normalized(text)))
-
-
-def explicit_photo_ready(text):
-    return bool(re.fullmatch(r"(?:i(?:'m| am)|we(?:'re| are)) ready for (?:the |a )?(?:photo|picture)[.!]?",
-                             normalized(text)))
-
-
-def not_yet(text):
-    return bool(re.fullmatch(r"(?:no[, ]+)?(?:not yet|wait|not ready|i(?:'m| am) not ready)(?: please)?[.!]?",
-                             normalized(text)))
-
-
-def cancellation(text):
-    return normalized(text).rstrip('.!') in {'cancel', 'cancel the photo', 'cancel photo', 'stop', 'never mind', 'nevermind'}
-
-
-def bare_yes(text):
-    return normalized(text).rstrip('.!') in {'yes', 'yep', 'yeah', 'yes please'}
+OPERATIONS = {'demo-photo-prepare', 'demo-photo-capture', 'demo-photo-cancel', 'demo-photo-status', 'demo-display-list'}
 
 
 def denied(code, message):
@@ -68,12 +31,14 @@ class PhotoRunner:
     def __init__(self, path=None):
         self.path = Path(path or Path(__file__).resolve().parents[3] / 'tenant-fast-demo/photo.py')
 
-    async def __call__(self, action, photo_id=None, *, authorized):
+    async def __call__(self, action, photo_id=None, *, authorized, display_id=None):
         if not authorized():
             return denied('PERMISSION', 'Room access ended before the photo action.')
         args = [sys.executable, str(self.path), action]
         if photo_id is not None:
             args += ['--id', photo_id]
+        if display_id is not None:
+            args += ['--display-id', str(display_id)]
         if action == 'capture':
             args += ['--confirmed']
         process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.PIPE,
@@ -89,6 +54,8 @@ class PhotoRunner:
             if len(output) > 65536:
                 raise ValueError('Oversized photo receipt')
             result = json.loads(output)
+            if action == 'screens' and isinstance(result, list):
+                return {'ok': True, 'displays': result}
             if not isinstance(result, dict):
                 raise ValueError('Invalid photo receipt')
             return result
@@ -117,8 +84,7 @@ class PendingPhoto:
     expires: float
     phase: str = 'waiting_for_reply'
     prompt_seen: bool = False
-    first_reply: bool = True
-    photo_conversation: bool = True
+    display_id: int | None = None
 
 
 class DemoPhotos:
@@ -127,14 +93,14 @@ class DemoPhotos:
         self.runner = runner or PhotoRunner()
         self.pending = None
         self.messages = {}
-        self.ready = {}
+        self.eligible = {}
         self.unconfirmed_preparations = set()
         self.lock = asyncio.Lock()
 
     def invalidate(self):
         self.pending = None
         self.messages.clear()
-        self.ready.clear()
+        self.eligible.clear()
         self.unconfirmed_preparations.clear()
 
     def _matches(self, grant):
@@ -151,22 +117,20 @@ class DemoPhotos:
                 and self.tools.leases.clock() < pending.expires)
 
     def requires_new_turn(self, guest_id, text):
-        """Sync: do not steer this real follow-up into the preparation grant."""
+        """All actual replies get a fresh turn while photo readiness is pending.
+
+        The model, not a phrase list, decides whether that reply means ready,
+        wait, cancel, a topic change, or something else.
+        """
         pending = self.pending
         return bool(pending and pending.phase == 'waiting_for_reply'
-                    and pending.grant.guest_id == guest_id and self._matches(pending.grant)
-                    and (explicit_ready(text) or explicit_photo_ready(text) or bare_yes(text)
-                         or not_yet(text) or cancellation(text)))
+                    and pending.grant.guest_id == guest_id and self._matches(pending.grant))
 
     def _published_prompt(self, pending):
         grant = pending.grant
         session = self.tools.leases.sessions.get(grant.guest_id)
-        if session is None:
-            return False
-        publication = (grant.generation, grant.thread_id, grant.turn_id)
-        last_room = next((row['text'] for row in reversed(session.transcript) if row['role'] == 'room'), '')
-        return (publication in session.published_turns
-                and bool(re.search(r'\bare you ready\b[^?]*\?', normalized(last_room))))
+        return bool(session and (grant.generation, grant.thread_id, grant.turn_id)
+                    in session.published_turns)
 
     async def wait_for_prompt(self, guest_id, text, *, timeout=1.5):
         """Await ONLY after the controller lock admits the follow-up as a new turn.
@@ -188,34 +152,20 @@ class DemoPhotos:
         return False
 
     def observe_turn(self, grant, text):
-        """Called only by the ordinary room agent, before its actual native turn."""
-        self.messages[grant.token] = text if grant.lease.channel == 'webchat' else None
+        """Provenance hook for actual ordinary guest input, never ASR/OCR events."""
+        self.messages[grant.token] = text if isinstance(text, str) and text.strip() else None
         if not self._matches(grant):
             return
         pending = self.pending
-        if (pending.phase != 'waiting_for_reply' or not pending.grant.closed
-                or self.messages[grant.token] is None):
-            return
-        session = self.tools.leases.sessions[grant.guest_id]
-        publication = (grant.generation, grant.thread_id, pending.grant.turn_id)
-        # The public projection is written by the actual app delivery path, not
-        # by a tool's question_asked/confirmed flag or by a transcript watcher.
-        prior = session.transcript[:-1] if session.transcript and session.transcript[-1]['role'] == 'guest' else session.transcript
-        last_room = next((row['text'] for row in reversed(prior) if row['role'] == 'room'), '')
-        prompt_now = (publication in session.published_turns
-                      and bool(re.search(r'\bare you ready\b[^?]*\?', normalized(last_room))))
-        pending.prompt_seen = pending.prompt_seen or prompt_now
-        direct = pending.first_reply and prompt_now
-        pending.first_reply = False
-        if pending.prompt_seen and (explicit_photo_ready(text)
-                or (pending.photo_conversation and explicit_ready(text)) or (direct and bare_yes(text))):
-            self.ready[grant.token] = pending.photo_id
-        elif not not_yet(text):
-            pending.photo_conversation = False
+        if (pending.phase == 'waiting_for_reply' and pending.grant.closed
+                and grant is not pending.grant and self.messages[grant.token] is not None
+                and self._published_prompt(pending)):
+            pending.prompt_seen = True
+            self.eligible[grant.token] = pending.photo_id
 
     def finish(self, grant):
         self.messages.pop(grant.token, None)
-        self.ready.pop(grant.token, None)
+        self.eligible.pop(grant.token, None)
         self.unconfirmed_preparations.discard(grant.token)
 
     def final_reply(self, grant, text):
@@ -223,38 +173,45 @@ class DemoPhotos:
             return "I couldn't prepare the camera. No countdown was started; readiness is not confirmed."
         return text
 
+    def inventory(self, grant):
+        return {'operations': sorted(OPERATIONS), 'pending': self.status(grant)['pending'],
+                'interpretation': 'The room agent interprets natural requests and readiness; no keyword matching.',
+                'display_discovery': 'demo-display-list',
+                'default_presentation': 'Prefer an available unambiguous external display; otherwise the Mac. Ask only on ambiguity.'}
+
     def context(self, grant):
-        pending = self.pending if self._matches(grant) else None
-        state = ({'photo_id': pending.photo_id, 'phase': pending.phase,
-                  'capture_allowed_this_turn': self.ready.get(grant.token) == pending.photo_id}
-                 if pending else None)
-        return ('\nMac photo workflow: use ONLY this turn\'s helper demo-photo-prepare '
-                '(request_id), demo-photo-capture (request_id,photo_id), demo-photo-status '
-                '(request_id), demo-photo-cancel (request_id,photo_id). On a photo request '
-                'prepare. ONLY after ok:true and phase:waiting_for_reply, reply exactly '
-                '"Are you ready?" and END the turn. On failure report preparation failed; '
-                'do not claim readiness or retry. WAIT for '
-                'a later Tenant message. Never capture in the preparation turn or use '
-                'the raw photo.py --confirmed shortcut. Readiness comes only from actual '
-                'current guest input, never continuous transcript speech. If not yet, '
-                'wait. Capture only when the helper says capture_allowed_this_turn; '
-                'use that exact photo_id. Cancel is supported only while waiting, '
-                'before countdown. After capture is requested, cancellation cannot '
-                'stop it; report its pending or unknown outcome truthfully. '
-                'No retry of unknown effects. Current photo: '
-                + json.dumps(state, separators=(',', ':')))
+        return ('\nPhoto/display tools: interpret the actual guest conversation naturally; no fixed wording. '
+                'demo-display-list(request_id) discovers displays; prefer an unambiguous external TV/projector, '
+                'otherwise Mac. demo-photo-prepare(request_id,optional display_id) stages a photo. '
+                'On success ask readiness naturally, END and WAIT. Interpret a later actual app reply: '
+                'ready means demo-photo-capture(request_id,photo_id); '
+                'negative, ambiguous or unrelated means wait/clarify. capture_eligible_this_turn is ONLY '
+                'a lifecycle check, not consent. demo-photo-status(request_id) reads pending state; '
+                'demo-photo-cancel(request_id,photo_id) cancels before countdown when asked. '
+                'No ASR triggers, raw shortcuts or UNKNOWN retries. Report failed preparation. '
+                'Current photo: ' + json.dumps(self.status(grant)['pending'], separators=(',', ':')))
 
     def status(self, grant):
         pending = self.pending if self._matches(grant) else None
         return {'ok': True, 'pending': ({'photo_id': pending.photo_id, 'phase': pending.phase,
-                'capture_allowed_this_turn': self.ready.get(grant.token) == pending.photo_id}
+                'display_id': pending.display_id,
+                'capture_eligible_this_turn': self.eligible.get(grant.token) == pending.photo_id,
+                'readiness_interpretation': 'agent_must_interpret_current_guest_reply'}
                 if pending else None)}
 
     async def dispatch(self, grant, operation, payload, *, authorized):
+        fields = set(payload) - {'request_id'} if isinstance(payload, dict) else None
+        valid = (operation in ('demo-photo-status', 'demo-display-list') and fields == set()
+                 or operation == 'demo-photo-prepare' and fields in (set(), {'display_id'})
+                 and ('display_id' not in payload or type(payload['display_id']) is int and 0 < payload['display_id'] < 2**32)
+                 or operation in ('demo-photo-capture', 'demo-photo-cancel') and fields == {'photo_id'}
+                 and isinstance(payload.get('photo_id'), str))
+        if not valid:
+            return denied('INVALID', 'Invalid photo/display payload. Nothing was sent.')
         # Capture holds the effect lock. A validated late cancel must report
         # that boundary promptly, without waiting or sending a native action.
         if (operation == 'demo-photo-cancel' and authorized()
-                and cancellation(self.messages.get(grant.token))
+                and self.messages.get(grant.token) is not None
                 and self._matches(grant) and payload.get('photo_id') == self.pending.photo_id
                 and self.pending.phase == 'capture_requested_or_unknown'):
             return {**denied('UNKNOWN', 'Capture was already requested; its result may still be pending or unconfirmed. '
@@ -267,39 +224,43 @@ class DemoPhotos:
                 return denied('PERMISSION', 'A current message in Tenant is required for this photo action.')
             if operation == 'demo-photo-status':
                 return self.status(grant)
+            if operation == 'demo-display-list':
+                return await self.runner('displays', authorized=authorized)
             if operation == 'demo-photo-prepare':
-                if not photo_request(self.messages[grant.token]):
-                    return denied('PERMISSION', 'This Tenant message did not request a photo.')
                 if grant.token in self.unconfirmed_preparations:
                     return denied('UNKNOWN', 'Preparation was already attempted this turn. Nothing was retried.')
                 if self._matches(grant):
                     if self.pending.phase == 'waiting_for_reply':
+                        if ('display_id' in payload and payload['display_id'] != self.pending.display_id):
+                            return denied('DISPLAY_PINNED', 'Cancel the waiting photo before preparing it on another display.')
                         self.pending.grant = grant
                         self.pending.prompt_seen = False
-                        self.pending.first_reply = True
-                        self.pending.photo_conversation = True
-                    return {**self.status(grant), 'phase': self.pending.phase, 'message': QUESTION}
+                        return {**self.status(grant), 'phase': self.pending.phase, 'message': QUESTION}
+                    if self.pending.phase == 'capture_requested_or_unknown':
+                        return denied('UNKNOWN', 'The previous capture is unconfirmed. Nothing was retried.')
                 self.unconfirmed_preparations.add(grant.token)
-                result = await self.runner('prepare', authorized=authorized)
+                options = {'display_id': payload['display_id']} if 'display_id' in payload else {}
+                result = await self.runner('prepare', authorized=authorized, **options)
                 if (not authorized() or result.get('ok') is not True
                         or result.get('phase') != 'waiting_for_yes'
                         or not isinstance(result.get('id'), str)
                         or not re.fullmatch(r'[a-f0-9]{32}', result['id'])
                         or type(result.get('expires')) not in (float, int)
                         or not math.isfinite(result['expires'])
+                        or type(result.get('display_id')) is not int or not 0 < result['display_id'] < 2**32
+                        or ('display_id' in payload and result['display_id'] != payload['display_id'])
                         or result['expires'] <= self.tools.leases.clock()):
                     return denied('UNKNOWN', 'Photo preparation was not confirmed. Nothing was retried.')
                 self.pending = PendingPhoto(result['id'], grant,
-                    min(result['expires'], self.tools.leases.clock() + 90, grant.lease.expires_at))
+                    min(result['expires'], self.tools.leases.clock() + 90, grant.lease.expires_at),
+                    display_id=result.get('display_id'))
                 self.unconfirmed_preparations.discard(grant.token)
                 return {'ok': True, 'phase': 'waiting_for_reply', 'photo_id': result['id'],
-                        'message': QUESTION, 'end_turn_and_wait': True, 'capture_allowed_this_turn': False}
+                        'message': QUESTION, 'end_turn_and_wait': True, 'capture_eligible_this_turn': False}
             if not self._matches(grant) or payload.get('photo_id') != self.pending.photo_id:
                 return denied('STALE', 'This guest has no matching unexpired pending photo. Request a new photo.')
             pending = self.pending
             if operation == 'demo-photo-cancel':
-                if not cancellation(self.messages[grant.token]):
-                    return denied('PERMISSION', 'This Tenant message did not cancel the photo.')
                 if pending.phase != 'waiting_for_reply':
                     if pending.phase == 'displayed':
                         return {'ok': False, 'code': 'COMPLETED', 'status': 'displayed',
@@ -310,13 +271,14 @@ class DemoPhotos:
                 pending.phase = 'cancelled'
                 return await self.runner('cancel', pending.photo_id, authorized=authorized)
             if (pending.phase != 'waiting_for_reply' or not pending.grant.closed
-                    or self.ready.get(grant.token) != pending.photo_id):
+                    or self.eligible.get(grant.token) != pending.photo_id):
                 return denied('READINESS', 'Wait for this guest to reply in Tenant that they are ready. No countdown was started.')
             pending.phase = 'capture_requested_or_unknown'
-            result = await self.runner('capture', pending.photo_id, authorized=authorized)
+            options = {'display_id': pending.display_id} if pending.display_id is not None else {}
+            result = await self.runner('capture', pending.photo_id, authorized=authorized, **options)
             if (not authorized() or result.get('ok') is not True or result.get('id') != pending.photo_id
                     or result.get('phase') != 'displayed' or result.get('capture_verified') is not True):
                 return denied('UNKNOWN', 'The photo result is unconfirmed. Do not repeat the countdown or capture.')
             pending.phase = 'displayed'
             return {'ok': True, 'phase': 'displayed', 'photo_id': pending.photo_id,
-                    'capture_verified': True, 'message': 'Your photo is displayed on the TV.'}
+                    'capture_verified': True, 'message': 'Your photo is displayed on the selected screen.'}

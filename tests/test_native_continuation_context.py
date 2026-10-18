@@ -9,6 +9,7 @@ from contextlib import suppress
 import json
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 from agent.room_session import APPLICATION_CONTEXT_FRAGMENT, MAX_APPLICATION_CONTEXT, RoomSession, RoomSessionError
 from brain.core.bus import Bus
@@ -175,9 +176,14 @@ class NativeContinuationContextTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_full_program_voice_photo_context_fits_bounded_native_transport(self):
         self.enable_all_context_branches()
-        task, turn_id, _grant, params = await self.begin('Only a text explanation, please.')
+        pending = {'photo_id': 'a' * 32, 'phase': 'waiting_for_reply', 'display_id': 1,
+                   'capture_eligible_this_turn': True,
+                   'readiness_interpretation': 'agent_must_interpret_current_guest_reply'}
+        with patch.object(self.agent.device_tools.demo_photos, 'status',
+                          return_value={'ok': True, 'pending': pending}):
+            task, turn_id, _grant, params = await self.begin('Only a text explanation, please.')
         context = self.context(params)
-        for branch in ('Room programs:', 'Reply voice context:', 'Photos:'):
+        for branch in ('Room programs:', 'Reply voice context:', 'Photos:', 'Q&A:', 'a' * 32):
             self.assertIn(branch, context)
         self.assertLessEqual(len(context), MAX_APPLICATION_CONTEXT)
         self.assertGreater(len(context), 4000, 'Exercise the previously insufficient context budget')

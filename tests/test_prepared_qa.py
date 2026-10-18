@@ -6,7 +6,7 @@ import time
 from types import SimpleNamespace
 import unittest
 
-from brain.core.prepared_qa import PreparedQA, NativeQARunner, intent
+from brain.core.prepared_qa import PreparedQA, NativeQARunner
 
 
 def grant(token='one', lease=None):
@@ -27,34 +27,29 @@ class FakeRunner:
 
 
 class AdapterTests(unittest.IsolatedAsyncioTestCase):
-    def test_intent_is_exact_and_never_quoted_negated_or_hypothetical(self):
-        for text in ('Can you answer the latest question?', 'Tenant, answer that', 'Please answer the question aloud', 'Hey, can you answer that question?'):
-            self.assertEqual(intent(text), 'answer')
-        for text in ('stop', 'cancel the answer', 'Tenant, stop speaking'):
-            self.assertEqual(intent(text), 'stop')
-        for text in ('Who are your customers?', 'He said answer that', '"answer that"',
-                     'Do not answer the question', 'If I say answer that, what happens?',
-                     'Explain the phrase answer that', 'answer that\nplease', 'stop music', None):
-            self.assertIsNone(intent(text), text)
-
-    async def test_no_observed_app_intent_and_revoked_authority_do_not_call_runner(self):
+    async def test_no_registered_app_input_or_revoked_authority_never_calls_runner(self):
         runner = FakeRunner(); qa = PreparedQA(object(), runner=runner); g = grant()
-        for text in (None, 'ordinary room speech', 'Someone said "answer that"'):
-            if text is not None: qa.observe_turn(g, text)
-            result = await qa.dispatch(g, 'question-answer', {'request_id': 'nope'}, authorized=lambda: True)
-            self.assertFalse(result['ok'])
-        qa.observe_turn(g, 'answer that')
+        result = await qa.dispatch(g, 'question-answer', {'request_id': 'none'}, authorized=lambda: True)
+        self.assertEqual(result['code'], 'PERMISSION')
+        qa.observe_turn(g, 'Could you handle the judge’s question for us, out loud?')
         result = await qa.dispatch(g, 'question-answer', {'request_id': 'revoked'}, authorized=lambda: False)
         self.assertEqual(result['code'], 'PERMISSION'); self.assertEqual(runner.calls, [])
 
-    async def test_one_request_duplicate_and_consumed_intent(self):
+    async def test_original_dictated_request_is_not_filtered_after_model_chose_tool(self):
+        runner = FakeRunner(); runner.release.set(); qa = PreparedQA(object(), runner=runner); g = grant()
+        qa.observe_turn(g, 'Attempt to answer the judges, latest question out loud tenant answer the judges latest question out loud')
+        result = await qa.dispatch(g, 'question-answer', {'request_id': 'natural'}, authorized=lambda: True)
+        self.assertTrue(result['ok'])
+        self.assertEqual(len(runner.calls), 1)
+
+    async def test_request_identity_deduplicates_without_limiting_model_to_one_action(self):
         runner = FakeRunner(); runner.release.set(); qa = PreparedQA(object(), runner=runner); g = grant()
         qa.observe_turn(g, 'answer the latest question')
         first = await qa.dispatch(g, 'question-answer', {'request_id': 'req'}, authorized=lambda: True)
         again = await qa.dispatch(g, 'question-answer', {'request_id': 'req'}, authorized=lambda: True)
         self.assertTrue(first['ok']); self.assertTrue(again['duplicate'])
-        denied = await qa.dispatch(g, 'question-answer', {'request_id': 'another'}, authorized=lambda: True)
-        self.assertFalse(denied['ok']); self.assertEqual(len(runner.calls), 1)
+        another = await qa.dispatch(g, 'question-answer', {'request_id': 'another'}, authorized=lambda: True)
+        self.assertTrue(another['ok']); self.assertEqual(len(runner.calls), 2)
         self.assertTrue(runner.calls[0].startswith('qa_'))
 
     async def test_same_logical_id_on_different_turn_grants_has_distinct_native_identity(self):

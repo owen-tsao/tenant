@@ -137,15 +137,14 @@ class NativeDevices:
             'LIVE room agent with broad computer tools: fulfill guest coding/artifact/app requests, '
             'not unrequested Tenant tests/rehearsals. Fulfill THIS request only. '
             'Mac apps/browser remain available beyond helper inventory; discover them for other media/tasks. '
+            'Match demo intent to prepared execution paths; otherwise try actual available capabilities '
+            'and report concrete blockers, not an outside-demo refusal. '
             'Keep requested performances running after replying; change tempo/stop only on request. '
-            'Backend ends access and handles faults. '
-            'Start replies with a concise plain result within 160 characters; details can follow. '
             'Use this private helper for enrolled-device commands: inventory first, exact IDs/online state/schemas; '
             'multiple explicitly requested operations/devices are allowed. '
             'Ask for a choice on ambiguous/unavailable targets; never substitute. Preserve output/volume '
-            'unless explicitly asked. Helper JSON confirms bridge actions; verify native apps/browser '
-            'with fresh state, not shell exit/prose. '
-            'UNKNOWN may have acted: stop dependent actions; never retry under another ID or claim cancellation. '
+            'unless explicitly asked. Verify effects with fresh state, not prose. '
+            'UNKNOWN may have acted: do not retry, substitute or claim cancellation. '
             'Keep helper paths/credentials out of routine replies.\n'
             f'Helper command prefix: {command}\n'
             'Use inventory (read-only), call, or light-blink with JSON stdin: '
@@ -159,29 +158,16 @@ class NativeDevices:
             '[End Tenant room integration context]')
         if self.programs is not None:
             text += (
-                '\nRoom programs: program-start, program-update, program-stop, program-status with JSON stdin. '
-                'Start takes request_id,device_id and EITHER bpm for a generated beat OR exact song_id from '
-                'inventory.programs.audio_devices[].songs for a real selected recording. Save program_id. '
-                'Never substitute generated audio for requested music or invent a song/BPM. '
-                'A song uses its analyzed beats plus live playhead; song_clock pending means timing unready, not synced. '
-                'Catalog IDs limit managed beat-sync only; native apps/browser can play other media. '
-                'Check playback first; never duplicate active music. Native app effects may persist after access ends. '
-                'Audio continues through conversation. '
-                'Update takes request_id,program_id plus bpm (generated only), light_device_id, remove_light_device_id, '
-                'and/or light_beats_per_state with light_device_id. Cadence means beats per ON and OFF '
-                '(generated default0.5; song default1; 1 means 2s each at30BPM). Omission preserves cadence. '
-                'Stop/status take request_id,program_id. Attach PENDING/complete:false is accepted only; '
-                'following/first_cycle ACKs confirm ON+OFF, never visible pulses or physical sync. '
-                'Stale unsent ON is skipped; UNKNOWN stops dependent work. '
-                'For non-OFF phone CONFLICT, detach with program-update/remove_light_device_id, '
-                'then the original raw action with fresh request_id after confirmed detach; music may continue. '
-                'Never retry UNKNOWN detach. BPM update restarts generated phase; song tempo edits unavailable. '
-                'For a later request to show/hide the orb while a selected song already plays, check '
-                'program.visual.update_available and audio_devices[].song_visual; use program-update with only '
-                'request_id,program_id,visual (boolean). This toggles existing live visuals without reprepare/restart '
-                'or light changes; no visual/timing mixed request. Do not start music again. Visual ACK does not '
-                'prove physical rendering. Missing capability is UNSUPPORTED; UNKNOWN is no retry. '
-                'Programs end with access; process/ACK timing never proves physical sync.')
+                '\nRoom programs: use inventory for current programs, exact online IDs and songs. '
+                'program-start takes request_id,device_id and bpm (generated) OR exact song_id (recording). '
+                'Never substitute a beat for a requested song. program-update takes request_id,program_id plus '
+                'bpm (generated only), light_device_id, remove_light_device_id, light_beats_per_state, '
+                'OR visual:boolean by itself. Cadence needs light_device_id; omission preserves cadence. '
+                'Adding/removing light or orb preserves the current player: do not restart music. '
+                'program-status/stop take request_id,program_id. PENDING is not completion; ACKs are not '
+                'physical sync. Missing/stale clock means unconfirmed. Do not replay UNKNOWN. '
+                'Other media remain available through native apps/browser. For detailed cadence/conflict '
+                'rules read the prepared demo guide below before complex changes.')
         if self.reply_voice is not None:
             text += ('\nReply voice context: '
                      + json.dumps(self.reply_voice.context(grant), separators=(',', ':'))
@@ -279,6 +265,8 @@ class NativeDevices:
                                     'interval_ms': 500, 'bounded_by': 'current_turn_and_lease', 'ends_off_on_success': True}]
                                     if any(cap['name'] == 'light' and cap['available'] for cap in caps) else [])})
             return {'ok': True, 'devices': devices,
+                    'local_demos': {'photo': self.demo_photos.inventory(grant),
+                                    'qa': self.prepared_qa.inventory(grant)},
                     **({'programs': self.programs.inventory(grant)} if self.programs is not None else {}),
                     **({'reply_voice': self.reply_voice.inventory(grant)} if self.reply_voice is not None else {}),
                     **({'photos': self.photos.inventory(grant.lease, generation=grant.generation)}
@@ -307,7 +295,9 @@ class NativeDevices:
             (operation == 'photo-capture' and fields == {'request_id', 'source_device_id'}) or
             (operation == 'photo-status' and fields == {'request_id', 'capture_request_id'}))
         valid_demo_photo = (
-            operation in ('demo-photo-prepare', 'demo-photo-status') and fields == {'request_id'}
+            operation in ('demo-photo-status', 'demo-display-list') and fields == {'request_id'}
+            or operation == 'demo-photo-prepare' and fields in ({'request_id'}, {'request_id', 'display_id'})
+            and ('display_id' not in request or type(request['display_id']) is int and 0 < request['display_id'] < 2**32)
             or operation in ('demo-photo-capture', 'demo-photo-cancel') and fields == {'request_id', 'photo_id'}
             and isinstance(request.get('photo_id'), str))
         valid_qa = operation in ('question-answer', 'question-answer-stop') and fields == {'request_id'}

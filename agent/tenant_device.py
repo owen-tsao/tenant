@@ -59,7 +59,7 @@ def main(argv=None):
     parser.add_argument('operation', choices=('inventory', 'call', 'light-blink', 'program-start',
                                              'program-update', 'program-stop', 'program-status', 'reply-voice',
                                              'photo-capture', 'photo-status', 'demo-photo-prepare',
-                                             'demo-photo-capture', 'demo-photo-cancel', 'demo-photo-status',
+                                             'demo-photo-capture', 'demo-photo-cancel', 'demo-photo-status', 'demo-display-list',
                                              'question-answer', 'question-answer-stop'))
     args = parser.parse_args(argv)
     try:
@@ -71,7 +71,9 @@ def main(argv=None):
             payload = json.loads(text)
             valid = (isinstance(payload, dict) and (
                 (args.operation in ('question-answer', 'question-answer-stop') and set(payload) == {'request_id'}) or
-                (args.operation in ('demo-photo-prepare', 'demo-photo-status') and set(payload) == {'request_id'}) or
+                (args.operation in ('demo-photo-status', 'demo-display-list') and set(payload) == {'request_id'}) or
+                (args.operation == 'demo-photo-prepare' and set(payload) in ({'request_id'}, {'request_id', 'display_id'})
+                 and ('display_id' not in payload or type(payload['display_id']) is int and 0 < payload['display_id'] < 2**32)) or
                 (args.operation in ('demo-photo-capture', 'demo-photo-cancel') and set(payload) == {'request_id', 'photo_id'}
                  and isinstance(payload['photo_id'], str)) or
                 (args.operation == 'photo-capture' and set(payload) == {'request_id', 'source_device_id'}) or

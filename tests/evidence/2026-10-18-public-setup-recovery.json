@@ -1,0 +1,49 @@
+{
+  "checked_at": "2026-10-18T17:38:51.203234+00:00",
+  "public_url": "https://broadcasting-appendix-rehab-destinations.trycloudflare.com",
+  "room_code": "C630",
+  "guests_at_start": 0,
+  "samples": [
+    {
+      "elapsed_s": 0.97,
+      "http": {
+        "/health": 200,
+        "/setup.html": 200,
+        "/display": 200
+      },
+      "websocket_ping": true,
+      "stopping": false
+    },
+    {
+      "elapsed_s": 9.34,
+      "http": {
+        "/health": 200,
+        "/setup.html": 200,
+        "/display": 200
+      },
+      "websocket_ping": true,
+      "stopping": false
+    },
+    {
+      "elapsed_s": 17.98,
+      "http": {
+        "/health": 200,
+        "/setup.html": 200,
+        "/display": 200
+      },
+      "websocket_ping": true,
+      "stopping": false
+    },
+    {
+      "elapsed_s": 26.27,
+      "http": {
+        "/health": 200,
+        "/setup.html": 200,
+        "/display": 200
+      },
+      "websocket_ping": true,
+      "stopping": false
+    }
+  ],
+  "note": "Page and connection checks only; no room effects or guest reset."
+}

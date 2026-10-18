@@ -1,3 +1,7 @@
+# Current hardware and natural-language update
+
+Jay no longer has access to the TV/projector. Run the current rehearsal on the Mac; external presentation is conditional on rediscovery when a screen is reconnected. Example lines below illustrate intent, not required words. The genuine agent interprets requests, readiness and followups; backend keyword admission has been removed in the current candidate. Exact past physical evidence stays scoped to the hardware and version actually tested. Real iPad and JBL remain followups.
+
 # Tenant — combined demo and remaining gaps
 
 Latest direction, 2026-10-18: Jay wants one connected demonstration of four existing experiences. His review below supersedes the earlier simulation-first presentation. Keep the accepted simulation as an archived rehearsal; the intended live TV view for drawing contains only the photo album. The iPad is not currently available, so real iPad input is an explicit blocker.
@@ -26,6 +30,23 @@ Use one current Tenant guest chat for the interaction. The lines below are inten
 3. **Drawing — blocked until the iPad is available:** “Put the sunset album on the TV. Play the soft bells on the Mac while I draw.” Draw real strokes. The TV shows photos only; input and chat stay off the TV. “Move the bells to the JBL, and keep the album going.” Then: “Stop the bells, but leave that photo up.” Do not present replay as live iPad input.
 4. **Questions:** let someone ask a customer/moat question. Transcript collection alone produces no answer or captions. Enter “Answer that question” in Tenant; the prepared answer is spoken once with its black caption, which clears on completion. An unmatched question stays silent and is reported in chat.
 5. **Finale:** enter “Take a photo of us.” Tenant opens the accepted preview and asks “Are you ready?” Wait. Reply “Not yet” in Tenant to demonstrate the wait; then arrange the group and send “I'm ready.” Only that current pending request starts one 3–2–1 countdown/capture. End on the real still displayed on the TV.
+
+## One connected run on available hardware
+
+This is the rehearsal script after the final photo-display check passes. Keep one Tenant guest chat open. The host setup is separate: TV connected to the right in extended mode, normal window; prepared song/controller ready; one enrolled light phone awake if using it; MacBook Pro Microphone selected; preserve current volume. Do not run Celsius or another live test during the take.
+
+| Beat | Say or type in Tenant | What the audience should observe |
+| --- | --- | --- |
+| Enter | Scan the room QR → Chat here. “What can I control?” | Temporary access and real available devices. No automatic speech or effects. |
+| Make the room respond | “Play CYANIDE.” Then “Make the connected phone pulse with it and show the orb on the TV.” | Existing managed song continues while a light and visual join it. Attach only an online, unambiguous phone; do not substitute a new song or restart it. |
+| Change the available output | “Move the sound to Bose; keep the Mac microphone selected.” | Ongoing playback changes output. JBL replaces Bose only after the real JBL connection is tested. Bluetooth sample-perfect continuity is not established. |
+| Move to drawing | “Stop the music, phone pulses and orb. Show the sunset photo album on the TV, only the photos.” | Music/light/visual stop; clean normal album window on the TV. Drawing/chat stay on the Mac. |
+| Current drawing preview | “Enable the quiet bells while I draw.” Draw with the Mac trackpad/mouse. “Stop the bells, but leave that photo up.” | Approved soft bells and real photos respond to strokes; then silence with final photo kept. Explicitly call this Mac input. Real iPad and proactive drawing recognition are not claimed. |
+| Ask a judge question | A person says “Who would pay for Tenant, and why?” Wait for transcription; then type “Answer that question.” | Transcript alone does nothing. The explicit app request produces one prepared answer and black external captions, which clear. Unmatched questions stay silent. |
+| Photo finale | “Take a photo of us.” Wait for “Are you ready?” Reply “Not yet.” Then “Yes, I am ready.” | No countdown until that later app reply; one visible/spoken3–2–1; one new photo, ending on the TV. |
+| End | Leave the guest chat. | Access ends. Retain the final photo. Host reset is a separate deliberate action. |
+
+Do not claim all four experiences are fully integrated with an iPad. The real-device drawing transport and JBL remain followups. One successful rehearsal does not establish reliability. If an action returns UNKNOWN, stop that segment and inspect; do not secretly retry or cue the effect from a second chat. If the whole sequence runs too long, cut the optional light/orb and Mac drawing preview instead of adding operator cues.
 
 ## Fix order and boundaries
 
