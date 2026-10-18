@@ -1,0 +1,342 @@
+{
+  "recorded_at": "2026-10-18T02:37:47.167363+00:00",
+  "source_revision_live": "00594fa",
+  "new_cadence_setup_revision_not_deployed": "3348165",
+  "status": "GUEST_OFF_RECOVERY_FAILED_HOST_OFF_HUMAN_CONFIRMED",
+  "program_id": "p_059a7e522e104e57b020f2fdba05d707",
+  "user_main_request": "Everything worked, but I am not able to turn off my flashlight. Can you access the performance to turn it off?",
+  "primary_native_receipts": [
+    {
+      "turn_id": "01a14cd9-b147-7a31-8cea-7d832b0f3de0",
+      "user_requests": [
+        "Wait, I\u2019m not able to turn off my flashlight on my phone. Can you turn it off? Or can you access the performance to turn it off?"
+      ],
+      "helper_receipts": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "result": {
+            "program_id": "p_059a7e522e104e57b020f2fdba05d707",
+            "state": "unknown",
+            "bpm": 45,
+            "light_device_ids": [],
+            "reserved_light_ids": [
+              "jay-visible-phone-oct17"
+            ],
+            "reason": "requested_stop",
+            "cleanup": {
+              "jay-visible-phone-oct17": "unknown",
+              "audio": "confirmed"
+            },
+            "recovery": {}
+          }
+        }
+      ],
+      "final_reply": "I checked: the audio is stopped, but flashlight control is stuck, and I can\u2019t confirm shutoff remotely.\n\nClose the Tenant page or app completely, then try your phone\u2019s flashlight switch. If it stays on, restart the phone."
+    },
+    {
+      "turn_id": "01a14cd8-d954-7441-acc5-1a9a15dd60d4",
+      "user_requests": [
+        "OK, turn off the flashlight"
+      ],
+      "helper_receipts": [
+        {
+          "ok": true
+        },
+        {
+          "ok": false,
+          "code": "CONFLICT",
+          "message": "This phone follows a room program. Detach it with program-update/remove_light_device_id, then submit the original action with a fresh request ID only after confirmed detach. Do not retry UNKNOWN cleanup."
+        },
+        {
+          "ok": false,
+          "code": "STOPPED",
+          "message": "That program is not running. It was not restarted or replayed."
+        }
+      ],
+      "final_reply": "The off request was blocked because the stopped performance still holds flashlight control. Please turn the flashlight off directly on the phone."
+    },
+    {
+      "turn_id": "01a14cd8-2663-7f20-bf6a-7f0be7f0bd0d",
+      "user_requests": [
+        "Wait, you\u2019re a music performance do not use lighting tricks I told you to make it with light like kind of sync it together"
+      ],
+      "helper_receipts": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "message": "Generated beat process launched on the default audio output; audibility and physical sync remain unverified.",
+          "result": {
+            "program_id": "p_059a7e522e104e57b020f2fdba05d707",
+            "state": "running",
+            "bpm": 30,
+            "light_device_ids": [],
+            "reserved_light_ids": [],
+            "reason": null,
+            "cleanup": {},
+            "recovery": {}
+          }
+        },
+        {
+          "ok": true,
+          "complete": true,
+          "message": "Each selected phone acknowledged its first ON and OFF. Visible pulses and physical synchronization remain unverified.",
+          "result": {
+            "program_id": "p_059a7e522e104e57b020f2fdba05d707",
+            "state": "running",
+            "bpm": 30,
+            "light_device_ids": [
+              "jay-visible-phone-oct17"
+            ],
+            "reserved_light_ids": [],
+            "reason": null,
+            "cleanup": {},
+            "recovery": {}
+          }
+        },
+        {
+          "ok": true,
+          "complete": true,
+          "message": "Each selected phone acknowledged its first ON and OFF. Visible pulses and physical synchronization remain unverified.",
+          "result": {
+            "program_id": "p_059a7e522e104e57b020f2fdba05d707",
+            "state": "running",
+            "bpm": 45,
+            "light_device_ids": [
+              "jay-visible-phone-oct17"
+            ],
+            "reserved_light_ids": [],
+            "reason": null,
+            "cleanup": {},
+            "recovery": {}
+          }
+        },
+        {
+          "ok": false,
+          "code": "UNKNOWN",
+          "message": "Future program steps stopped; cleanup status is reported separately.",
+          "unknown_device_ids": [
+            "jay-visible-phone-oct17"
+          ],
+          "result": {
+            "program_id": "p_059a7e522e104e57b020f2fdba05d707",
+            "state": "unknown",
+            "bpm": 45,
+            "light_device_ids": [],
+            "reserved_light_ids": [
+              "jay-visible-phone-oct17"
+            ],
+            "reason": "requested_stop",
+            "cleanup": {
+              "jay-visible-phone-oct17": "unknown",
+              "audio": "confirmed"
+            },
+            "recovery": {}
+          }
+        }
+      ],
+      "final_reply": "The beat and connected light pulse changed from 30 to 45 BPM. Audio stopped, but flashlight shutoff wasn\u2019t confirmed; please check the phone.\n\nExact light\u2013sound sync wasn\u2019t measured."
+    }
+  ],
+  "host_reset": {
+    "reason": "Jay explicitly requested immediate performance stop and flashlight OFF; interrupts planned expiry test.",
+    "started_at": 1792290710.3163872,
+    "finished_at": 1792290714.517057,
+    "http_status": 200,
+    "response": {
+      "ok": true,
+      "room_code": "8157",
+      "revoked": 1,
+      "cleanup": "unconfirmed",
+      "context_cleanup": "confirmed",
+      "program_cleanup": "confirmed"
+    }
+  },
+  "phone_off": {
+    "ack_at": 1792290710.667352,
+    "req": "r_2ca162897b21403591a2350a28a30783",
+    "request_to_ack_seconds": 0.351,
+    "human_confirmation": "Yes \u2014 the flashlight is off",
+    "limit": "ACK interval is not optical latency."
+  },
+  "music_pause_followup": {
+    "reason": "Finish explicitly requested stop after prior music.pause was known unsent in queue; narration has now settled. Not UNKNOWN replay.",
+    "started_at": 1792290958.629767,
+    "finished_at": 1792290958.86796,
+    "http_status": 200,
+    "response": {
+      "ok": true,
+      "result": {
+        "state": "paused",
+        "audible_verified": false
+      }
+    }
+  },
+  "expiry_trial": {
+    "status": "INTERRUPTED_NOT_PASS",
+    "original_guest_joined_at": 1792290187.7319858,
+    "planned_deadline": 1792290787.7319858,
+    "host_revoked_at": 1792290710.36683,
+    "observed_access_before_host_reset_seconds": 522.635,
+    "reason": "Native agent already inserted an unrequested tempo change and stop; later user explicitly requested immediate host OFF before expiry."
+  },
+  "diagnosis": {
+    "documented": "Fresh guest OFF was rejected CONFLICT while a stopped/unknown program retained the phone claim; detach returned STOPPED. Next request only checked status. Host OFF later acknowledged and was physically confirmed.",
+    "offline_reproduction": "Owners reproduced stop canceling an in-flight phone command, creating Bus uncertainty that prevented cleanup OFF; late ACK cleared Bus uncertainty without releasing the program claim.",
+    "live_cause_limit": "Exact canceled edge was not correlated in live audit, so the initiating cancellation remains a supported inference.",
+    "independent_model_issue": "Same sync-request turn changed30\u219245BPM and stopped without a user request for either; native live-room instructions need correction.",
+    "audio_reset_limit": "Separate music.pause was known UNSENT queue timeout behind accepted narration; one later explicit host pause completed. The earlier aggregate reset is not retroactively passed."
+  },
+  "decisions": [
+    "Keep earlier30BPM physical smoke pass, but retain this later stop failure.",
+    "Implement bounded graceful stop plus fresh authorized absolute OFF recovery; preserve exact authority/connection and no automatic UNKNOWN replay.",
+    "Do not insert unrequested tempo changes or stop rehearsals in live guest conversation.",
+    "Request prominent local Stop light using existing camera-release/disconnect from Owen; no root web edits.",
+    "Keep photo implementation gated until baseline stop acceptance."
+  ],
+  "events": [
+    {
+      "t": 1792290619.615852,
+      "kind": "program",
+      "audit": {
+        "reason": "tempo_change",
+        "cleanup": {
+          "audio": "confirmed",
+          "jay-visible-phone-oct17": "confirmed"
+        },
+        "program_id": "p_059a7e522e104e57b020f2fdba05d707"
+      }
+    },
+    {
+      "t": 1792290629.022551,
+      "kind": "program",
+      "audit": {
+        "reason": "requested_stop",
+        "cleanup": {
+          "jay-visible-phone-oct17": "unknown",
+          "audio": "confirmed"
+        },
+        "program_id": "p_059a7e522e104e57b020f2fdba05d707"
+      }
+    },
+    {
+      "t": 1792290631.1162372,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14cd8-2663-7f20-bf6a-7f0be7f0bd0d"
+      }
+    },
+    {
+      "t": 1792290642.256858,
+      "kind": "speech",
+      "audit": {
+        "device_id": "laptop",
+        "req": "r_ba0df1a6a3c847bc9ebdfa7e33ac5676",
+        "audio_status": "ACKNOWLEDGED",
+        "turn_id": "01a14cd8-2663-7f20-bf6a-7f0be7f0bd0d"
+      }
+    },
+    {
+      "t": 1792290642.27982,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14cd8-d954-7441-acc5-1a9a15dd60d4"
+      }
+    },
+    {
+      "t": 1792290658.047307,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14cd8-d954-7441-acc5-1a9a15dd60d4"
+      }
+    },
+    {
+      "t": 1792290668.057337,
+      "kind": "speech",
+      "audit": {
+        "device_id": "laptop",
+        "req": "r_da53bc4299a0442aa345097fa984dc16",
+        "audio_status": "ACKNOWLEDGED",
+        "turn_id": "01a14cd8-d954-7441-acc5-1a9a15dd60d4"
+      }
+    },
+    {
+      "t": 1792290697.5684679,
+      "kind": "cmd",
+      "audit": {
+        "turn_id": "01a14cd9-b147-7a31-8cea-7d832b0f3de0"
+      }
+    },
+    {
+      "t": 1792290709.805305,
+      "kind": "ok",
+      "audit": {
+        "turn_id": "01a14cd9-b147-7a31-8cea-7d832b0f3de0"
+      }
+    },
+    {
+      "t": 1792290710.36683,
+      "kind": "guest.leave",
+      "audit": {}
+    },
+    {
+      "t": 1792290710.667352,
+      "kind": "ok",
+      "audit": {
+        "actor": "host.reset",
+        "device_id": "jay-visible-phone-oct17",
+        "cap": "light",
+        "req": "r_2ca162897b21403591a2350a28a30783",
+        "ok": true,
+        "ack_ok": true,
+        "code": null
+      }
+    },
+    {
+      "t": 1792290714.511602,
+      "kind": "err",
+      "audit": {
+        "actor": "host.reset",
+        "device_id": "laptop",
+        "cap": "music.pause",
+        "req": null,
+        "ok": false,
+        "ack_ok": false,
+        "code": "TIMEOUT"
+      }
+    },
+    {
+      "t": 1792290714.512508,
+      "kind": "err",
+      "audit": {
+        "cleanup": "unconfirmed"
+      }
+    },
+    {
+      "t": 1792290717.7083688,
+      "kind": "speech",
+      "audit": {
+        "device_id": "laptop",
+        "req": "r_266225adaa6544a6a253a1981aba7e5f",
+        "audio_status": "ACKNOWLEDGED",
+        "turn_id": "01a14cd9-b147-7a31-8cea-7d832b0f3de0"
+      }
+    },
+    {
+      "t": 1792290958.8654358,
+      "kind": "ok",
+      "audit": {
+        "actor": "host",
+        "device_id": "laptop",
+        "cap": "music.pause",
+        "req": "r_337385281f444a3390f6ef4edf1b6c96",
+        "ok": true,
+        "code": null
+      }
+    }
+  ]
+}

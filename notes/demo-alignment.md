@@ -12,6 +12,9 @@ Root integration update: October17,19:17 PT. Owner: demo planning; reports below
 
 ## Evidence and current gates
 
+Stop incident update: later guest OFF failed while an unknown/stopped performance retained the phone claim. Host OFF acknowledged and Jay confirmed physically OFF; current room8157. An unrequested30→45BPM→stop was also observed. Actual expiry trial INTERRUPTED, notPASS. Source3348165 fullbeat/setup430Python+12Node is reviewed but not deployed; graceful stop/explicit OFF recovery and native intent guidance are under review. No live effects running. Keep the earlier30BPM smoke separate from this later failure.
+
+
 | Area | Evidence | Decision |
 | --- | --- | --- |
 | Historical bounded core | Three physical guest runs, alternatives, actual600s expiry and two resets passed at6075a3a. | Retain as historical evidence; changed native/program paths need their own acceptance. |
