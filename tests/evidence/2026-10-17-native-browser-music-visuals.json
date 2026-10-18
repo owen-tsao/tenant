@@ -1,0 +1,88 @@
+{
+  "case": "Native browser music followed by existing installed visuals",
+  "revision": "e294e66f9319c239cd452797d25e7552416a94a6",
+  "guest_id": "ed8fc0b2-baf2-419a-883e-c743b39de9c5",
+  "music": {
+    "input": "Play Japanese Denim by Daniel Caesar in the browser.",
+    "turn_id": "01a14d96-15f0-7803-9d97-1890efd22cad",
+    "result": "digital playback advancing; user could not hear it",
+    "url": "https://www.youtube.com/watch?v=FG2PgVl0Nlc",
+    "uploader": "Beautiful.co.il (reupload, not official artist source)",
+    "samples": [
+      {
+        "t": 1792303172.968,
+        "currentTime": 102.970119,
+        "duration": 271.001,
+        "paused": false,
+        "muted": false
+      },
+      {
+        "t": 1792303193.921,
+        "currentTime": 123.923218,
+        "duration": 271.001,
+        "paused": false,
+        "muted": false
+      }
+    ],
+    "user_answer": "No, I can\u2019t hear it",
+    "route_readonly_root_report": {
+      "default_output": "Bose NC 700 HP",
+      "output_volume": 56,
+      "output_muted": false
+    },
+    "route_cause": "Unproven; no route or volume changes"
+  },
+  "visuals": {
+    "input": "Can you make something on the laptop screen react to the music using what is already installed?",
+    "turn_id": "01a14d98-6d49-7ff0-9d49-30575dafb9da",
+    "reply": "The visualizer is ready on the laptop using Chrome. May I give it access to the YouTube tab\u2019s audio? It stays local and isn\u2019t recorded.",
+    "result": "NOT reactive: waiting for audio permission",
+    "native_discovery": [
+      "Finder Applications opened and scrolled; list view inspected",
+      "Read visualize skill; built new HTML canvas/Web Audio visualizer rather than using an installed visualizer"
+    ],
+    "native_created_file": "/Users/jay/Documents/Codex/2026-10-17/tenant-room/outputs/music-visualizer.html",
+    "visual_tab": "2003400994",
+    "observed_status": "WAITING FOR AUDIO",
+    "audio_permission_granted": false,
+    "native_server_start": {
+      "at": "2026-10-18T06:01:20.492Z",
+      "session_id": 44266,
+      "initial_status": "running; no output"
+    },
+    "permission_note": "Native agent asked for tab-audio capture. Capture was not granted. This records agent behavior, not a determination that policy required this ask."
+  },
+  "cleanup": {
+    "ordinary_stop": "NOT TESTED: named-guest watchdog revoked access before parent sent Stop",
+    "watchdog": {
+      "armed": 1792303035.240872,
+      "limit_seconds": 300,
+      "fired": 1792303335.243671,
+      "http_status": 200,
+      "revoked": true
+    },
+    "not_natural_expiry": true,
+    "post_revoke_video_sample": {
+      "currentTime": 16.171645,
+      "duration": 25.681,
+      "paused": false,
+      "muted": false,
+      "interpretation": "source duration changed; ad/other media cause unconfirmed"
+    },
+    "parent_safety_cleanup": "After expiry closed owned YouTube tab2003400993 and visualizer tab2003400994; fresh inventory confirms both absent. No new play retry.",
+    "server_process": "At closeout no matching http.server 8766 process; follow-up lsof TCP8766 LISTEN returned no listener (exit1, empty). No service killed."
+  },
+  "defects": [
+    "Guest reply exposes local screenshot Markdown paths that are not usable phone artifacts",
+    "Native browser playback is outside room revoke cleanup: still playing after guest watchdog",
+    "Installed-reactive-visuals goal not satisfied; agent created a page and stopped at permission prompt"
+  ],
+  "scope_preserved": [
+    "No projector actions",
+    "No output route or volume changes",
+    "No song replay",
+    "No installation/account/trial/purchase",
+    "No source/helper/web code edits by tester"
+  ],
+  "goal_status": "UNFINISHED; audible music and active reactive visuals not established"
+}
