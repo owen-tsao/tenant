@@ -12,7 +12,9 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
-MAX_APPLICATION_CONTEXT = 6000
+# Full device/result guidance plus the local demo index exceed 6k on this Mac.
+# Keep a finite pre-submission bound without truncating execution/cleanup rules.
+MAX_APPLICATION_CONTEXT = 8000
 
 
 class RoomSessionError(RuntimeError):

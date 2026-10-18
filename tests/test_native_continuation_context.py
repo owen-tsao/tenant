@@ -10,7 +10,7 @@ import json
 from types import SimpleNamespace
 import unittest
 
-from agent.room_session import RoomSession, RoomSessionError
+from agent.room_session import MAX_APPLICATION_CONTEXT, RoomSession, RoomSessionError
 from brain.core.bus import Bus
 from brain.core.leases import Leases
 from brain.core.log import EventLog
@@ -177,7 +177,7 @@ class NativeContinuationContextTests(unittest.IsolatedAsyncioTestCase):
         context = self.context(params)
         for branch in ('Room programs:', 'Reply voice context:', 'Photos:'):
             self.assertIn(branch, context)
-        self.assertLessEqual(len(context), 6000)
+        self.assertLessEqual(len(context), MAX_APPLICATION_CONTEXT)
         self.assertGreater(len(context), 4000, 'Exercise the previously insufficient context budget')
         await self.finish(task, turn_id)
         self.assertEqual(len(self.socket.requests('turn/start')), 1)
@@ -195,8 +195,8 @@ class NativeApplicationContextBudgetTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(session.close)
         return session, socket
 
-    async def test_new_budget_accepts_4001_and_6000_characters_exactly_once(self):
-        for size in (4001, 6000):
+    async def test_budget_accepts_previous_limit_and_current_boundary_exactly_once(self):
+        for size in (4001, 6000, 6001, MAX_APPLICATION_CONTEXT):
             with self.subTest(size=size):
                 session, socket = await self.session()
                 context = 'x' * size
@@ -209,7 +209,7 @@ class NativeApplicationContextBudgetTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_oversize_or_invalid_context_never_submits_and_does_not_poison_next_explicit_request(self):
         session, socket = await self.session()
-        for invalid in ('x' * 6001, '', 6000, {'value': 'text'}):
+        for invalid in ('x' * (MAX_APPLICATION_CONTEXT + 1), '', 6000, {'value': 'text'}):
             with self.subTest(kind=type(invalid).__name__, size=len(invalid) if isinstance(invalid, str) else None):
                 with self.assertRaises(ValueError):
                     await session.start_turn('Do not submit.', application_context=invalid)

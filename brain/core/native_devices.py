@@ -186,6 +186,13 @@ class NativeDevices:
             text += ('\nPhotos: use inventory.photos. photo-capture takes request_id,source_device_id; '
                      'photo-status takes request_id,capture_request_id. No raw camera calls or retries. '
                      'Captured/stored are not displayed; only a matching viewer receipt confirms rendering.')
+        demo_guide = Path(__file__).resolve().parents[2] / 'notes' / 'live-demo-agent.md'
+        if demo_guide.is_file():
+            text += ('\nPrepared local drawing / sunset photo album: when the guest requests this, '
+                     f'read {demo_guide} for current entry points and limitations. '
+                     'The iPad is a chat terminal, not a connected drawing sensor. '
+                     'Use the real agent tools and visible controls; do not invent an input connection '
+                     'or launch an unrequested rehearsal.')
         return text
 
     async def _handle(self, reader, writer):

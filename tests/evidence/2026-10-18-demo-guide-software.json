@@ -1,0 +1,33 @@
+{
+  "time": "2026-10-18T05:57:53.890429-07:00",
+  "scope": "Local sunset album / drawing capability discovery for genuine Tenant chat; iPad is chat only",
+  "software": {
+    "runner": "PYTHONPATH=tests:. .venv/bin/python -m unittest -q test_native_devices test_native_continuation_context test_room_program_integration test_room_session",
+    "tests": 77,
+    "result": "PASS",
+    "seconds": 7.151,
+    "physical_effects": false
+  },
+  "context": {
+    "baseline_all_branches_without_new_index_characters": 6341,
+    "new_all_branches_measured_characters": 6746,
+    "previous_limit": 6000,
+    "new_limit": 8000,
+    "exact_boundary_and_pre_submission_rejection_tested": true
+  },
+  "review": {
+    "owner": "Tenant \u2014 End-to-end Tester",
+    "result": "No concrete findings",
+    "scope": "independent static read-only review",
+    "runtime_compliance_proven": false
+  },
+  "limits": [
+    "Actual guest-chat execution not yet checked",
+    "TV window not moved by app controls; manual move requested",
+    "Notability/Pencil not connected",
+    "Co-drawing queued, not implemented",
+    "Celsius separate, unaccepted",
+    "No Mac output or volume change",
+    "No Owen web edits"
+  ]
+}
