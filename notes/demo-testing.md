@@ -16,6 +16,8 @@ Reviewed source, automated tests, live transport, human experience and physical 
 
 ## Current matrix
 
+Root19:48 PT: follow-up real expiry/fullbeat run **NOT STARTED** after Jay questioned repeating physical tests. Preserve manualstopPASS; automaticexpiry source checks pass but its post-fix physical outcome remainsUNVERIFIED. No automatic new ON/audio, no claim that the earlier interrupted expiry passed.
+
 Root19:46 PT: **post-fix stop PASS on0b4a1ec**. Actual native guest30BPM/1sON/1sOFF → freshly requested phoneOFF while beatcontinues → separately requested beatstop; Jay confirmed both observations, matching OFFACK and cleanup phone/audioConfirmed. See tests/evidence/2026-10-17-stop-recovery-live.json. Fullbeat2s states were not requested in this run. A separate SAMEguest fullbeat/expiry trial is pending; no real expiry or UNKNOWN-injection physical pass claimed.
 
 Latest Root update, October17 19:43 PT: **deployed0b4a1ec**, independently reviewed452 Python +12 Node checks, zero failures/skips. This includes3348165 fullbeat cadence/host setup and fresh explicit phone-OFF recovery. Brain alone restarted; room8157 and both enrolled devices survived, public routes200 and unauthorized room-label write403. Jay confirmed the emergency recovery left the phone physicallyOFF. The fresh guest OFF-with-beat-continuing test is now pending; no post-fix physical pass or600s expiry pass is claimed. Preserve the later stop failure and all historical failures below. No root web edits or output/volume changes.

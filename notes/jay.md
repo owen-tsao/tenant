@@ -125,3 +125,5 @@ If an entry is longer than two sentences it belongs in `ARCHITECTURE.md`, not he
 - 19:43 — Live acceptance / pending — Brain alone restarted; room8157/currentphone/Mac preserved, public health/setup/display/QR200 and unauthorized label403. Jay has ONE fresh fullbeat30BPM → phoneOFF while beatcontinues → beatstop test; expiry remainsINTERRUPTED, photo remainsgated, hostreset can still waitaudio and Owen Stoplight/setupUI requests remainopen.
 
 - 19:46 — Physical stop PASS /0b4a1ec — Jay confirmed phoneOFF while beatcontinued, then separately beatstop with phoneOFF; matching native OFF and requested_stop receipts confirmed cleanup. Actualguest asked1sON/1sOFF (0.5beat), so fullbeat2s cadence is not claimed; one SAMEchat expiry/fullbeat trial is nowpending, with norestart or newguest.
+
+- 19:48 — Test scope / no repetition — Jay questioned the additional expiry run after the manual stop passed; no new performance was started for that check. Move on from repeated physical prompts: manualstop remainsPASS, automaticexpiry has passing source checks but stays physicallyUNVERIFIED until independently observed.
