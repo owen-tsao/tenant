@@ -36,6 +36,7 @@ class NativeSession:
         self.closed = False
         self.answers = []
         self.connect_count = 0
+        self.application_contexts = []
     async def connect(self): self.connect_count += 1
     async def list_turns(self): return list(self.history)
     async def drain_queue(self):
@@ -59,13 +60,14 @@ class NativeSession:
         self.history = self.history[:index]
         await self.confirm_clean(expected_retained_turn_ids)
         while not self.events.empty(): self.events.get_nowait()
-    async def start_turn(self, text, *, authorize=None):
+    async def start_turn(self, text, *, authorize=None, application_context=None):
         if authorize is not None and not authorize(): raise RoomSessionError('access ended')
         self.counter += 1
         turn_id = 'native-' + str(self.counter)
         self.active_turn_id = turn_id
         self.history.append({'id': turn_id, 'text': text})
         self.calls.append(('start', text, turn_id))
+        self.application_contexts.append(application_context)
         self.started.set()
         if self.fail_start: raise RoomSessionError('unknown start', outcome_unknown=True)
         if self.auto_finish: await self.finish(turn_id, 'Native reply: ' + text)

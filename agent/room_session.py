@@ -165,9 +165,12 @@ class RoomSession:
             self._events.get_nowait()
         self._events.put_nowait(error)
 
-    async def start_turn(self, text, *, authorize=None):
+    async def start_turn(self, text, *, authorize=None, application_context=None):
         if not isinstance(text, str) or not text.strip() or len(text) > 8000:
             raise ValueError('A room message of 1–8000 characters is required')
+        if application_context is not None and (not isinstance(application_context, str)
+                                                or not 0 < len(application_context) <= 4000):
+            raise ValueError('Application context must contain 1–4000 characters')
         async with self._start_lock:
             if self._reset_required:
                 raise RoomSessionError('Room context must be reset before another user can continue')
@@ -178,8 +181,13 @@ class RoomSession:
                 raise RoomSessionError('Room access ended before submission')
             self._busy_unknown = True
             try:
-                result = await self._request('turn/start', {
-                    'threadId': self.thread_id, 'input': [{'type': 'text', 'text': text}]})
+                params = {'threadId': self.thread_id, 'input': [{'type': 'text', 'text': text}]}
+                if application_context is not None:
+                    # Installed experimental TurnStartParams defines this as
+                    # application context, separate from exact guest input.
+                    params['additionalContext'] = {'tenant_devices': {'kind': 'application',
+                                                                      'value': application_context}}
+                result = await self._request('turn/start', params)
             except asyncio.CancelledError:
                 # Cancellation of this client cannot undo shell, UI or physical effects.
                 self.require_reset()

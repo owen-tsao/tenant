@@ -104,6 +104,16 @@ class RoomSessionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.client.next_event())['params']['delta'], 'Room response')
         with self.assertRaises(RoomSessionError): await self.client.start_turn('second request')
 
+    async def test_application_context_uses_installed_schema_without_changing_guest_input(self):
+        exact = '  My exact message.\nKeep these spaces.  '
+        context = 'Use the current private helper path for enrolled devices.'
+        await self.client.start_turn(exact, application_context=context)
+        params = self.socket.sent[-1]['params']
+        self.assertEqual(params['input'], [{'type': 'text', 'text': exact}])
+        self.assertEqual(params['additionalContext'], {'tenant_devices': {'kind': 'application', 'value': context}})
+        self.assertNotIn('dynamicTools', params)
+        self.assertNotIn('developerInstructions', params)
+
     async def test_interrupt_ack_does_not_claim_completion_or_undo(self):
         await self.client.start_turn('Play music')
         self.assertTrue(await self.client.interrupt())

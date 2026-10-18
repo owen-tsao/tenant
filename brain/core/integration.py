@@ -1,6 +1,7 @@
 """Install the small guest/access core before the app's static mount."""
 import asyncio
 import hashlib
+import os
 import secrets
 import time
 from contextlib import asynccontextmanager, suppress
@@ -26,7 +27,9 @@ class Core:
         else:
             from brain.core.room_conversation import ConversationAgent
             self.agent = ConversationAgent(self.leases, self.log, conversation,
-                                           private_values=(self.config.host_token, self.config.device_token), registry=self.registry)
+                                           private_values=(self.config.host_token, self.config.device_token,
+                                                           os.getenv('PHOTON_API_KEY', '')),
+                                           registry=self.registry, bus=self.bus)
             from brain.core.conversation_speech import ConversationSpeech
             self.speech = ConversationSpeech(self.registry, self.bus, self.leases, self.log,
                                              self.agent.allows_reply)

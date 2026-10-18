@@ -33,7 +33,7 @@ class ConversationSettings:
 class ConversationAgent:
     agent_mode = 'conversation'
 
-    def __init__(self, leases, log, settings: ConversationSettings, *, private_values=(), registry=None):
+    def __init__(self, leases, log, settings: ConversationSettings, *, private_values=(), registry=None, bus=None):
         self.leases, self.log, self.settings = leases, log, settings
         self.registry = registry
         self.private_values = tuple(v for v in private_values if isinstance(v, str) and v)
@@ -48,6 +48,14 @@ class ConversationAgent:
         self._cleanup_tasks = set()
         self._failed = False
         self._first_guest_turn = None
+        self.device_tools = None
+        if registry is not None and bus is not None:
+            from brain.core.native_devices import NativeDevices
+            self.device_tools = NativeDevices(registry, bus, leases, log, self._device_turn_allowed)
+
+    def _device_turn_allowed(self, grant):
+        return (self._allowed(grant.guest_id, grant.generation)
+                and self._session is not None and self._session.active_turn_id == grant.turn_id)
 
     def label_is_ambiguous(self, device):
         if self.registry is None:
@@ -80,6 +88,8 @@ class ConversationAgent:
 
     def _admit(self, guest_id):
         if self._controller != guest_id:
+            if self.device_tools is not None:
+                self.device_tools.revoke_all()
             previous = self._controller
             self._stop.set()
             self._stop = asyncio.Event()
@@ -94,6 +104,8 @@ class ConversationAgent:
         """Synchronous authority transition; asynchronously interrupt/drain native work."""
         if self._controller != guest_id:
             return
+        if self.device_tools is not None:
+            self.device_tools.revoke_all()
         self._stop.set()
         self._controller = None
         self._generation += 1
@@ -202,6 +214,8 @@ class ConversationAgent:
                                    outcome_unknown=True) from None
 
     async def _reset_native(self):
+        if self.device_tools is not None:
+            self.device_tools.revoke_all()
         async with asyncio.timeout(self.settings.cleanup_timeout):
             session = await self._connect()
             await self._drain_active()
@@ -235,7 +249,7 @@ class ConversationAgent:
     def _redact(self, text):
         for value in self.private_values:
             text = text.replace(value, '[private value]')
-        return text
+        return self.device_tools.redact(text) if self.device_tools is not None else text
 
     async def _answer_request(self, event, guest_id, generation, turn_id):
         session = self._session
@@ -257,8 +271,27 @@ class ConversationAgent:
         raise RoomSessionError('Native interaction requires an unsupported response')
 
     async def _native_turn(self, text, guest_id, generation):
+        grant = None
+        application_context = None
+        if self.device_tools is not None:
+            grant = await self.device_tools.prepare(guest_id, generation, self.leases.current(guest_id),
+                                                     self.settings.thread_id)
+            application_context = self.device_tools.context(grant)
+        try:
+            return await self._run_native_turn(text, guest_id, generation, grant=grant,
+                                               application_context=application_context)
+        finally:
+            if self.device_tools is not None:
+                self.device_tools.finish(grant)
+
+    async def _run_native_turn(self, text, guest_id, generation, *, grant=None, application_context=None):
         session = self._session
-        turn_id = await session.start_turn(text, authorize=lambda: self._allowed(guest_id, generation))
+        options = {'authorize': lambda: self._allowed(guest_id, generation)}
+        if application_context is not None:
+            options['application_context'] = application_context
+        turn_id = await session.start_turn(text, **options)
+        if grant is not None:
+            self.device_tools.activate(grant, turn_id)
         self._first_guest_turn = self._first_guest_turn or turn_id
         self.log.append('cmd', 'A guest is speaking with Tenant.', guest_id=guest_id,
                         thread_id=self.settings.thread_id, turn_id=turn_id, generation=generation)
@@ -315,8 +348,7 @@ class ConversationAgent:
             return self.reply('Please send a message of 1–8000 characters.')
         if self._failed:
             return self.reply('Tenant could not verify a clean conversation. Ask the host to check the connection; nothing was retried.')
-        text = text.strip()
-        if text.casefold() in ('leave', 'goodbye', 'done'):
+        if text.strip().casefold() in ('leave', 'goodbye', 'done'):
             self.leases.revoke(guest_id)
             self.access_ended(guest_id)
             return self.reply('Your room access has ended. Already-started effects may remain.')
@@ -368,4 +400,8 @@ class ConversationAgent:
             try:
                 await self._drain_active()
             finally:
-                await self._session.close()
+                try:
+                    await self._session.close()
+                finally:
+                    if self.device_tools is not None:
+                        await self.device_tools.close()
