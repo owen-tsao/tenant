@@ -28,7 +28,13 @@ async def reset_cleanup(core):
     missing = set(core.registry.enrollments) - set(core.registry.devices)
     async def stop(dev, cap, args):
         original_connection = dev.ws
-        result = await core.bus.call(dev.id, cap, args, timeout=4,
+        tools = getattr(core.agent, 'device_tools', None)
+        action_budget = getattr(tools, 'action_timeout', 4)
+        speech_budget = getattr(getattr(core.agent, 'settings', None), 'cleanup_timeout', 0)
+        # An accepted narration may already hold the Mac queue. Light OFF has
+        # its independent action budget and is dispatched in parallel below.
+        budget = action_budget + (speech_budget if cap == 'music.pause' else 0)
+        result = await core.bus.call(dev.id, cap, args, timeout=budget,
                                      authorize=lambda current, *_: current.room_id == core.registry.room.id)
         payload = result.result if isinstance(result.result, dict) else {}
         confirmed = result.ok and (

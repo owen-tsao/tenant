@@ -11,6 +11,7 @@ from agent.beat_audio import capabilities
 from agent.tenant_device import invoke, main
 from brain.config import Config
 from brain.main import create_app
+from brain.state import CapSpec
 from test_room_conversation import Clock, NativeSession, settings_for
 from test_room_programs import Socket
 
@@ -181,8 +182,12 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
             self.assertFalse(receipt['ok'], receipt)
             self.assertFalse(program.active)
             self.assertFalse(self.agent.allows_program(self.lease, program.owner.generation))
+            # The already-dispatched ON may finish after revocation. Settle its
+            # real receipt; graceful owned cleanup can then send OFF, never ON.
+            self.phone.ack = True
+            self.core.bus.receive(self.phone.device, {'type': 'ok', 'req': on['req'], 'result': {'on': True}})
             await asyncio.wait_for(program.cleanup_task, .3)
-            self.assertEqual([frame['args']['on'] for frame in self.phone.frames], [True])
+            self.assertEqual([frame['args']['on'] for frame in self.phone.frames], [True, False])
         finally:
             self.phone.ack = True
             if not attached.done():
@@ -259,6 +264,123 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(blocked['recovery'], 'host_reset')
         self.assertNotIn('program_id', blocked)
         await self.finish('The host needs to recover the phone.')
+
+    async def test_new_requested_off_waits_for_prior_uncertainty_then_releases_stopped_claim_without_reset(self):
+        program = await self.start()
+        await self.attach(program)
+        self.phone.ack = False
+        detached = await self.call('program-update', 'uncertain-detach', program_id=program.id, remove_light_device_id='phone')
+        self.assertEqual(detached['code'], 'UNKNOWN')
+        await self.call('program-stop', 'stop-old-program', program_id=program.id)
+        await self.finish('The old OFF result is unknown.')
+        unresolved = next(req for req, dev in self.core.bus.uncertain.items() if dev is self.phone.device)
+        await self.begin('OK, turn off the flashlight.')
+        self.grant.unknown_devices.add('phone')  # OFF must work despite this device-local quarantine.
+        identity = self.core.registry.room.code, self.core.registry.room.epoch
+        entered = asyncio.Event()
+        original = self.agent.programs.explicit_off
+        async def observed(*args, **kwargs):
+            entered.set()
+            return await original(*args, **kwargs)
+        self.agent.programs.explicit_off = observed
+        before = len(self.phone.frames)
+        pending = asyncio.create_task(self.call('call', 'fresh-off', device_id='phone', cap='light', args={'on': False}))
+        try:
+            await entered.wait()
+            self.assertEqual(len(self.phone.frames), before)
+            self.phone.ack = True
+            self.core.bus.receive(self.phone.device, {'type': 'ok', 'req': unresolved, 'result': {'on': False}})
+            receipt = await pending
+            self.assertTrue(receipt['ok'], receipt)
+            self.assertEqual(receipt['result'], {'on': False})
+            self.assertTrue(receipt['req'])
+            self.assertEqual([frame['args']['on'] for frame in self.phone.frames[before:]], [False])
+            self.assertIsNone(self.agent.programs.device_busy('phone'))
+            self.assertEqual((self.core.registry.room.code, self.core.registry.room.epoch), identity)
+            duplicate = await self.call('call', 'fresh-off', device_id='phone', cap='light', args={'on': False})
+            self.assertEqual(duplicate, receipt)
+            blocked_on = await self.call('call', 'no-old-on-replay', device_id='phone', cap='light', args={'on': True})
+            self.assertEqual(blocked_on['code'], 'UNKNOWN')
+            self.assertEqual(len(self.phone.frames), before + 1)
+        finally:
+            self.agent.programs.explicit_off = original
+            await asyncio.gather(pending, return_exceptions=True)
+        await self.finish('The phone acknowledged the newly requested OFF.')
+
+    async def test_unknown_new_off_cannot_be_retried_under_another_id_in_same_native_turn(self):
+        await self.begin('Turn the phone off.')
+        self.phone.ack = False
+        first = await self.call('call', 'off-once', device_id='phone', cap='light', args={'on': False})
+        self.assertEqual(first['code'], 'UNKNOWN')
+        before = len(self.phone.frames)
+        self.phone.ack = True
+        for req, dev in list(self.core.bus.uncertain.items()):
+            self.core.bus.receive(dev, {'type': 'ok', 'req': req, 'result': {'on': False}})
+        duplicate = await self.call('call', 'off-once', device_id='phone', cap='light', args={'on': False})
+        self.assertEqual(duplicate, first)
+        new_id = await self.call('call', 'no-new-id-retry', device_id='phone', cap='light', args={'on': False})
+        self.assertEqual(new_id['code'], 'UNKNOWN')
+        self.assertIn('Disconnect', new_id['message'])
+        self.assertEqual(len(self.phone.frames), before)
+        await self.finish('The OFF result is unknown; use the phone device page Disconnect.')
+
+    async def test_explicit_off_loses_authority_while_bus_queued_and_sends_nothing(self):
+        await self.begin('Turn the phone off.')
+        lock = self.core.bus.locks['phone']
+        await lock.acquire()
+        queued = asyncio.Event()
+        original = self.core.bus.call
+        async def observed(*args, **kwargs):
+            if args[:2] == ('phone', 'light'): queued.set()
+            return await original(*args, **kwargs)
+        self.core.bus.call = observed
+        pending = asyncio.create_task(self.call('call', 'queued-off', device_id='phone', cap='light', args={'on': False}))
+        try:
+            await queued.wait()
+            self.core.revoke(self.lease.guest_id)
+            lock.release()
+            result = await pending
+            self.assertFalse(result['ok'])
+            self.assertEqual(self.phone.frames, [])
+        finally:
+            if lock.locked(): lock.release()
+            self.core.bus.call = original
+            await asyncio.gather(pending, return_exceptions=True)
+
+    async def test_concurrent_off_waiter_rechecks_unknown_latch_after_first_timeout_and_late_ack(self):
+        await self.begin('Turn the phone off.')
+        self.phone.ack = False
+        self.agent.device_tools.action_timeout = .1
+        entered = asyncio.Event()
+        original = self.agent.programs.explicit_off
+        calls = 0
+        async def observed(*args, **kwargs):
+            nonlocal calls
+            calls += 1
+            if calls > 1:
+                entered.set()
+                return await original(*args, **kwargs)
+            result = await original(*args, **kwargs)
+            # Keep the first receipt from latching until the waiter entered,
+            # even if a loaded executor delays the second helper connection.
+            await asyncio.wait_for(entered.wait(), .2)
+            return result
+        self.agent.programs.explicit_off = observed
+        first = asyncio.create_task(self.call('call', 'first-off', device_id='phone', cap='light', args={'on': False}))
+        frame = await asyncio.wait_for(self.phone.events.get(), .2)
+        self.agent.device_tools.action_timeout = .4
+        second = asyncio.create_task(self.call('call', 'waiting-off', device_id='phone', cap='light', args={'on': False}))
+        try:
+            await asyncio.wait_for(entered.wait(), .2)
+            self.assertEqual((await first)['code'], 'UNKNOWN')
+            self.phone.ack = True
+            self.core.bus.receive(self.phone.device, {'type': 'ok', 'req': frame['req'], 'result': {'on': False}})
+            self.assertFalse((await second)['ok'])
+            self.assertEqual(len(self.phone.frames), 1)
+        finally:
+            self.agent.programs.explicit_off = original
+            await asyncio.gather(first, second, return_exceptions=True)
+        await self.finish('An OFF result was unknown; no waiting OFF was replayed.')
 
     async def test_program_ledger_deduplicates_start_and_does_not_limit_distinct_programs(self):
         first = await self.start()
@@ -404,6 +526,68 @@ class ProgramIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(reset['cleanup'], 'unconfirmed')
         self.assertEqual(program.cleanup['audio'], 'unknown')
         self.audio.ack = True
+
+    def mac_cleanup_budgets(self):
+        self.agent.settings = replace(self.agent.settings, cleanup_timeout=.6)
+        self.agent.device_tools.action_timeout = .2
+        self.agent.device_tools.speech_timeout = self.core.speech.timeout = .6
+        self.agent.programs.audio_queue_timeout = .8
+        self.audio.device.caps['say'] = CapSpec('say', {'text': {'type': 'string'}}, 'Speech')
+        self.audio.device.caps['music.pause'] = CapSpec('music.pause', {}, 'Pause music')
+
+    async def test_host_reset_phone_off_is_parallel_while_pause_waits_for_accepted_narration(self):
+        self.mac_cleanup_budgets()
+        started, release = asyncio.Event(), asyncio.Event()
+        async def mac(frame):
+            self.audio.frames.append(frame)
+            if frame['cap'] == 'say':
+                started.set()
+                await release.wait()
+                result = {'spoken': True}
+            else:
+                self.assertEqual(frame['cap'], 'music.pause')
+                result = {'state': 'paused'}
+            self.core.bus.receive(self.audio.device, {'type': 'ok', 'req': frame['req'], 'result': result})
+        self.audio.send_json = mac
+        narration = asyncio.create_task(self.core.bus.call('laptop', 'say', {'text': 'Accepted narration'},
+            timeout=self.core.speech.timeout, authorize=lambda *_: True))
+        reset = None
+        try:
+            await started.wait()
+            reset = asyncio.create_task(self.core.reset())
+            off = await asyncio.wait_for(self.phone.events.get(), .2)
+            self.assertIs(off['args']['on'], False)
+            self.assertFalse(reset.done())
+            self.assertEqual([frame['cap'] for frame in self.audio.frames], ['say'])
+            await asyncio.sleep(.25)  # Accepted speech outlasts the ordinary .2s action budget.
+            release.set()
+            self.assertTrue((await narration).ok)
+            result = await asyncio.wait_for(reset, .4)
+            self.assertEqual(result['cleanup'], 'confirmed', result)
+            self.assertEqual([frame['cap'] for frame in self.audio.frames], ['say', 'music.pause'])
+            self.assertGreater(self.audio.frames[-1]['deadline_ms'], 200)
+        finally:
+            release.set()
+            await asyncio.gather(narration, *([reset] if reset else []), return_exceptions=True)
+
+    async def test_host_reset_never_settling_mac_queue_is_bounded_and_known_unsent(self):
+        self.mac_cleanup_budgets()
+        lock = self.core.bus.locks['laptop']
+        await lock.acquire()
+        try:
+            reset = asyncio.create_task(self.core.reset())
+            off = await asyncio.wait_for(self.phone.events.get(), .2)
+            self.assertIs(off['args']['on'], False)
+            result = await asyncio.wait_for(reset, 1.2)
+            self.assertEqual(result['cleanup'], 'unconfirmed')
+            rows = [row['audit'] for row in self.core.log.audit_rows
+                    if row.get('audit', {}).get('actor') == 'host.reset'
+                    and row.get('audit', {}).get('cap') == 'music.pause']
+            self.assertEqual(rows[-1]['code'], 'TIMEOUT')
+            self.assertIsNone(rows[-1]['req'])
+            self.assertFalse(any(frame['cap'] == 'music.pause' for frame in self.audio.frames))
+        finally:
+            lock.release()
 
     async def test_reset_waits_for_program_queue_budget_beyond_native_cleanup_budget(self):
         await self.start()

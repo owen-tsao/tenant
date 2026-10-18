@@ -123,6 +123,39 @@ class ProgramRaceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sum(frame['cap'] == 'beat.start' for frame in self.audio.frames), 1)
 
 
+    async def test_stop_settles_dispatched_audio_status_before_sending_owned_audio_stop(self):
+        program = await self.start()
+        await asyncio.sleep(0)  # Establish the monitor status deadline.
+        self.audio.ack = False
+        clock = self.engine.clock
+        self.engine.clock = lambda: clock() + 2
+        async with asyncio.timeout(1):
+            while not any(frame['cap'] == 'beat.status' for frame in self.audio.frames):
+                await asyncio.sleep(0)
+        status = next(frame for frame in self.audio.frames if frame['cap'] == 'beat.status')
+        stopping = asyncio.create_task(self.engine.dispatch(self.grant, 'program-stop',
+            {'request_id': 'stop-during-status', 'program_id': program.id}))
+        try:
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            self.assertFalse(program.active)
+            self.assertEqual(self.bus.uncertain, {}, 'STOP cancelled an already-dispatched status read and blocked its own audio cleanup.')
+            self.assertFalse(stopping.done(), 'STOP completed before its in-flight status receipt settled.')
+            self.audio.ack = True
+            self.bus.receive(self.audio.device, {'type': 'ok', 'req': status['req'],
+                'result': {'program_id': program.run_id, 'state': 'launched'}})
+            result = await asyncio.wait_for(stopping, 1)
+            self.assertTrue(result['ok'], result)
+            self.assertEqual(program.cleanup['audio'], 'confirmed')
+            self.assertEqual(sum(frame['cap'] == 'beat.stop' for frame in self.audio.frames), 1)
+            self.assertEqual(self.bus.uncertain, {})
+        finally:
+            self.audio.ack = True
+            self.bus.receive(self.audio.device, {'type': 'ok', 'req': status['req'],
+                'result': {'program_id': program.run_id, 'state': 'launched'}})
+            await asyncio.gather(stopping, return_exceptions=True)
+
+
 class DriverPreparationRaceTests(unittest.TestCase):
     def test_rendering_another_job_cannot_block_owned_audio_stop(self):
         processes = []

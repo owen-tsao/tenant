@@ -1,0 +1,36 @@
+{
+  "live_source": "00594fa",
+  "reviewed_but_not_deployed_source_at_incident": "3348165",
+  "program_id": "p_059a7e522e104e57b020f2fdba05d707",
+  "primary_evidence": {
+    "sources": ["Private JSONL audit", "Sanitized user messages and structured helper receipts from the room session record", "Human OFF confirmation reported by coordinator"],
+    "initial_native_turn": "01a14cd8-2663-7f20-bf6a-7f0be7f0bd0d",
+    "initial_intent": "Guest requested a light/music performance with synchronization; no tempo change or stop was requested.",
+    "observed_native_actions": ["Start 30 BPM", "Attach phone", "Change to 45 BPM", "Stop program; phone cleanup UNKNOWN, audio confirmed"],
+    "tempo_cleanup": {"t": 1792290619.615852, "phone": "confirmed", "audio": "confirmed"},
+    "requested_stop_cleanup": {"t": 1792290629.022551, "phone": "unknown", "audio": "confirmed"},
+    "fresh_guest_off_request": "OK, turn off the flashlight",
+    "fresh_guest_off_receipts": ["Raw OFF denied CONFLICT by the program reservation", "Detach denied STOPPED because the program was no longer running"],
+    "subsequent_guest_off_attempt": "Guest explicitly requested access to turn off the performance; agent read inventory/status, found an unknown reserved phone, and sent no OFF command.",
+    "host_off": {"t": 1792290710.667352, "cap": "light", "on": false, "ok": true, "req": "r_2ca162897b21403591a2350a28a30783", "human_confirmed_off": true},
+    "independent_aggregate_reset_failure": {"t": 1792290714.511602, "cap": "music.pause", "code": "TIMEOUT", "req": null, "meaning": "Known unsent queue timeout behind Mac narration; does not negate the phone OFF acknowledgment."}
+  },
+  "diagnosis": {
+    "documented": "An unknown stopped program kept its phone reservation; a fresh authorized guest OFF had no recovery route. Repeated stop reused the old cleanup outcome.",
+    "offline_reproduced": "Canceling an already-dispatched phone ON at stop creates Bus uncertainty; cleanup OFF is blocked. A later exact ON acknowledgment clears uncertainty, but the old program claim still blocks fresh raw OFF.",
+    "unproven_live_trigger": "The specific canceled in-flight edge causing the first live UNKNOWN was not recorded. The offline reproduction proves a source defect, not that exact live trigger."
+  },
+  "repair_contract": {
+    "graceful_stop": "Immediately invalidate future ON authority; allow only an already-dispatched bounded phone action or audio status read to settle before owned cleanup.",
+    "fresh_explicit_off": "Current guest permission, exact connection and a fresh helper request authorize one absolute OFF after prior phone work and Bus uncertainty settle. No uncertainty bypass, automatic retry or ON replay.",
+    "recovery": "Only the actual matching OFF acknowledgment releases the matching claim. Unknown outcomes stay reserved and provide local camera-disconnect guidance.",
+    "parallelism": "A fresh guest explicit phone OFF does not wait for unrelated Mac cleanup or narration.",
+    "host_reset_limit": "Aggregate host reset still awaits program quiescence before its cleanup hook. It can wait for audio in an unknown-phone case; this patch makes no all-case fast-reset promise.",
+    "model_behavior": "Live guest dialogue is a performance, not a rehearsal. Do not change tempo or stop an ongoing performance unless requested."
+  },
+  "remaining_physical_gates": {
+    "post_fix_guest_off_test": "UNPERFORMED",
+    "timed_expiry_test": "INTERRUPTED by explicit user stop; not PASS",
+    "physical_audio_visual_alignment": "UNMEASURED"
+  }
+}

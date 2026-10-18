@@ -78,6 +78,10 @@ class Program:
     first_cycles: dict = field(default_factory=dict)
     failure_devices: set = field(default_factory=set)
     light_cadences: dict = field(default_factory=dict)
+    light_dispatches: dict = field(default_factory=dict)
+    monitor_task: object = None
+    status_dispatch: str | None = None
+    cleanup_workers: dict = field(default_factory=dict)
 
 
 class RoomPrograms:
@@ -92,6 +96,7 @@ class RoomPrograms:
         self.programs, self._light_owners = {}, {}
         self.device_locks = device_locks if device_locks is not None else defaultdict(asyncio.Lock)
         self._control = asyncio.Lock()
+        self._off_locks = defaultdict(asyncio.Lock)
         self._closed = False
 
     def _allowed(self, owner):
@@ -137,7 +142,7 @@ class RoomPrograms:
         for program in self.programs.values():
             if device_id != program.audio.id and device_id not in program.lights:
                 continue
-            tasks = (*program.tasks, *program.detach_tasks.values(), *program.output_cleanup.values())
+            tasks = (*program.tasks, *program.detach_tasks.values(), *program.output_cleanup.values(), *program.cleanup_workers.values())
             if (program.active or program.state != 'stopped' or not program.cleanup
                     or any(value != 'confirmed' for value in program.cleanup.values())
                     or any(not task.done() for task in tasks)
@@ -373,6 +378,7 @@ class RoomPrograms:
         program.state, program.reason, program.cleanup = 'starting', None, {}
         program.failure_devices.clear()
         program.cleanup_task = None
+        program.cleanup_workers = {}
         program.run_id = 'b_' + uuid.uuid4().hex
         remaining = max(0, program.owner.lease.expires_at - self.leases.clock())
         args = {'program_id': program.run_id, 'bpm': program.bpm,
@@ -402,7 +408,7 @@ class RoomPrograms:
             program.phase_wall_ms = launched
             program.phase = self.clock() + launched / 1000 - self.wall_clock()
             program.active, program.state = True, 'running'
-            self._task(program, self._monitor(program))
+            program.monitor_task = self._task(program, self._monitor(program))
             for dev, connection in program.lights.values():
                 self._begin_first_cycle(program, dev.id)
                 program.light_tasks[dev.id] = self._task(program, self._light_loop(program, dev, connection))
@@ -422,11 +428,17 @@ class RoomPrograms:
                     self._invalidate(program, 'PERMISSION_OR_OFFLINE')
                     return
                 if self.clock() >= next_status:
-                    result = await self.bus.call(program.audio.id, 'beat.status', {'program_id': program.run_id},
-                        timeout=self.action_timeout,
-                        authorize=lambda dev, cap, _: program.active and self._allowed(program.owner)
-                        and dev is program.audio and self._connection(dev, program.audio_connection)
-                        and self.leases.allows(program.owner.lease, dev, cap))
+                    try:
+                        result = await self.bus.call(program.audio.id, 'beat.status', {'program_id': program.run_id},
+                            timeout=self.action_timeout,
+                            authorize=lambda dev, cap, _: program.active and self._allowed(program.owner)
+                            and dev is program.audio and self._connection(dev, program.audio_connection)
+                            and self.leases.allows(program.owner.lease, dev, cap),
+                            on_dispatch=lambda req, _: setattr(program, 'status_dispatch', req))
+                    finally:
+                        program.status_dispatch = None
+                    if not program.active:
+                        return  # Settle the already-sent read before owned audio stop.
                     data = result.result if isinstance(result.result, dict) else {}
                     if not result.ok and result.code == 'TIMEOUT' and result.req is None:
                         # A read queued behind ordinary speech says nothing about
@@ -484,9 +496,13 @@ class RoomPrograms:
                         if allowed:
                             dispatch_time['at'] = self.clock()
                         return allowed
-                    result = await self.bus.call(dev.id, 'light', {'on': on},
-                        timeout=min(self.action_timeout, max(.001, deadline - self.clock())),
-                        authorize=permitted)
+                    try:
+                        result = await self.bus.call(dev.id, 'light', {'on': on},
+                            timeout=min(self.action_timeout, max(.001, deadline - self.clock())),
+                            authorize=permitted,
+                            on_dispatch=lambda req, _: program.light_dispatches.__setitem__(dev.id, req))
+                    finally:
+                        program.light_dispatches.pop(dev.id, None)
                     ack = self.clock()
                     record = {'device_id': dev.id, 'on': on, 'target_monotonic_ms': round(due * 1000, 3),
                               'bus_call_monotonic_ms': round(sent * 1000, 3), 'ack_monotonic_ms': round(ack * 1000, 3),
@@ -506,6 +522,8 @@ class RoomPrograms:
                         self._invalidate(program, result.code or 'UNKNOWN', dev.id)
                         return
                     program.last_on[dev.id] = on
+                    if not program.active or dev.id in program.detached:
+                        return  # An already-sent edge settled; no next edge is authorized.
                     participant = program.participants[dev.id]
                     cycle = participant['first_cycle']
                     if on:
@@ -536,19 +554,22 @@ class RoomPrograms:
             if not ready.done():
                 ready.set_result({'ok': False, 'code': reason})
         for task in tuple(program.tasks):
-            if task is not asyncio.current_task():
+            dispatched = any(program.light_tasks.get(device_id) is task for device_id in program.light_dispatches)
+            dispatched = dispatched or (task is program.monitor_task and program.status_dispatch is not None)
+            if task is not asyncio.current_task() and not dispatched:
                 task.cancel()
+        # Create phone workers synchronously: a later fresh OFF can settle just
+        # its phone, independently of an audio stop waiting behind narration.
+        program.cleanup_workers = {'audio': asyncio.create_task(self._stop_audio_after_status(program))}
+        for dev, connection in program.lights.values():
+            if program.cleanup.get(dev.id) != 'unknown':
+                program.cleanup_workers[dev.id] = asyncio.create_task(self._stop_phone_after_steps(program, dev, connection))
         program.cleanup_task = asyncio.create_task(self._cleanup(program))
 
     async def _cleanup(self, program):
         # This authority can only stop effects already owned by this exact job;
         # it never borrows a host credential or authorizes a new ON/start effect.
-        work = [self._stop_output(program, program.audio, program.audio_connection, 'beat.stop', {'program_id': program.run_id},
-                     'audio', lambda data: data.get('program_id') == program.run_id and data.get('stopped') is True)]
-        for dev, connection in program.lights.values():
-            if program.cleanup.get(dev.id) != 'unknown':
-                work.append(self._stop_output(program, dev, connection, 'light', {'on': False}, dev.id, lambda data: data.get('on') is False))
-        await asyncio.gather(*work)
+        await asyncio.gather(*program.cleanup_workers.values())
         keep_for_restart = (program.reason == 'tempo_change' and program.restart_pending
                             and self._allowed(program.owner) and program.restart_allowed()
                             and all(v == 'confirmed' for v in program.cleanup.values()))
@@ -560,12 +581,28 @@ class RoomPrograms:
 
     def _release_clean_lights(self, program):
         for device_id in program.lights:
-            if (self._light_owners.get(device_id) is program
-                    and program.cleanup.get(device_id) == 'confirmed'):
-                self._light_owners.pop(device_id, None)
-                lock = program.light_locks.pop(device_id, None)
-                if lock is not None:
-                    lock.release()
+            self._release_clean_light(program, device_id)
+
+    def _release_clean_light(self, program, device_id):
+        if (self._light_owners.get(device_id) is program
+                and program.cleanup.get(device_id) == 'confirmed'):
+            self._light_owners.pop(device_id, None)
+            lock = program.light_locks.pop(device_id, None)
+            if lock is not None:
+                lock.release()
+
+    async def _stop_phone_after_steps(self, program, dev, connection):
+        task = program.light_tasks.get(dev.id)
+        if task is not None:
+            await asyncio.gather(task, return_exceptions=True)
+        await self._stop_output(program, dev, connection, 'light', {'on': False}, dev.id,
+                                lambda data: data.get('on') is False)
+
+    async def _stop_audio_after_status(self, program):
+        if program.monitor_task is not None:
+            await asyncio.gather(program.monitor_task, return_exceptions=True)
+        await self._stop_output(program, program.audio, program.audio_connection, 'beat.stop', {'program_id': program.run_id},
+                                'audio', lambda data: data.get('program_id') == program.run_id and data.get('stopped') is True)
 
     async def _stop_output(self, program, dev, connection, cap, args, name, confirmed):
         key = (cap, dev.id, program.run_id)
@@ -593,21 +630,30 @@ class RoomPrograms:
             return failure('INVALID', 'That phone is not a participant in this program.')
         if device_id in program.detached:
             return failure('UNKNOWN', 'Phone detach cleanup is already unconfirmed; it was not retried.')
+        self._end_phone_steps(program, device_id)
+        task = asyncio.create_task(self._detach_once(program, device_id))
+        program.detach_tasks[device_id] = task
+        return await asyncio.shield(task)
+
+    def _end_phone_steps(self, program, device_id):
         program.detached.add(device_id)  # Synchronous: queued/future ON authorization ends now.
         participant = program.participants[device_id]
         participant['participant_state'] = 'detached'
         ready = program.first_cycles[device_id]
         if not ready.done():
             ready.set_result({'ok': False, 'code': 'STOPPED'})
-        task = asyncio.create_task(self._detach_once(program, device_id))
-        program.detach_tasks[device_id] = task
-        return await asyncio.shield(task)
+        task = program.light_tasks.get(device_id)
+        if task is not None and device_id not in program.light_dispatches:
+            task.cancel()  # Unsent sleep/queue work; dispatched calls retain their own bounded deadline.
 
     async def _detach_once(self, program, device_id):
-        task = program.light_tasks.pop(device_id, None)
+        task = program.light_tasks.get(device_id)
         if task is not None:
-            task.cancel()
+            if device_id not in program.light_dispatches:
+                task.cancel()
             await asyncio.gather(task, return_exceptions=True)
+            if program.light_tasks.get(device_id) is task:
+                program.light_tasks.pop(device_id, None)
         dev, connection = program.lights[device_id]
         await self._stop_output(program, dev, connection, 'light', {'on': False}, device_id,
                                 lambda data: data.get('on') is False)
@@ -622,6 +668,108 @@ class RoomPrograms:
         return {'ok': True, 'result': self._status(program),
                 'message': ('Phone left the beat and confirmed OFF. Music continues; a new ordinary phone action is now permitted.'
                             if program.active else 'Phone cleanup was confirmed; its room program also stopped.')}
+
+    async def explicit_off(self, grant, device_id, *, authorized=lambda: True, timeout=5):
+        """One newly requested guest OFF, never a retry of an earlier effect.
+
+        Retire that phone's future steps and settle prior possible sends first.
+        Bus uncertainty is never cleared here; only its actual receipt can do so.
+        This route uses the current guest's light permission, including when an
+        inactive earlier job still reserves the phone. It cannot adopt that job.
+        """
+        owner = ProgramOwner.from_grant(grant)
+        dev = self.registry.devices.get(device_id) if isinstance(device_id, str) else None
+        connection = getattr(dev, 'ws', None)
+        loop = asyncio.get_running_loop()
+        remaining = min(timeout, max(0, grant.lease.expires_at - self.leases.clock()))
+        deadline = min(getattr(grant, 'deadline', loop.time() + remaining), loop.time() + remaining)
+        def allowed():
+            return (self._allowed(owner) and authorized() and loop.time() < deadline
+                    and dev is not None and self._connection(dev, connection)
+                    and 'light' in dev.caps and self.leases.allows(grant.lease, dev, 'light'))
+        if dev is None or not self._connection(dev, connection):
+            return failure('OFFLINE', 'That exact phone bridge is unavailable; no command was sent.')
+        if not allowed():
+            return failure('PERMISSION', 'This guest cannot turn off that exact connected phone.')
+        claim, acquired, held, req = None, None, False, None
+        def capture(request_id):
+            nonlocal req
+            req = request_id
+        try:
+            async with asyncio.timeout_at(deadline):
+                async with self._off_locks[device_id]:
+                    if not allowed():
+                        return failure('PERMISSION', 'Access or the exact phone connection changed before OFF.')
+                    claim = self._light_owners.get(device_id)
+                    if claim is not None:
+                        participant = claim.lights.get(device_id)
+                        if participant is None or participant[0] is not dev or participant[1] is not connection:
+                            return failure('OFFLINE', 'The reserved phone bridge changed. Disconnect and release its camera locally; no command was sent.')
+                        self._end_phone_steps(claim, device_id)
+                        tasks = {task for task in (claim.light_tasks.get(device_id), claim.detach_tasks.get(device_id),
+                                                  claim.cleanup_workers.get(device_id)) if task is not None and not task.done()}
+                        tasks.update(task for (_, target, _), task in claim.output_cleanup.items()
+                                     if target == device_id and not task.done())
+                        if tasks:
+                            await asyncio.shield(asyncio.gather(*tasks, return_exceptions=True))
+                        current_claim = self._light_owners.get(device_id)
+                        if current_claim is not claim:
+                            if current_claim is None and claim.cleanup.get(device_id) == 'confirmed':
+                                claim = None  # The earlier owned cleanup already released its claim.
+                            else:
+                                return failure('CONFLICT', 'Phone ownership changed while OFF was waiting. Nothing was sent.')
+                    if claim is None:
+                        acquired = self.device_locks[device_id]
+                        await acquired.acquire()
+                        held = True
+                    while any(current is dev for current in self.bus.uncertain.values()):
+                        if not self._connection(dev, connection):
+                            return failure('OFFLINE', 'The exact phone bridge changed while OFF was waiting; no command was sent.')
+                        if not allowed():
+                            return failure('PERMISSION', 'Access or the exact phone connection changed while waiting for the previous action.')
+                        await asyncio.sleep(min(.01, max(0, deadline - loop.time())))
+                    if not self._connection(dev, connection):
+                        return failure('OFFLINE', 'The exact phone bridge changed while OFF was waiting; no command was sent.')
+                    def permitted(current, *_):
+                        return (allowed() and current is dev
+                                and self._light_owners.get(device_id) is claim
+                                and (claim is None or device_id in claim.detached))
+                    result = await self.bus.call(device_id, 'light', {'on': False},
+                        timeout=max(.001, deadline - loop.time()), authorize=permitted,
+                        on_dispatch=lambda request_id, _: capture(request_id))
+                    data = result.result if isinstance(result.result, dict) else {}
+                    confirmed = result.ok and data.get('on') is False
+                    if not confirmed:
+                        if claim is not None and self._light_owners.get(device_id) is claim:
+                            claim.cleanup[device_id] = 'unknown'
+                            claim.participants[device_id]['participant_state'] = 'unknown'
+                        return dict(failure(result.code or 'UNKNOWN', 'The newly requested OFF was not confirmed. Do not retry automatically; disconnect and release the phone camera locally if needed.'),
+                                    status='unknown' if req else 'unsent', req=req,
+                                    unknown_device_ids=[device_id])
+                    if claim is not None and self._light_owners.get(device_id) is claim:
+                        claim.cleanup[device_id] = 'confirmed'
+                        claim.recovery[device_id] = {'source': 'guest explicit OFF acknowledgment', 'req': result.req}
+                        claim.participants[device_id]['participant_state'] = 'detached'
+                        self._release_clean_light(claim, device_id)
+                        if claim.active:
+                            claim.lights.pop(device_id, None)
+                            claim.light_cadences.pop(device_id, None)
+                            claim.detached.discard(device_id)
+                        elif (claim.cleanup_task is not None and claim.cleanup_task.done()
+                              and all(value == 'confirmed' for value in claim.cleanup.values())):
+                            claim.state = 'stopped'
+                    return {'ok': True, 'status': 'confirmed', 'result': {'on': False}, 'req': result.req,
+                            'message': 'The phone acknowledged the newly requested OFF. Its future program light steps are stopped.'}
+        except (TimeoutError, asyncio.CancelledError):
+            if claim is not None and self._light_owners.get(device_id) is claim:
+                claim.cleanup[device_id] = 'unknown'
+                claim.participants[device_id]['participant_state'] = 'unknown'
+            return dict(failure('UNKNOWN' if req or any(current is dev for current in self.bus.uncertain.values()) else 'TIMEOUT',
+                        'OFF could not be confirmed within this request. No automatic retry was sent. Disconnect and release the phone camera locally if needed.'),
+                        status='unknown' if req else 'unsent', req=req, unknown_device_ids=[device_id])
+        finally:
+            if held:
+                acquired.release()
 
     def access_ended(self, guest_id):
         for program in self.programs.values():
@@ -640,6 +788,7 @@ class RoomPrograms:
                      if not program.active and program.cleanup_task is not None)
         tasks.update(task for program in self.programs.values() if not program.active for task in program.detach_tasks.values())
         tasks.update(task for program in self.programs.values() if not program.active for task in program.output_cleanup.values())
+        tasks.update(task for program in self.programs.values() if not program.active for task in program.cleanup_workers.values())
         if tasks:
             try:
                 await asyncio.gather(*tasks, return_exceptions=True)
@@ -677,6 +826,7 @@ class RoomPrograms:
                 or any(not task.done() for task in program.tasks)
                 or any(not task.done() for task in program.detach_tasks.values())
                 or any(not task.done() for task in program.output_cleanup.values())
+                or any(not task.done() for task in program.cleanup_workers.values())
                 or program.cleanup_task is None or not program.cleanup_task.done()):
             return False
         program.cleanup[device.id] = 'confirmed'

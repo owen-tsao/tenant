@@ -170,7 +170,8 @@ class Core:
         cleanup = 'not_configured'
         if self.cleanup_hook:
             try:
-                async with asyncio.timeout(5):
+                timeout = getattr(self.agent, 'program_cleanup_timeout', lambda: 5)()
+                async with asyncio.timeout(timeout):
                     outcome = await self.cleanup_hook(self)
                 # Cleanup must explicitly attest its confirmed outcome.
                 cleanup = 'confirmed' if outcome is True and (programs is None or programs.cleanup_confirmed()) else 'unconfirmed'

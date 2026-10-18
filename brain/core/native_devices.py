@@ -41,6 +41,7 @@ class TurnGrant:
     explicit_speech_attempted: bool = False
     calls: dict = field(default_factory=dict, repr=False)
     unknown_devices: set = field(default_factory=set, repr=False)
+    off_unknown_devices: set = field(default_factory=set, repr=False)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
 
 
@@ -123,28 +124,29 @@ class NativeDevices:
         command = shlex.join([sys.executable, str(helper), '--context', str(grant.path)])
         text = (
             '[Tenant room integration context]\n'
-            'You are the genuine shared room conversation with broad computer tools. '
-            'Start normal replies with a concise plain first line conveying the answer or measured result '
-            '(within the speech driver\'s 160-character support); longer details can follow below. '
-            'Normal final replies are voiced automatically, so do not call device say merely to narrate them. '
-            'For enrolled room light/audio devices, use the private helper below through your existing shell. '
-            'Run inventory first; use its exact device IDs, online state and argument schemas. '
-            'Perform as many supported device operations as explicitly requested in THIS guest message. '
-            'Ask the guest to choose if the target is ambiguous or unavailable; never silently substitute. '
-            'Keep the current sound output and volume unless this guest explicitly requests a volume change. '
-            'Do not claim an enrolled-device effect from prose, intentions or a successful shell exit: '
-            'only the helper JSON ok/result is evidence. UNKNOWN may have acted: never retry, substitute or claim cancellation. '
-            'Do not reveal helper paths or credentials in routine replies.\n'
+            'You are the LIVE room conversation with broad computer tools. Guest-requested coding, artifacts '
+            'and apps are allowed; do not turn ordinary guest requests into Tenant engineering rehearsals/self-tests. '
+            'Fulfill THIS guest request only. Keep requested performances running after your reply. '
+            'Never rehearse unrequested start, tempo changes or stop; change tempo/stop only when asked. '
+            'The backend handles access ending and faults. '
+            'Start replies with a concise plain result within 160 characters; details can follow. '
+            'Final replies are voiced automatically: do not call say merely to narrate them. '
+            'Use this private shell helper for enrolled light/audio. Run inventory first; use exact IDs, '
+            'online state and schemas. Multiple explicitly requested operations/devices are allowed. '
+            'Ask for a choice on ambiguous/unavailable targets; never substitute. Preserve output/volume '
+            'unless explicitly asked. Only helper JSON results establish effects; shell exit/prose does not. '
+            'UNKNOWN may have acted: stop dependent actions; never retry under another ID or claim cancellation. '
+            'Keep helper paths/credentials out of routine replies.\n'
             f'Helper command prefix: {command}\n'
-            'Append inventory for read-only discovery, call for one action, or light-blink for a blink sequence.\n'
-            'For call, send exactly one JSON object on stdin with request_id (a unique short ID), '
-            'device_id, cap, args. For light-blink, send request_id, device_id, and optional count '
-            '(any positive integer, default 3). This derived light operation uses gentle 500ms ON/OFF intervals '
-            'and ends OFF only after acknowledgment. Its execution remains bounded by the current turn and guest lease. '
-            'Use it for requested flash/blink sequences. Give each distinct requested operation its own stable request_id. '
-            'Reusing an ID returns its recorded result without replay. Multiple supported calls across devices are allowed. '
-            'UNKNOWN must stop dependent actions; never resend it under another ID or substitute another device. '
-            'These commands grant no host bypass and work only during this active native turn.\n'
+            'Append inventory (read-only), call, or light-blink. Send one JSON object on stdin: '
+            'call takes request_id,device_id,cap,args; light-blink takes request_id,device_id,count '
+            '(any positive integer, default 3; 500ms ON/OFF intervals). Blink ends OFF only after ACK. '
+            'Use a stable unique request_id per operation; duplicates return recorded results without replay. '
+            'Calls are bounded by this active turn/lease, with no host bypass. '
+            'A newly requested OFF is a distinct compensating action: call light with args {on:false}. '
+            'It stops future program ON, waits boundedly for earlier work, then sends one fresh OFF. '
+            'It never replays an old ON. If unresolved/BUSY, use the phone device page Disconnect/release camera; '
+            'do not claim OFF or retry an uncertain OFF under another ID in this turn.\n'
             '[End Tenant room integration context]')
         if self.programs is not None:
             text += (
@@ -159,7 +161,7 @@ class NativeDevices:
                 'ACKs. ok with complete:false/code PENDING means accepted only, not following. '
                 'Only following/first_cycle ACKs confirm that cycle, never visible pulses or physical sync. '
                 'UNKNOWN stops dependent work. '
-                'For a phone CONFLICT, detach it via program-update/remove_light_device_id, then submit the original '
+                'For a non-OFF phone CONFLICT, detach via program-update/remove_light_device_id, then submit the original '
                 'raw action with a fresh request_id only after confirmed detach; music may continue. Never retry UNKNOWN detach. '
                 'A bpm update restarts the loop with a new phase. Process launch/dispatch timestamps do not prove '
                 'physical audio/light sync; prepared Music is not tempo-synced. Programs end with guest access.')
@@ -340,6 +342,10 @@ class NativeDevices:
         device_id = payload.get('device_id')
         if not isinstance(device_id, str):
             return denied('INVALID', 'A device ID is required. Nothing was sent.')
+        if (not blink and self.programs is not None and payload.get('cap') == 'light'
+                and isinstance(payload.get('args'), dict) and set(payload['args']) == {'on'}
+                and payload['args']['on'] is False):
+            return await self._explicit_off(grant, payload, connected)
         conflict = self._program_conflict(device_id, grant)
         if conflict is not None:
             return conflict
@@ -372,6 +378,42 @@ class NativeDevices:
                 code = 'TIMEOUT' if isinstance(error, TimeoutError) else 'CANCELLED'
                 return {**denied(code, 'The operation ended while waiting. Nothing was sent.'), 'status': 'unsent'}
             return {**denied('UNKNOWN', 'The operation outcome is unknown. Do not retry or substitute.'), 'status': 'unknown'}
+
+    async def _explicit_off(self, grant, payload, connected):
+        device_id = payload['device_id']
+        if device_id in grant.off_unknown_devices:
+            return denied('UNKNOWN', 'An earlier OFF outcome is unknown. Do not retry; use the phone device page Disconnect to release its camera.')
+        device = self.registry.devices.get(device_id)
+        connection = getattr(device, 'ws', None)
+        if device is None or not device.online or device.room_id != grant.room_id or 'light' not in device.caps:
+            return denied('OFFLINE', 'That exact phone is unavailable. Use its device page Disconnect to release the camera.')
+        def authorized():
+            return (device_id not in grant.off_unknown_devices and self.permitted(grant) and connected()
+                    and self.registry.devices.get(device_id) is device
+                    and device.ws is connection and self.leases.allows(grant.lease, device, 'light'))
+        if not authorized():
+            return denied()
+        self.log.append('cmd', requested_sentence(grant.lease.display_name, device, 'light', {'on': False}),
+                        guest_id=grant.guest_id, generation=grant.generation, thread_id=grant.thread_id,
+                        turn_id=grant.turn_id, device_id=device_id, cap='light', compensating_off=True)
+        try:
+            remaining = min(self.action_timeout, grant.deadline - asyncio.get_running_loop().time(),
+                            grant.lease.expires_at - self.leases.clock())
+            async with asyncio.timeout(max(.001, remaining)):
+                response = await self.programs.explicit_off(grant, device_id, authorized=authorized, timeout=remaining)
+        except (Exception, asyncio.CancelledError):
+            grant.off_unknown_devices.add(device_id)
+            response = {**denied('UNKNOWN', 'The OFF result is unknown. Do not retry; use the phone device page Disconnect to release its camera.'),
+                        'status': 'unknown'}
+        if response.get('code') == 'UNKNOWN':
+            grant.off_unknown_devices.add(device_id)
+        self.log.append('ok' if response.get('ok') else 'err',
+                        f'{device.label} acknowledged OFF.' if response.get('ok') else
+                        'Phone OFF was not confirmed. Use its device page Disconnect if the result remains unknown.',
+                        guest_id=grant.guest_id, generation=grant.generation, device_id=device_id, cap='light',
+                        thread_id=grant.thread_id, turn_id=grant.turn_id, req=response.get('req'),
+                        ok=response.get('ok') is True, code=response.get('code'), compensating_off=True)
+        return response
 
     async def _blink(self, grant, payload, *, connected=lambda: True):
         device_id, count = payload['device_id'], payload['count']
